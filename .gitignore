@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+*.local
+.DS_Store
+# Migrations-Zwischenstände (echte Rezeptdaten gehören nicht ins Repo)
+server/scripts/dump-*.json

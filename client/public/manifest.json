@@ -1,0 +1,22 @@
+{
+  "name": "Rezeptrechner - Landbäckerei Oetzmann",
+  "short_name": "Rezeptrechner",
+  "description": "Rezeptberechnung und Produktion für die Landbäckerei Oetzmann",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#f7f3ec",
+  "theme_color": "#c8952a",
+  "orientation": "any",
+  "lang": "de",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

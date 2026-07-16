@@ -1,0 +1,9 @@
+# Hashed Build-Assets NICHT auf index.html zurückfallen lassen.
+# Existiert die Datei -> wird normal ausgeliefert (Regel greift nicht).
+# Fehlt sie (alter Chunk-Hash nach Deploy) -> echtes 404 statt HTML,
+# damit der dynamische Import sauber scheitert und der Client gezielt
+# einmal neu lädt (siehe utils/lazyWithReload.js) statt MIME-Fehler.
+/assets/*   /assets/:splat   404
+
+# SPA-Fallback für alle echten Routen.
+/*          /index.html      200

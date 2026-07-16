@@ -1,0 +1,14 @@
+# index.html nie hart cachen — sonst lädt ein wiederkehrender Browser
+# nach einem Deploy weiter die alten Asset-Hashes.
+/index.html
+  Cache-Control: no-cache
+/
+  Cache-Control: no-cache
+
+# Service Worker immer revalidieren, damit Updates ankommen.
+/sw.js
+  Cache-Control: no-cache
+
+# Gehashte Assets sind unveränderlich -> lange + immutable cachen.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: rezeptrechner-api
+    env: node
+    region: frankfurt
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    # preDeployCommand ist nur auf bezahlten Render-Plänen verfügbar —
+    # daher hängt die Migration am Start. Der Migration-Runner ist idempotent
+    # (schema_migrations-Tabelle). Schlägt eine Migration fehl, startet der
+    # Server nicht — gewünscht, sonst läuft die App auf falschem Schema.
+    startCommand: npm run migrate && npm run start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        sync: false

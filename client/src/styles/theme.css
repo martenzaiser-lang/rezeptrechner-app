@@ -1,0 +1,2326 @@
+/* ============================================================
+   Landbäckerei Oetzmann — Design-System v2
+   Warm, frisch, strukturiert
+   ============================================================ */
+
+:root {
+  /* Hintergrund */
+  --bg: #f7f3ec;
+  --bg-subtle: #efe9de;
+  --bg-elevated: #ffffff;
+
+  /* Text */
+  --text: #1a1310;
+  --text-secondary: #5c4f42;
+  --muted: #8a7b68;
+
+  /* Akzentfarben (warmes Gold mit modernem Kontrast) */
+  --accent: #c8952a;
+  --accent-hover: #b07f1c;
+  --accent-light: rgba(200, 149, 42, 0.14);
+  --accent-soft: #faf1dc;
+
+  /* Sekundärfarbe (tiefes Rot wie Backofen) */
+  --secondary: #a53f2d;
+  --secondary-light: rgba(165, 63, 45, 0.1);
+
+  /* Status */
+  --success: #2d8a4e;
+  --success-bg: #e8f5e9;
+  --success-soft: #d8efda;
+  --error: #c93b37;
+  --error-bg: #fdeaea;
+  --warning: #c08410;
+  --warning-bg: #fdf0d0;
+  --info: #3e7ea2;
+  --info-bg: #e3eff8;
+
+  /* Rahmen */
+  --border: #e5ddcf;
+  --border-strong: #ccbea7;
+
+  /* Card / Surface */
+  --card: #ffffff;
+
+  /* Schatten (geschichtet) */
+  --shadow-xs: 0 1px 2px rgba(37, 27, 18, 0.04);
+  --shadow-sm: 0 2px 4px rgba(37, 27, 18, 0.06), 0 1px 2px rgba(37, 27, 18, 0.04);
+  --shadow:    0 4px 12px rgba(37, 27, 18, 0.08), 0 2px 4px rgba(37, 27, 18, 0.05);
+  --shadow-md: 0 8px 20px rgba(37, 27, 18, 0.10), 0 3px 6px rgba(37, 27, 18, 0.06);
+  --shadow-lg: 0 16px 40px rgba(37, 27, 18, 0.14), 0 4px 10px rgba(37, 27, 18, 0.06);
+
+  /* Radien */
+  --radius:    12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --radius-lg: 16px;
+
+  /* Layout */
+  --nav-height: 64px;
+  --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Glas-Surfaces (im Light-Mode helle, im Dark-Mode dunkle Variante).
+     Werden in Cards, Header, Buttons genutzt — nur diese Variablen
+     anfassen, dann reagiert alles auf Theme-Wechsel. */
+  --glass-bg:         rgba(255, 255, 255, 0.72);
+  --glass-bg-strong:  rgba(255, 255, 255, 0.85);
+  --glass-bg-stronger: rgba(255, 255, 255, 0.92);
+  --glass-bg-soft:    rgba(255, 255, 255, 0.55);
+  --glass-bg-medium:  rgba(255, 255, 255, 0.75);
+  --glass-bg-light:   rgba(255, 255, 255, 0.5);
+  --glass-bg-faint:   rgba(255, 255, 255, 0.4);
+  --glass-bg-tint:    rgba(255, 255, 255, 0.65);
+  --glass-bg-header:  rgba(255, 255, 255, 0.85);
+  --glass-bg-nav:     rgba(255, 255, 255, 0.9);
+  --glass-border:     rgba(255, 255, 255, 0.45);
+  --glass-border-soft: rgba(255, 255, 255, 0.55);
+  --glass-border-faint: rgba(255, 255, 255, 0.3);
+  --glass-inset:      rgba(255, 255, 255, 0.3);
+  --glass-inset-strong: rgba(255, 255, 255, 0.5);
+  --glass-inset-soft: rgba(255, 255, 255, 0.4);
+  --glass-inset-bright: rgba(255, 255, 255, 0.55);
+  --primary-shadow:   rgba(200, 149, 42, 0.18);
+  --primary-shadow-soft: rgba(200, 149, 42, 0.08);
+  --danger-shadow:    rgba(201, 59, 55, 0.16);
+
+  /* Warme Akzent-Verlaufspalette (app-weit): Gold → Honig →
+     Terrakotta → getoastete Bronze. Auf --accent abgestimmt. */
+  --d1: var(--accent);
+  --d2: #d98a2b;
+  --d3: #b5552b;
+  --d4: #8a6a3c;
+}
+
+/* ---------------- Dark-Mode ---------------- */
+[data-theme="dark"] {
+  --bg: #1c1614;
+  --bg-subtle: #25201d;
+  --bg-elevated: #2a2522;
+
+  --text: #f3ece1;
+  --text-secondary: #c9bdac;
+  --muted: #998a76;
+
+  --accent: #d8a740;
+  --accent-hover: #e6b758;
+  --accent-light: rgba(216, 167, 64, 0.18);
+  --accent-soft: rgba(216, 167, 64, 0.12);
+
+  --secondary: #d65441;
+  --secondary-light: rgba(214, 84, 65, 0.15);
+
+  --success: #5cc77c;
+  --success-bg: rgba(45, 138, 78, 0.18);
+  --success-soft: rgba(45, 138, 78, 0.10);
+  --error: #e8625e;
+  --error-bg: rgba(232, 98, 94, 0.16);
+  --warning: #e0a235;
+  --warning-bg: rgba(224, 162, 53, 0.16);
+  --info: #6ba9cc;
+  --info-bg: rgba(107, 169, 204, 0.16);
+
+  --border: #3a322d;
+  --border-strong: #4d4540;
+  --card: #28221f;
+
+  /* Warme Akzentpalette im Dark-Mode etwas heller */
+  --d2: #e6a544;
+  --d3: #d06f43;
+  --d4: #b3925c;
+
+  /* Schatten dunkler — sonst grell auf dunklem Grund */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.32), 0 1px 2px rgba(0, 0, 0, 0.22);
+  --shadow:    0 4px 12px rgba(0, 0, 0, 0.42), 0 2px 4px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.5),  0 3px 6px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.32);
+
+  /* Glas-Surfaces dunkel: dezent gefärbt, nicht reines Schwarz */
+  --glass-bg:         rgba(56, 47, 41, 0.55);
+  --glass-bg-strong:  rgba(56, 47, 41, 0.72);
+  --glass-bg-stronger: rgba(56, 47, 41, 0.85);
+  --glass-bg-soft:    rgba(56, 47, 41, 0.40);
+  --glass-bg-medium:  rgba(56, 47, 41, 0.55);
+  --glass-bg-light:   rgba(56, 47, 41, 0.35);
+  --glass-bg-faint:   rgba(56, 47, 41, 0.25);
+  --glass-bg-tint:    rgba(56, 47, 41, 0.50);
+  --glass-bg-header:  rgba(28, 22, 20, 0.85);
+  --glass-bg-nav:     rgba(28, 22, 20, 0.92);
+  --glass-border:     rgba(255, 255, 255, 0.06);
+  --glass-border-soft: rgba(255, 255, 255, 0.10);
+  --glass-border-faint: rgba(255, 255, 255, 0.04);
+  --glass-inset:      rgba(255, 255, 255, 0.04);
+  --glass-inset-strong: rgba(255, 255, 255, 0.08);
+  --glass-inset-soft: rgba(255, 255, 255, 0.06);
+  --glass-inset-bright: rgba(255, 255, 255, 0.10);
+  --primary-shadow:   rgba(216, 167, 64, 0.25);
+  --primary-shadow-soft: rgba(216, 167, 64, 0.10);
+  --danger-shadow:    rgba(232, 98, 94, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+/* Anti-Overflow: harte Begrenzung auf Viewport-Breite, damit kein
+   einzelnes ueberbreites Element den ganzen Body seitlich scrollen
+   kann (sonst rutscht z.B. der "Einstellungen"-Tab in der
+   Bottom-Nav am rechten Rand raus). */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+body {
+  /* Lange Komposita (Kundennamen, Artikelnamen) brechen jetzt sauber,
+     statt das Layout zu sprengen. */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  /* Kein graues Tap-Highlight beim Antippen unter iOS/Android — wir
+     liefern eigene Hover/Active-States. */
+  -webkit-tap-highlight-color: transparent;
+  /* Vermeidet "Bounce-Scrolling" am Rand auf iOS bei installierter PWA */
+  overscroll-behavior-y: none;
+}
+/* App-Header und Bottom-Nav respektieren Safe-Area auf Notch-Geraeten,
+   sowohl im Browser als auch in der installierten PWA. */
+.app-header {
+  padding-top: env(safe-area-inset-top);
+}
+@supports (padding: max(0px)) {
+  .app-header-inner { padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+  .app-main { padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+  background:
+    radial-gradient(900px circle at 15% -10%, rgba(200, 149, 42, 0.07) 0%, transparent 55%),
+    radial-gradient(700px circle at 105% 105%, rgba(165, 63, 45, 0.05) 0%, transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------- Cards mit leichtem Glasmorphism ---------------- */
+
+h1, h2, h3, h4 {
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+
+code {
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 0.88em;
+  padding: 1px 6px;
+  background: var(--bg-subtle);
+  border-radius: 4px;
+}
+
+/* ---------------- Scrollbars dezenter ---------------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; border: 3px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ---------------- App-Layout ---------------- */
+.app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: var(--glass-bg-header);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+.brand-logo {
+  height: 44px;
+  width: auto;
+  display: block;
+  border-radius: 6px;
+  transition: background var(--transition);
+}
+/* Dark-Mode: das JPG-Logo hat weissen Hintergrund. Damit das nicht als
+   harter weisser Kasten auf dunklem Header hervorsticht, gibts einen
+   sanften weissen Badge-Hintergrund mit Padding + Rundung. */
+[data-theme="dark"] .brand-logo {
+  background: #fff;
+  padding: 3px 6px;
+  height: 38px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+.brand {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+@media (max-width: 480px) {
+  .brand-sub { display: none; }
+  .brand-logo { height: 36px; }
+}
+
+.app-main {
+  flex: 1;
+  padding: 24px;
+  padding-bottom: calc(var(--nav-height) + 24px);
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  animation: fadeInUp 0.35s ease-out;
+}
+/* Ab Desktop sitzt die Nav oben im Header (TopNav) statt unten als
+   BottomNav — daher kein Platz mehr fuer die Bottom-Bar reservieren. */
+@media (min-width: 1024px) {
+  .app-main { padding-bottom: 24px; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------------- Offline-Banner ---------------- */
+.offline-banner {
+  background: var(--error);
+  color: #fff;
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(201, 59, 55, 0.28);
+}
+
+/* ---------------- Bottom Nav (Mobile) ---------------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background: var(--glass-bg-nav);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  z-index: 20;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -2px 16px rgba(37, 27, 18, 0.06);
+}
+.bottom-nav a {
+  flex: 1 1 0;
+  min-width: 0; /* sonst sprengt langer Tab-Text ("Einstellungen") den Container */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 4px;
+  min-height: 44px;
+  transition: color var(--transition);
+  position: relative;
+}
+.bottom-nav a > span:not(.nav-icon) {
+  /* Falls Text doch zu lang wird, sauber abschneiden statt umbrechen */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bottom-nav a.active {
+  color: var(--accent-hover);
+}
+.bottom-nav a.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 0 0 2px 2px;
+  opacity: 0.7;
+}
+.bottom-nav .nav-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* ---------------- Top Nav (Desktop, ab 1024px) ---------------- */
+.top-nav {
+  display: none;
+  /* Auf Desktop reihen sich die Links horizontal rechts neben Logo */
+  margin-left: 24px;
+  gap: 4px;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+}
+.top-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: all var(--transition);
+}
+.top-nav-link:hover {
+  color: var(--text);
+  background: var(--glass-bg-faint);
+  border-color: var(--glass-border-faint);
+}
+.top-nav-link.active {
+  color: var(--accent-hover);
+  background: var(--glass-bg-soft);
+  border-color: rgba(200, 149, 42, 0.42);
+}
+@media (min-width: 1024px) {
+  .top-nav { display: flex; }
+  .bottom-nav { display: none; }
+}
+
+/* ---------------- Cards ---------------- */
+.card {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  box-shadow:
+    var(--shadow-xs),
+    inset 0 0 0 1px var(--glass-inset);
+  transition: box-shadow var(--transition), transform var(--transition), background var(--transition);
+}
+/* Futuristische Akzent-Topbar — app-weit auf allen Karten */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 1px;
+  right: 1px;
+  height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: linear-gradient(90deg, var(--d1), var(--d3) 55%, transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.card:hover::before { opacity: 0.8; }
+.card:hover {
+  background: var(--glass-bg-stronger);
+  transform: translateY(-1px);
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 1px var(--glass-inset-strong);
+}
+/* Karten ohne Hover-Lift markieren (z.B. Skeletons, Read-Only-Cards) */
+.card.no-hover:hover {
+  transform: none;
+}
+.card-title {
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0 0 3px 0;
+  letter-spacing: -0.015em;
+}
+/* Seiten-Ueberschriften: Gradient-Text (futuristischer App-Look) */
+h2.card-title,
+h1.card-title {
+  font-size: clamp(20px, 3vw, 27px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  background: linear-gradient(110deg, var(--text) 12%, var(--d1) 58%, var(--d3) 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Abschnitts-Titel: feiner Akzent-Balken davor */
+h3.card-title,
+h4.card-title {
+  position: relative;
+  padding-left: 12px;
+}
+h3.card-title::before,
+h4.card-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 1.05em;
+  border-radius: 2px;
+  background: linear-gradient(var(--d1), var(--d3));
+}
+.card-sub {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------------- Buttons ---------------- */
+button,
+.btn {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  min-height: 42px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all var(--transition);
+  position: relative;
+}
+/* Generischer Button-Hover: heller Background — gilt NICHT fuer
+   btn-primary / btn-danger (eigene Hover-Regeln). Sonst wuerde der
+   Gradient unter dem hellen background verschwinden und die weisse
+   Schrift unlesbar werden. */
+button:not(.btn-primary):not(.btn-danger):hover,
+.btn:not(.btn-primary):not(.btn-danger):hover {
+  background: var(--bg-subtle);
+  border-color: var(--muted);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+/* btn-primary + btn-danger: kraeftiger Lift + warmer Glow + heller
+   inset-Border. Background bleibt unveraendert (Gradient bleibt orange,
+   weisse Schrift voll lesbar). */
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 24px -6px var(--d1),
+    0 0 0 3px rgba(255, 255, 255, 0.10),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 22px -6px var(--danger-shadow, rgba(201,59,55,0.45)),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+button:active,
+.btn:active {
+  /* Press-Feedback NUR ueber transform — kein filter:brightness, weil
+     das auch die weisse Schrift (#fff) gleichmaessig dimmt
+     (fff × 0.88 = rgb(224,224,224) = sichtbar grau = "verblasst").
+     Stattdessen kraeftiger inset-shadow weiter unten in
+     .btn-primary:active als Press-Feedback. */
+  transform: translateY(1px) scale(0.96);
+  transition: transform 70ms ease, box-shadow 70ms ease;
+}
+button:disabled,
+.btn:disabled {
+  /* Vorher opacity 0.45 — bei btn-primary mit weisser Schrift auf
+     Gradient nicht mehr lesbar wenn der Button waehrend "Saving..."
+     in disabled-State geht. 0.7 bleibt klar als "deaktiviert" sichtbar,
+     ohne den Text zu vernebeln. */
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--d1), var(--d2));
+  border: 1px solid transparent;
+  color: #fff;
+  font-weight: 700;
+  box-shadow:
+    0 4px 14px -4px var(--d1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+/* :hover nur auf Geraeten mit Maus/Pointer — auf Touch bleibt :hover
+   sonst nach Tap kleben. brightness-Boost komplett raus, Hover-Feedback
+   nur ueber Schatten (lift) + leicht hellere inset-Linie. Vorher 1.05
+   verblasste die weisse Schrift im hellen Modus. */
+@media (hover: hover) {
+  .btn-primary:hover {
+    border-color: transparent;
+    color: #fff;
+    box-shadow:
+      0 7px 22px -6px var(--d1),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  }
+}
+/* Active-Override fuer btn-primary: scale-Effekt aus btn:active + leichter
+   inner-Schatten als "pressed"-Feeling. Beeinflusst NICHT die Schrift,
+   sodass weisse Schrift auf Gradient zu 100% lesbar bleibt. */
+.btn-primary:active {
+  box-shadow:
+    0 1px 4px -2px var(--d1),
+    inset 0 3px 10px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.10);
+}
+.btn-danger:active {
+  box-shadow:
+    0 1px 4px -2px var(--danger-shadow, rgba(201,59,55,0.45)),
+    inset 0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+.btn-danger {
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(201, 59, 55, 0.45);
+  color: var(--error);
+  font-weight: 700;
+}
+.btn-danger:hover {
+  background: var(--glass-bg-medium);
+  border-color: var(--error);
+  color: var(--error);
+  box-shadow: 0 4px 16px var(--danger-shadow);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  min-height: auto;
+  padding: 6px 10px;
+  font-weight: 500;
+  box-shadow: none;
+}
+.btn-ghost:hover {
+  background: var(--bg-subtle);
+  color: var(--text);
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ---------------- Inputs ---------------- */
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  min-height: 42px;
+  width: 100%;
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+}
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--border-strong);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-light);
+  background: #fff;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--border-strong);
+  font-weight: 400;
+}
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+/* Pflichtfeld-Stern: <label><span className="req">*</span> Name</label> */
+.req {
+  color: var(--secondary);
+  font-weight: 700;
+  margin-right: 2px;
+}
+
+/* ---------------- Status-Badges ---------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+}
+.badge-pending {
+  background: var(--error-bg);
+  color: var(--error);
+  border-color: rgba(201, 59, 55, 0.2);
+}
+.badge-partial {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-color: rgba(192, 132, 16, 0.35);
+  position: relative;
+  padding-left: 18px;
+}
+/* Pulse-Punkt links — signalisiert „in Bearbeitung" deutlicher als Farbe allein */
+.badge-partial::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--warning);
+  box-shadow: 0 0 0 0 rgba(192, 132, 16, 0.6);
+  animation: badgePulse 1.6s ease-in-out infinite;
+}
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 132, 16, 0.6); }
+  50%      { box-shadow: 0 0 0 5px rgba(192, 132, 16, 0); }
+}
+.badge-printed {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: rgba(45, 138, 78, 0.22);
+}
+.badge-source {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+.badge-paused {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border-color: var(--border);
+  font-weight: 600;
+}
+
+/* ---------------- Empty / Loading ---------------- */
+.empty {
+  text-align: center;
+  padding: 48px 20px 44px;
+  color: var(--muted);
+  background: var(--bg-elevated);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  margin: 16px 0;
+}
+.empty-icon {
+  margin: 0 auto 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  opacity: 0.85;
+}
+.empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.empty-hint {
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 320px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.loading {
+  text-align: center;
+  padding: 36px;
+  color: var(--muted);
+}
+.loading::after {
+  content: '…';
+  animation: loadingDots 1.2s steps(4, end) infinite;
+}
+@keyframes loadingDots {
+  0% { content: '·'; }
+  25% { content: '··'; }
+  50% { content: '···'; }
+  75% { content: '····'; }
+  100% { content: '·'; }
+}
+
+/* ---------------- Tabs (Pill) ---------------- */
+.tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+  /* Sichtbare Scrollbar (Firefox) */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.35) transparent;
+}
+/* Sichtbare schmale Scrollbar (WebKit / Chromium / Edge) */
+.tabs::-webkit-scrollbar {
+  height: 8px;
+}
+.tabs::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+}
+.tabs::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+}
+.tabs::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+.tab {
+  flex: 0 0 auto;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border-faint);
+  background: var(--glass-bg-faint);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  min-height: 36px;
+  transition: all var(--transition);
+}
+.tab:hover {
+  background: var(--glass-bg-tint);
+  border-color: var(--glass-border-soft);
+  transform: translateY(-1px);
+}
+.tab.active {
+  background: linear-gradient(135deg, var(--d1), var(--d2));
+  border-color: transparent;
+  color: #fff;
+  box-shadow:
+    0 5px 16px -5px var(--d1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+@media (hover: hover) {
+  .tab.active:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 8px 18px -4px var(--d1),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  }
+}
+
+/* ---------------- Sticky Aktionsleiste ---------------- */
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Auf Mobile sitzt die Bottom-Nav fixed unten und ist
+     nav-height + Safe-Area hoch (env auf iPhones mit Notch).
+     Die Action-Bar muss komplett darueber schweben — sonst wird sie
+     vom hoeheren z-index der Nav verdeckt. */
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom));
+  background: var(--glass-bg-stronger);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border-top: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  /* Hoeher als die Bottom-Nav (z-index: 20), sonst verdeckt die Nav
+     die Action-Bar bei kleinen Aufloesungs-Schwankungen. */
+  z-index: 25;
+  box-shadow: var(--shadow);
+  animation: slideUp 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Desktop (>=900px): Bottom-Nav wird zur Sidebar links.
+   Action-Bar sitzt am unteren Bildschirmrand neben der Sidebar. */
+@media (min-width: 900px) {
+  .action-bar {
+    left: 220px;
+    bottom: 0;
+  }
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* ---------------- Dialog / Modal ---------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 19, 16, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.22s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.modal {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 28px;
+  box-shadow: var(--shadow-lg);
+  animation: scaleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal h2 {
+  margin-top: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ---------------- ConfirmDialog ---------------- */
+.confirm-dialog {
+  max-width: 440px;
+  padding: 26px 28px 22px;
+}
+.confirm-dialog h2 {
+  margin-bottom: 8px;
+  font-size: 19px;
+}
+.confirm-message {
+  margin: 0 0 20px;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+.confirm-actions .btn-ghost {
+  padding: 9px 16px;
+  min-height: 42px;
+}
+
+/* ---------------- Standort-Auswahl (Tabs / Dropdown) ---------------- */
+.location-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.location-tabs .tab {
+  /* Tab-Stil aus .tabs/.tab uebernehmen, aber wrappen statt scrollen */
+  flex: 0 0 auto;
+}
+.location-select {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 0 12px;
+  background: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+.location-select-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.location-select select {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 10px 0;
+  min-height: 44px;
+}
+.location-select select:focus {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+@media (max-width: 700px) {
+  /* Nur die Standort-Auswahl im LocationSelector wird auf Mobile durch
+     das native <select> ersetzt — andere Verwendungen von .location-tabs
+     (Sub-Navigation, Filter-Tabs) muessen sichtbar bleiben, sonst ist
+     die Seite auf Mobile nicht mehr bedienbar. */
+  .location-tabs.with-select { display: none; }
+  .location-select { display: flex; }
+}
+
+/* ---------------- v1-Sync-Indikator (OrdersPage Karten) ---------------- */
+.v1-sync-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  min-height: auto;
+  cursor: default;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  box-shadow: none;
+}
+.v1-sync-indicator:hover {
+  background: transparent;
+  border: 0;
+  transform: none;
+  box-shadow: none;
+}
+.v1-sync-ok      { color: var(--success); }
+.v1-sync-pending { color: var(--muted); cursor: pointer; }
+.v1-sync-pending:hover { background: var(--bg-subtle); }
+.v1-sync-error   { color: var(--error); cursor: pointer; }
+.v1-sync-error:hover { background: var(--error-bg); }
+
+/* ---------------- v1-Sync-Block (RecurringPage) ---------------- */
+.v1-sync-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.v1-sync-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.v1-sync-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+}
+.v1-sync-week {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.v1-sync-week-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-secondary);
+  min-width: 200px;
+  text-align: center;
+}
+.v1-sync-status {
+  overflow-x: auto;
+}
+@media (max-width: 600px) {
+  .v1-sync-week-label { min-width: 0; flex: 1 1 100%; text-align: center; order: -1; }
+  .v1-sync-week { gap: 6px; width: 100%; justify-content: space-between; }
+}
+
+/* ---------------- Phase 4: WaWi-Settings (Toggle / Standort-Tabelle / Cache) ---------------- */
+
+.v1-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.v1-toggle {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  background: var(--border-strong);
+  cursor: pointer;
+  transition: background var(--transition);
+  flex-shrink: 0;
+  padding: 0;
+}
+.v1-toggle:disabled { opacity: 0.6; cursor: default; }
+.v1-toggle-on { background: var(--success); }
+.v1-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform var(--transition);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.v1-toggle-on .v1-toggle-knob { transform: translateX(22px); }
+
+.v1-loc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.v1-loc-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+}
+.v1-loc-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.v1-loc-table tr:last-child td { border-bottom: none; }
+
+.v1-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.v1-badge-ok    { background: var(--success-bg); color: var(--success); }
+.v1-badge-miss  { background: var(--warning-bg); color: var(--warning); }
+.v1-badge-empty { background: var(--bg-subtle);  color: var(--muted); }
+
+.v1-cache-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.v1-cache-row > div:first-child { flex: 1; min-width: 0; }
+.v1-cache-row .btn { flex-shrink: 0; }
+
+@media (max-width: 600px) {
+  .v1-loc-table { font-size: 13px; }
+  .v1-loc-table th, .v1-loc-table td { padding: 8px 10px; }
+  .v1-cache-row { flex-wrap: wrap; }
+  .v1-cache-row .btn { width: 100%; }
+}
+
+/* ---------------- Recurring-Toolbar (Suche + Action-Buttons) ---------------- */
+.recurring-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.recurring-search {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .recurring-search {
+    flex: 1 1 100%;
+  }
+  .recurring-toolbar .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+  }
+}
+
+/* ---------------- Bulk-Aktionsleiste mit Wrap auf Mobile ---------------- */
+.action-bar {
+  flex-wrap: wrap;
+}
+.action-bar-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+@media (max-width: 700px) {
+  /* Counter + "Auswahl loeschen" + "Alle offenen" eigene Reihe */
+  .action-bar-info {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+  /* Alle 4 Action-Buttons (Oeffnen / Gedruckt / Vorschau / Drucken)
+     bekommen gleich viel Platz in der zweiten Reihe */
+  .action-bar > .btn {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+    padding: 10px 8px;
+    font-size: 13px;
+    justify-content: center;
+  }
+}
+@media (max-width: 380px) {
+  /* Auf sehr schmalen Phones: Buttons je 100% Breite (untereinander) */
+  .action-bar > .btn {
+    flex: 1 1 100%;
+  }
+}
+
+/* ---------------- Bestell-Karte ---------------- */
+.order-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+/* Inhalt-Block (Kunde + Subtitle) nimmt verfuegbaren Platz */
+.order-card > div[style*="flex: 1"],
+.order-card > div:not(.order-card-reprint) {
+  min-width: 0; /* sonst sprengt langer Customer-Name das Layout */
+}
+.order-card-reprint {
+  font-size: 13px;
+  padding: 6px 12px;
+  align-self: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+/* Mobile: Reprint-Button rutscht in eine eigene Zeile UNTER den Inhalt,
+   nicht mehr neben Kundenname + Badges geklemmt. */
+@media (max-width: 600px) {
+  .order-card-reprint {
+    flex-basis: 100%;
+    align-self: stretch;
+    margin-left: 32px; /* visuell unter dem Inhalt, nicht unter der Checkbox */
+    margin-top: 4px;
+    padding: 8px 12px;
+    text-align: center;
+  }
+}
+
+/* ---------------- Orders-Toolbar ---------------- */
+.orders-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.orders-toolbar-context {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  /* Auf Desktop nowrap: Datum + Tag/Woche-Toggle + Range bleiben in
+     einer Zeile. Mobile bekommt flex-wrap explizit per Media-Query. */
+  flex-wrap: nowrap;
+}
+.orders-toolbar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+.orders-toolbar-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* Responsive Button-Labels: zwei Varianten pro Button, je eine
+   sichtbar je nach Breite. */
+.btn-label-mobile { display: none; }
+@media (max-width: 600px) {
+  /* Mittel-Label ("Aktualisieren") ausblenden — nur Icon bleibt */
+  .btn-label-md { display: none; }
+  /* Lang-Label ("Sonderbestellung") ausblenden, Kurz-Label ("Neu") an */
+  .btn-label-sm { display: none; }
+  .btn-label-mobile { display: inline; }
+}
+.orders-date-input {
+  max-width: 180px;
+  font-weight: 600;
+}
+.orders-mode-toggle {
+  height: 44px;
+  flex: 0 0 auto;
+}
+/* Doppel-Klasse erzwingt höhere Spezifität als spätere .weekday-toggle button.
+   white-space: nowrap verhindert dass "Woche" in den Button umbricht — das
+   passierte vorher bei knappem flex-basis 0 + min-width 92px. */
+.weekday-toggle.orders-mode-toggle button {
+  padding: 0 24px;
+  min-width: 0;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.orders-week-range {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .orders-toolbar { gap: 8px; }
+  .orders-toolbar-context { width: 100%; flex-wrap: wrap; }
+  .orders-toolbar-actions { width: 100%; }
+  .orders-toolbar-actions .btn { flex: 1 1 0; justify-content: center; min-width: 0; }
+  .orders-date-input { max-width: none; flex: 1 1 auto; min-width: 0; }
+  .orders-week-range { flex: 1 1 100%; order: 99; }
+}
+@media (max-width: 380px) {
+  /* Kleinere Buttons auf sehr schmalen Phones, damit Tag/Woche-Toggle
+     nicht den Datum-Picker rauswirft */
+  .weekday-toggle.orders-mode-toggle button {
+    padding: 0 16px;
+    min-width: 64px;
+  }
+}
+
+/* ---------------- Header-Theme-Toggle (Sonne/Mond) ---------------- */
+.header-theme-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: none;
+}
+.header-theme-toggle:hover {
+  background: var(--bg-subtle);
+  color: var(--accent-hover);
+  border-color: var(--accent);
+  transform: rotate(15deg);
+  box-shadow: var(--shadow-sm);
+}
+.header-theme-toggle:active {
+  transform: rotate(15deg) scale(0.95);
+}
+
+/* ---------------- Marktwetter-Badge im Header ---------------- */
+/* Das Badge (MarktwetterHeaderWidget) bringt seine Optik selbst mit;
+   hier nur die Header-Flex-Positionierung: Badge nach rechts schieben,
+   ThemeToggle direkt daneben (statt dessen eigenem margin-left:auto —
+   zwei auto-Margins wuerden den Freiraum sonst aufteilen). */
+.mww-badge { margin-left: auto; }
+.mww-badge ~ .header-theme-toggle { margin-left: 0; }
+
+/* ---------------- Wochentag-Toggle-Group (segmented) ---------------- */
+.weekday-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--card);
+}
+.weekday-toggle button {
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  padding: 8px 12px;
+  min-height: 40px;
+  min-width: 0;
+  flex: 1 1 0;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+  box-shadow: none;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+.weekday-toggle button:last-child {
+  border-right: 0;
+}
+.weekday-toggle button:hover {
+  transform: none;
+  background: var(--bg-subtle);
+  color: var(--text);
+  border-color: var(--border);
+  box-shadow: none;
+}
+.weekday-toggle button.active {
+  background: var(--accent-light);
+  color: var(--accent-hover);
+}
+@media (max-width: 480px) {
+  .weekday-toggle {
+    width: 100%;
+  }
+  .weekday-toggle button {
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+}
+
+/* ---------------- Mobile-Anpassungen fuer Forms in Modals + Settings ---------------- */
+/* iOS Anti-Zoom: Inputs muessen ≥16px Schrift haben, sonst zoomt Safari
+   beim Fokus rein. Gilt fuer alle Inputs / Selects / Textareas. */
+@media (max-width: 700px) {
+  input[type="text"], input[type="number"], input[type="date"], input[type="week"],
+  input[type="time"], input[type="email"], input[type="password"], input[type="search"],
+  input[type="tel"], input[type="url"], select, textarea {
+    font-size: 16px !important;
+  }
+  /* Tap-Targets fuer alle Buttons mindestens 40px */
+  button, .btn { min-height: 40px; }
+  /* Aber Mini-Buttons in Tabellen-Zellen ausnehmen */
+  .table-compact button, td button[style*="padding"] { min-height: auto; }
+}
+
+@media (max-width: 480px) {
+  /* Modal voll-screen auf sehr kleinen Phones — mehr Platz, kein Rand */
+  .modal-overlay { padding: 0; }
+  .modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 18px 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .modal {
+    padding: 20px 18px;
+  }
+  .modal h2 {
+    font-size: 19px;
+  }
+  /* Item-Reihen in Sonderbestellung / Dauerbestellung / EditModal:
+     stapeln statt quetschen — Artikelname + Bemerkung jeweils volle
+     Breite, qty 90px fix, Tueten-Groesse nimmt den Rest. */
+  .item-row {
+    gap: 6px;
+  }
+  .item-row .item-name {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    /* Touch-tauglich: groessere Hoehe, Schrift gut lesbar */
+    font-size: 16px !important;
+    min-height: 46px !important;
+  }
+  .item-row .item-remark {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 15px !important;
+    min-height: 44px !important;
+  }
+  .item-row .qty {
+    flex: 0 0 90px !important;
+    width: 90px !important;
+    font-size: 16px !important;
+    min-height: 46px !important;
+  }
+  .item-row .item-bagsize {
+    flex: 1 1 calc(100% - 96px) !important;
+    width: auto !important;
+    min-width: 0 !important;
+    font-size: 15px !important;
+    min-height: 46px !important;
+  }
+  .item-row .item-remove {
+    flex: 0 0 auto !important;
+    align-self: stretch !important;
+    min-height: 46px !important;
+    padding: 0 12px !important;
+  }
+  /* Generelle Form-Inputs in Modals und Settings duerfen unter ihre
+     Inline-Mindestbreite schrumpfen — Inline-min-width wird mit
+     !important ueberschrieben. Auch feste width-Werte aus Inline-
+     Styles (z.B. width: 200) werden auf 100% gesetzt. */
+  .modal input,
+  .modal select,
+  .modal textarea,
+  .settings-page input:not([type="checkbox"]):not([type="radio"]),
+  .settings-page select,
+  .settings-page textarea {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  /* Generische Flex-Reihen mit Inline-style="display: flex" duerfen wrappen */
+  .settings-page > div > div[style*="flex"] {
+    flex-wrap: wrap !important;
+  }
+  /* In Karten-Reihen mit Inputs und Buttons: alles full-width auf Mobile */
+  .settings-page .card > div[style*="flex"] > input,
+  .settings-page .card > div[style*="flex"] > select,
+  .settings-page > div > div[style*="flex"] > input,
+  .settings-page > div > div[style*="flex"] > select {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+  /* Buttons in Reihen: full-width-Stack auf sehr schmalen Screens */
+  .modal .modal-actions,
+  .modal-footer {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------------- Skeleton-Loading ---------------- */
+.skeleton-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.skeleton-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+.skeleton-row {
+  padding: 6px 0;
+}
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-subtle) 0%,
+    var(--border) 50%,
+    var(--bg-subtle) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+.skeleton-line-title { height: 18px; width: 55%; }
+.skeleton-line-meta  { height: 11px; width: 35%; }
+.skeleton-line-row   { width: 90%; }
+.skeleton-line-row.short { width: 65%; }
+@keyframes skeletonPulse {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Rotierendes Icon fuer Lade-Knoepfe (z.B. „Aktualisieren") */
+.icon-spin {
+  animation: iconSpin 0.8s linear infinite;
+  transform-origin: center;
+}
+@keyframes iconSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ---------------- Tabellen mit Sticky-Header ---------------- */
+.summary-table {
+  width: 100%;
+  font-size: 14px;
+  border-collapse: collapse;
+}
+.summary-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+  z-index: 1;
+}
+.summary-table tbody td {
+  padding: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.summary-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ---------------- Toasts ---------------- */
+.toast-stack {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-height, 64px) + 16px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  z-index: 200;
+  width: min(420px, calc(100vw - 24px));
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px 11px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  animation: toastSlideIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 14px;
+  color: var(--text);
+}
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-icon {
+  flex-shrink: 0;
+}
+.toast-message {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+.toast-success { border-color: rgba(45, 138, 78, 0.35); background: var(--success-bg); }
+.toast-success .toast-icon { color: var(--success); }
+.toast-error   { border-color: rgba(201, 59, 55, 0.35); background: var(--error-bg); }
+.toast-error   .toast-icon { color: var(--error); }
+.toast-info    { border-color: rgba(62, 126, 162, 0.35); background: var(--info-bg); }
+.toast-info    .toast-icon { color: var(--info); }
+.toast-action {
+  padding: 4px 10px !important;
+  min-height: 30px !important;
+  font-size: 13px !important;
+  flex-shrink: 0;
+}
+.toast-dismiss {
+  background: transparent;
+  border: 0;
+  padding: 4px;
+  margin: 0;
+  min-height: auto;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.toast-dismiss:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ---------------- Login-Page ---------------- */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background:
+    radial-gradient(900px circle at 20% 0%, var(--accent-soft) 0%, transparent 50%),
+    radial-gradient(900px circle at 100% 100%, #f5d8d3 0%, transparent 50%),
+    var(--bg);
+}
+.login-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 28px;
+  text-align: center;
+}
+.login-logo {
+  max-width: 200px;
+  width: 100%;
+  height: auto;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+/* Dark-Mode-Badge fuer das JPG-Logo (analog .brand-logo). */
+[data-theme="dark"] .login-logo {
+  background: #fff;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.login-error {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: var(--error-bg);
+  color: var(--error);
+  border: 1px solid rgba(201, 59, 55, 0.22);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ---------------- Kleine Helfer ---------------- */
+hr {
+  border: 0;
+  height: 1px;
+  background: var(--border);
+  margin: 18px 0;
+}
+
+::selection {
+  background: var(--accent-light);
+  color: var(--text);
+}
+
+/* ---------------- Desktop-Layout ---------------- */
+@media (min-width: 900px) {
+  body { font-size: 15px; }
+  .app-main { padding: 32px 40px; padding-bottom: 32px; }
+}
+/* Bottom-Nav-Sidebar-Versuch aus frueheren Versionen entfernt — ab
+   1024px laeuft die Nav als horizontale TopNav im Header (siehe oben). */
+
+/* ---------------- Stammdaten / Formular-Helfer ---------------- */
+.field-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.field-inline > input,
+.field-inline > select {
+  margin: 0;
+}
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.form-error {
+  background: var(--error-bg);
+  color: var(--error);
+  border: 1px solid var(--error);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.stammdaten-hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+/* Kleines Label ueber Formularfeldern (Backzettel-Assistent + Vorlagen) */
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+}
+
+.summary-table th,
+.summary-table td {
+  vertical-align: middle;
+}
+
+/* Produkt-Zuordnung: feste Spaltenbreiten + ausrichtbare Listen-Spalte */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* ---------------- CashAssist: Kasse → Standort/Zeitfenster ----------------
+   Mehrere Standorte pro Tag wurden vorher horizontal in eine schmale Zelle
+   gequetscht (Select kollabiert, Uhrzeiten abgeschnitten). Jetzt: Standort
+   in voller Zellbreite, Zeitfenster darunter. content-visibility ueberspringt
+   das Layout der Zeilen ausserhalb des Viewports → fluessigeres Scrollen bei
+   vielen Kassen. */
+.cashassist-table tbody tr {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 64px;
+}
+.cash-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cash-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cash-entry + .cash-entry {
+  border-top: 1px dashed var(--border);
+  padding-top: 8px;
+}
+.cash-loc {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.cash-times {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.cash-time-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.cash-time-lbl {
+  font-size: 11px;
+  color: var(--muted);
+}
+.cash-times input[type="time"] {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.cash-remove {
+  padding: 4px 9px;
+  font-size: 14px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+.cash-add {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+}
+.cash-add:hover {
+  text-decoration: underline;
+}
+
+.zuordnung-table {
+  table-layout: fixed;
+  min-width: 860px;
+}
+.zuordnung-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zuordnung-table select {
+  margin: 0;
+}
+.listen-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(86px, 1fr));
+  gap: 2px 10px;
+  font-size: 12px;
+}
+.listen-grid label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.listen-grid input {
+  margin: 0;
+}
+@media (max-width: 700px) {
+  /* Mobile: 6 Listen-Checkboxen brauchen sonst zu viel Breite */
+  .listen-grid { grid-template-columns: repeat(2, 1fr); font-size: 11px; }
+  .listen-grid label { gap: 4px; }
+}
+
+/* ============================================================
+   Futuristic Produktions-Dashboard
+   ============================================================ */
+.prod-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.dash-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 2px 2px;
+}
+.dash-title {
+  margin: 0;
+  font-size: clamp(22px, 3.4vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: linear-gradient(110deg, var(--text) 10%, var(--d1) 55%, var(--d3) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.dash-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+/* --- KPI-Kacheln --- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.kpi-tile {
+  --tile: var(--d1);
+  position: relative;
+  overflow: hidden;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--glass-inset);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  transition: transform var(--transition), box-shadow var(--transition);
+  isolation: isolate;
+}
+.kpi-tile[data-accent="1"] { --tile: var(--d1); }
+.kpi-tile[data-accent="2"] { --tile: var(--d2); }
+.kpi-tile[data-accent="3"] { --tile: var(--d3); }
+.kpi-tile[data-accent="4"] { --tile: var(--d4); }
+.kpi-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--tile), transparent 85%);
+}
+.kpi-tile::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  right: -50px;
+  top: -60px;
+  background: radial-gradient(circle, var(--tile), transparent 70%);
+  opacity: 0.16;
+  z-index: -1;
+  transition: opacity var(--transition);
+}
+.kpi-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md), inset 0 0 0 1px var(--glass-inset-strong);
+}
+.kpi-tile:hover::after { opacity: 0.3; }
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--text), var(--tile));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- Karten --- */
+.dash-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--glass-inset);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+.dash-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--d1), var(--d3) 50%, transparent);
+  opacity: 0.7;
+}
+.dash-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.dash-card-title {
+  position: relative;
+  margin: 0;
+  padding-left: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.dash-card-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 1.05em;
+  border-radius: 2px;
+  background: linear-gradient(var(--d1), var(--d3));
+}
+
+/* --- Standort-Karten-Grid (Wochenuebersicht) --- */
+.loc-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.loc-card {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  /* Border-Left wird inline gesetzt (accent color pro Standort) */
+}
+.loc-card::before {
+  display: none; /* Akzent kommt durch border-left */
+}
+@media (max-width: 700px) {
+  .loc-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Segmented Range-Tabs --- */
+.seg-tabs {
+  display: inline-flex;
+  margin-left: auto;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  background: var(--glass-bg-soft);
+  border: 1px solid var(--glass-border);
+}
+.seg {
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition), box-shadow var(--transition);
+}
+.seg:hover { color: var(--text); }
+.seg.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--d1), var(--d2));
+  box-shadow: 0 4px 14px -4px var(--d1);
+}
+
+/* Recharts: Achsen/Legende dezenter, theme-aware */
+.prod-dashboard .recharts-cartesian-axis-tick text { fill: var(--muted); }
+.prod-dashboard .recharts-legend-item-text { color: var(--text-secondary) !important; }
+.prod-dashboard .recharts-default-tooltip {
+  background: var(--glass-bg-strong) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 12px !important;
+}
+
+@media (max-width: 560px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .dash-head { flex-direction: column; align-items: flex-start; }
+}
+
+/* --- Wochen-Navigator (Mobile-Optimierung) --- */
+.week-nav-row {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  justify-content: space-between;
+}
+.week-nav-controls {
+  display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0;
+}
+.week-nav-btn { min-width: 44px; min-height: 44px; padding: 0 14px; font-size: 18px; }
+.week-nav-label { flex: 1 1 auto; min-width: 0; text-align: center; }
+.week-nav-title { font-size: 18px; font-weight: 600; }
+.week-nav-sub { font-size: 11px; color: var(--muted); }
+.week-nav-kpis {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.kpi-inline { text-align: right; }
+.kpi-inline-label { font-size: 11px; color: var(--muted); }
+.kpi-inline-value { font-size: 22px; font-weight: 700; }
+@media (max-width: 600px) {
+  .week-nav-title { font-size: 15px; line-height: 1.2; }
+  .week-nav-label { min-width: 0; }
+  .week-nav-kpis { width: 100%; justify-content: space-around; gap: 10px; }
+  .kpi-inline { text-align: center; flex: 1 1 0; min-width: 0; }
+  .kpi-inline-value { font-size: 18px; }
+}
+@media (max-width: 380px) {
+  .week-nav-title { font-size: 13px; }
+  .week-nav-btn { min-width: 40px; padding: 0 10px; font-size: 16px; }
+}
+
+/* --- Standort-Karten: Mobile mehr Platz --- */
+@media (max-width: 700px) {
+  .loc-card { padding: 14px 14px 12px; }
+  .loc-card .recharts-text { font-size: 9px !important; }
+}
+
+/* --- Dashboard-Tabellen: Mobile horizontal scrollbar + Schriftgrösse --- */
+@media (max-width: 700px) {
+  .dash-card .summary-table { font-size: 11px; }
+  .dash-card .summary-table th,
+  .dash-card .summary-table td { padding: 6px 4px; }
+  .dash-card .table-scroll { margin: 0 -14px; padding: 0 14px; }
+  .dash-card-title { font-size: 14px; }
+}
+
+/* --- Globale Tabellen: nie unter 12px, table-scroll überall --- */
+@media (max-width: 700px) {
+  .table-compact { font-size: 11px; }
+  .table-compact th, .table-compact td { padding: 6px 5px; }
+}
+
+/* --- B2B-Block --- */
+.b2b-head {
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  justify-content: space-between; margin-bottom: 12px;
+}
+.b2b-month-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.b2b-title { margin: 0; margin-right: 4px; }
+.b2b-nav-btn { padding: 4px 12px; min-height: 36px; }
+.b2b-month-label { min-width: 140px; text-align: center; }
+.b2b-totals {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px;
+}
+@media (max-width: 600px) {
+  .b2b-head { gap: 10px; }
+  .b2b-month-label { min-width: 110px; font-size: 13px; }
+  .b2b-totals { width: 100%; justify-content: space-between; font-size: 12px; }
+}
+
+/* --- Top-Produkte-Tabelle im Dashboard: horizontal scrollbar bleibt --- */
+.dash-card .table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kpi-tile { transition: none; }
+}
+
+
+/* ---------------- Quick-Order-Page (Mobile-Schnellbestellung) ---------------- */
+.quick-order-page {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+.quick-order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+.quick-order-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+}
+.quick-order-main {
+  flex: 1;
+  padding: 16px;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+.special-order-embedded {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+@media (max-width: 600px) {
+  .quick-order-main { padding: 10px; }
+  .special-order-embedded { padding: 12px; border-radius: 10px; }
+  .quick-order-title { font-size: 14px; }
+}
+
+/* ---------------- table-compact (Diagnose / Stammdaten) ---------------- */
+.table-compact {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.table-compact th,
+.table-compact td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.table-compact th {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--bg-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.table-compact tbody tr:hover { background: var(--bg-subtle); }
+
+/* Tabellen-Scroll-Container: bei breiten Tabellen erlauben wir auf
+   schmalen Bildschirmen horizontales Scrollen. Wickelt eine Tabelle:
+   <div class="table-scroll"><table class="table-compact">...</table></div> */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-scroll > table { min-width: max-content; }
+
+/* Auf Mobile: kleinere Tabellen-Schrift + Padding, x-Scroll-Indikator */
+@media (max-width: 700px) {
+  .table-compact { font-size: 12px; }
+  .table-compact th, .table-compact td { padding: 5px 8px; }
+}
+
+/* ---------------- Toolbar-Stack auf Mobile ---------------- */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+@media (max-width: 600px) {
+  .toolbar-row { flex-direction: column; align-items: stretch; }
+  .toolbar-row .btn,
+  .toolbar-row select,
+  .toolbar-row input { width: 100%; }
+  .toolbar-row > .toolbar-spacer { display: none; }
+}
+
+/* ---------------- Stammdaten Sub-Nav auf Mobile als Select ---------------- */
+.stammdaten-tabs-select {
+  display: none;
+  margin-bottom: 14px;
+}
+.stammdaten-tabs-select select {
+  width: 100%;
+  font-weight: 600;
+  min-height: 44px;
+}
+@media (max-width: 700px) {
+  .stammdaten-tabs-wrap { display: none; }
+  .stammdaten-tabs-select { display: block; }
+}
+
+/* ---------------- KPI-Tiles auf Mobile ---------------- */
+@media (max-width: 700px) {
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .kpi-tile .kpi-value { font-size: 18px !important; }
+}
+@media (max-width: 380px) {
+  .kpi-grid { grid-template-columns: 1fr !important; }
+}
