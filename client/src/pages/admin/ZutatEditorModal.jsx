@@ -134,7 +134,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
                   Zurück zu Gramm
                 </button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div className="form-grid-2" style={{ marginBottom: 0 }}>
                 <div>
                   <label style={{ fontSize: 12 }}>Anzahl Dosen</label>
                   <input type="number" step="0.1" min="0" value={dosenAnzahl} onChange={(e) => setDosenAnzahl(e.target.value)} style={{ width: '100%' }} />
@@ -152,7 +152,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+          <div className="form-grid-2">
             <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <input type="checkbox" checked={istMehl} onChange={(e) => setIstMehl(e.target.checked)} />
               <span>Mehlanteil (TA-Basis)</span>

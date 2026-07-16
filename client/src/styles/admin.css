@@ -1,0 +1,79 @@
+/* Admin-Layout: 2 Spalten am Desktop, gestapelt auf Handy/Hochkant-Tablet.
+   Formular-Grids kollabieren auf schmalen Screens auf 2 Spalten. */
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-liste {
+  position: sticky;
+  top: 80px;
+}
+
+.admin-liste-scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.admin-toolbar .btn {
+  min-height: 40px;
+}
+
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+
+@media (max-width: 900px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+  .admin-liste {
+    position: static;
+  }
+  .admin-liste-scroll {
+    max-height: 38vh;
+  }
+  .form-grid-3, .form-grid-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Zutaten-Zeile im Admin-Detail: Aktions-Buttons duerfen auf Touch
+   nicht zu klein sein, Zeile darf umbrechen */
+.admin-zutat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.admin-zutat-row .zutat-name {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.admin-zutat-row .zutat-aktionen {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+.admin-zutat-row .zutat-aktionen .btn {
+  padding: 6px;
+  min-height: 36px;
+  min-width: 36px;
+}

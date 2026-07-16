@@ -106,7 +106,7 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
         }
       >
         <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>Werte pro 100 g</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
+        <div className="form-grid-4" style={{ gap: 8, marginBottom: 12 }}>
           {NW_FELDER.map(([key, label]) => (
             <div key={key}>
               <label style={{ fontSize: 11 }}>{label}</label>

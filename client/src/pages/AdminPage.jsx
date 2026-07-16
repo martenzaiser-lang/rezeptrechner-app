@@ -4,7 +4,7 @@
 // - Speichern mit optimistischer Sperre: 409 → Konfliktdialog (neu laden)
 // - Einstellungen + Änderungsprotokoll
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, ListPlus, Settings, History, Euro, FlaskConical, FileSpreadsheet } from 'lucide-react';
 import { useData } from '../context/DataContext.jsx';
 import { getSorted } from '../lib/rezeptFilter.js';
@@ -24,6 +24,7 @@ import ImportExportModal from './admin/ImportExportModal.jsx';
 import PasteImportModal from './admin/PasteImportModal.jsx';
 import LmivBlock from './admin/LmivBlock.jsx';
 import '../styles/baker.css';
+import '../styles/admin.css';
 
 export default function AdminPage() {
   const { recipes, settings, prices, customIngredients, initialLoadDone, refresh, mutateAndRefresh } = useData();
@@ -40,6 +41,15 @@ export default function AdminPage() {
     : sorted;
   const rezept = recipes.find((r) => r.id === selectedId) || null;
   const vorschlaege = useMemo(() => getZutatVorschlaege(recipes), [recipes]);
+
+  // Gestapeltes Layout (Handy): nach Rezeptwahl zum Detail scrollen,
+  // sonst bleibt der Nutzer in der langen Liste haengen.
+  const detailRef = useRef(null);
+  useEffect(() => {
+    if (selectedId && window.innerWidth <= 900) {
+      detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [selectedId]);
 
   // Speichern mit 409-Behandlung: bei Konflikt Serverstand anbieten.
   async function speichereRezept(neu, { istNeu = false } = {}) {
@@ -116,10 +126,10 @@ export default function AdminPage() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 320px) 1fr', gap: 16, alignItems: 'start' }}>
+    <div className="admin-layout">
       {/* Linke Spalte: Liste */}
-      <div className="card" style={{ position: 'sticky', top: 80 }}>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+      <div className="card admin-liste">
+        <div className="admin-toolbar">
           <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => setModal({ typ: 'rezept-neu' })}>
             <Plus size={16} /> Neu
           </button>
@@ -149,7 +159,7 @@ export default function AdminPage() {
           onChange={(e) => setSuche(e.target.value)}
           style={{ width: '100%', marginBottom: 8 }}
         />
-        <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+        <div className="admin-liste-scroll">
           {gefiltert.map((r) => (
             <button
               key={r.id}
@@ -175,7 +185,7 @@ export default function AdminPage() {
 
       {/* Rechte Spalte: Detail */}
       {rezept ? (
-        <div className="card">
+        <div className="card" ref={detailRef}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
             <h2 style={{ margin: 0 }}>
               {rezept.name}{' '}
@@ -219,17 +229,13 @@ export default function AdminPage() {
             {(rezept.zutaten || []).map((z, idx) => (
               <div
                 key={idx}
+                className="admin-zutat-row"
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '7px 8px',
-                  borderBottom: '1px solid var(--border)',
                   background: z.ist_kommentar ? 'var(--bg-subtle)' : 'transparent',
                   fontStyle: z.ist_kommentar ? 'italic' : 'normal',
                 }}
               >
-                <span style={{ flex: 1, fontWeight: z.ist_kommentar ? 400 : 600 }}>
+                <span className="zutat-name" style={{ fontWeight: z.ist_kommentar ? 400 : 600 }}>
                   {z.ist_kommentar ? '📝 ' : ''}{z.name}
                   {z.bemerkung && <span className="muted" style={{ fontWeight: 400 }}> · {z.bemerkung}</span>}
                   {z.fuer_produkte?.length > 0 && (
@@ -251,26 +257,28 @@ export default function AdminPage() {
                 )}
                 {z.ist_mehl && <span title="Mehl (TA)">🌾</span>}
                 {z.ist_wasser && <span title="Wasser (TA)">💧</span>}
-                <button className="btn btn-ghost" style={{ padding: 4 }} onClick={() => moveZutat(idx, -1)} disabled={idx === 0} aria-label="Nach oben">
-                  <ArrowUp size={14} />
-                </button>
-                <button className="btn btn-ghost" style={{ padding: 4 }} onClick={() => moveZutat(idx, 1)} disabled={idx === rezept.zutaten.length - 1} aria-label="Nach unten">
-                  <ArrowDown size={14} />
-                </button>
-                <button className="btn btn-ghost" style={{ padding: 4 }} onClick={() => setModal({ typ: 'zutat', idx })} aria-label="Bearbeiten">
-                  <Pencil size={14} />
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  style={{ padding: 4, color: 'var(--error)' }}
-                  aria-label="Löschen"
-                  onClick={async () => {
-                    const ok = await confirm({ title: 'Zutat löschen', message: `„${z.name}" entfernen?`, confirmText: 'Löschen', danger: true });
-                    if (ok) speichereZutaten(rezept.zutaten.filter((_, j) => j !== idx));
-                  }}
-                >
-                  <Trash2 size={14} />
-                </button>
+                <div className="zutat-aktionen">
+                  <button className="btn btn-ghost" onClick={() => moveZutat(idx, -1)} disabled={idx === 0} aria-label="Nach oben">
+                    <ArrowUp size={14} />
+                  </button>
+                  <button className="btn btn-ghost" onClick={() => moveZutat(idx, 1)} disabled={idx === rezept.zutaten.length - 1} aria-label="Nach unten">
+                    <ArrowDown size={14} />
+                  </button>
+                  <button className="btn btn-ghost" onClick={() => setModal({ typ: 'zutat', idx })} aria-label="Bearbeiten">
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    className="btn btn-ghost"
+                    style={{ color: 'var(--error)' }}
+                    aria-label="Löschen"
+                    onClick={async () => {
+                      const ok = await confirm({ title: 'Zutat löschen', message: `„${z.name}" entfernen?`, confirmText: 'Löschen', danger: true });
+                      if (ok) speichereZutaten(rezept.zutaten.filter((_, j) => j !== idx));
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

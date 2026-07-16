@@ -108,7 +108,7 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
         </>
       }
     >
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+      <div className="form-grid-2">
         <div>
           <label>Rezeptname</label>
           <input value={form.name} autoFocus onChange={(e) => set('name', e.target.value)} style={{ width: '100%' }} />
@@ -128,7 +128,7 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
       </label>
 
       <h3 style={{ fontSize: 14, margin: '12px 0 6px' }}>Stückkalkulation</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+      <div className="form-grid-3">
         {feld('Teiggewicht (g)', 'stueckgewicht_g', { type: 'number', step: 1 })}
         {feld('Min. Stückzahl', 'min_stueck', { type: 'number', min: 1 })}
         {feld('Max. Stückzahl', 'max_stueck', { type: 'number', min: 1 })}
@@ -185,25 +185,25 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
       )}
 
       <h3 style={{ fontSize: 14, margin: '12px 0 6px' }}>Backform / Blech</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+      <div className="form-grid-2">
         {feld('Breite (cm)', 'blech_breite_cm', { type: 'number', min: 0, placeholder: 'z.B. 50' })}
         {feld('Länge (cm)', 'blech_laenge_cm', { type: 'number', min: 0, placeholder: 'z.B. 80' })}
       </div>
 
       <h3 style={{ fontSize: 14, margin: '12px 0 6px' }}>Prozessparameter</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 10 }}>
+      <div className="form-grid-4">
         {feld('Teigtemp. °C', 'teigtemp_c', { type: 'number', step: 0.1 })}
         {feld('Kneten l. (min)', 'kz_langsam', { type: 'number', min: 0 })}
         {feld('Kneten s. (min)', 'kz_schnell', { type: 'number', min: 0 })}
         {feld('Stockgare (min)', 'stockgare', { type: 'number', min: 0 })}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 10 }}>
+      <div className="form-grid-4">
         {feld('Stückgare (min)', 'stueckgare', { type: 'number', min: 0 })}
         {feld('Ober °C', 'back_ober', { type: 'number', step: 5 })}
         {feld('Unter °C', 'back_unter', { type: 'number', step: 5 })}
         {feld('Backzeit (min)', 'backzeit', { type: 'number', min: 0 })}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10, alignItems: 'end' }}>
+      <div className="form-grid-2" style={{ alignItems: 'end' }}>
         <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input type="checkbox" checked={form.bedampfung} onChange={(e) => set('bedampfung', e.target.checked)} />
           <span>Bedampfung</span>
