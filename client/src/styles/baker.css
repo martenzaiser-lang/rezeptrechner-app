@@ -1,0 +1,199 @@
+/* Baker-Screen-Styles: Zutatenliste mit Sektionen, Mengensteuerung,
+   Multi-Produkt-Cards, Abwiegen-Vollbild. Nutzt die CSS-Variablen des
+   Etiketten-Design-Systems (theme.css) — eigene Regeln nur hier. */
+
+/* --- Zutatenliste --- */
+.zt-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  overflow: hidden;
+  margin-bottom: 10px;
+  background: var(--bg-elevated, #fff);
+}
+.zt-section-header {
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--d1), var(--d2));
+}
+.zt-section-header.sec-sauer { background: linear-gradient(135deg, #a16207, #854d0e); }
+.zt-section-header.sec-vor { background: linear-gradient(135deg, #0369a1, #075985); }
+.zt-section-header.sec-quell { background: linear-gradient(135deg, #15803d, #166534); }
+.zt-section-header.sec-koch { background: linear-gradient(135deg, #b45309, #92400e); }
+.zt-section-header.sec-brueh { background: linear-gradient(135deg, #be185d, #9d174d); }
+.zt-section-header.sec-frucht { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+.zt-section-header.sec-custom { background: linear-gradient(135deg, var(--d3), var(--d4)); }
+
+.zt-row-clean {
+  display: grid;
+  grid-template-columns: 1fr 130px;
+  align-items: center;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
+}
+.zt-row-clean:last-child { border-bottom: none; }
+.zt-zutat-name { font-weight: 600; color: var(--text); }
+.zt-zutat-menge { font-weight: 800; text-align: right; color: var(--accent-hover); font-variant-numeric: tabular-nums; }
+.zt-menge-sub { font-size: 11px; font-weight: 500; opacity: 0.7; }
+.zt-sum-row { background: var(--accent-light); font-weight: 600; }
+.zt-sum-row .zt-zutat-name { font-style: italic; }
+.zt-comment-row {
+  padding: 8px 14px;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border);
+}
+.zt-gesamt-row {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--d1), var(--d2));
+  color: #fff;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 18px;
+}
+.zt-gesamt-row .zt-zutat-name, .zt-gesamt-row .zt-zutat-menge { color: #fff; }
+
+/* --- Mengensteuerung --- */
+.baker-ctrl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.stepper button {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated, #fff);
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 46px;
+}
+.stepper button:active { transform: scale(0.94); }
+.stepper input {
+  width: 84px;
+  height: 46px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+  min-height: 46px;
+}
+.blech-input { width: 70px !important; }
+.teig-box {
+  background: var(--accent-soft);
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
+  padding: 6px 14px;
+  text-align: center;
+  min-width: 110px;
+}
+.teig-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-hover); }
+.teig-val { font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.2; }
+.teig-val .pro-blech { font-size: 0.62em; opacity: 0.85; font-weight: 600; line-height: 1.2; margin-top: 2px; }
+
+/* --- Multi-Produkt-Cards --- */
+.mp-wrap { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.mp-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--bg-elevated, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 150px;
+}
+.mp-name { font-weight: 700; font-size: 14px; }
+.mp-weight { font-size: 12px; color: var(--muted); }
+.mp-controls { display: flex; gap: 6px; align-items: center; }
+.mp-controls button {
+  width: 40px; height: 40px; min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-subtle);
+  font-size: 18px; font-weight: 700; cursor: pointer;
+}
+.mp-controls input { width: 64px; height: 40px; min-height: 40px; text-align: center; font-weight: 700; }
+
+/* --- Quick-Info-Chips --- */
+.baker-quick-info { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.quick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated, #fff);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.quick-chip.highlight { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-hover); }
+.quick-chip .chip-val { font-weight: 800; color: var(--text); }
+.quick-chip.chip-warn { background: rgba(201, 59, 55, 0.08); border-color: rgba(201, 59, 55, 0.4); color: var(--error); }
+.quick-chip.chip-dampf { background: rgba(45, 138, 78, 0.1); border-color: rgba(45, 138, 78, 0.35); color: var(--success); }
+
+/* --- Teig-Zusammenfassung (prozentuale Zusaetze) --- */
+.teig-zusammenfassung {
+  padding: 8px 14px;
+  margin: 6px 0 10px;
+  background: rgba(45, 138, 78, 0.08);
+  border: 1.5px solid rgba(45, 138, 78, 0.35);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--success);
+}
+
+/* --- Anmerkungen / Info rechts --- */
+.note-block {
+  background: rgba(192, 132, 16, 0.1);
+  border: 1.5px solid rgba(192, 132, 16, 0.4);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+.note-t { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: var(--warning); margin-bottom: 4px; }
+.note-txt { font-size: 14px; color: var(--text); white-space: pre-wrap; }
+
+/* --- Abwiegen-Vollbild --- */
+.abwiegen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--bg);
+  overflow-y: auto;
+  padding: 18px;
+}
+.abwiegen-overlay .zt-row-clean { font-size: 26px; padding: 16px 18px; }
+.abwiegen-overlay .zt-section-header { font-size: 16px; padding: 10px 18px; }
+.abwiegen-overlay .zt-comment-row { font-size: 20px; }
+.abwiegen-overlay .zt-gesamt-row { font-size: 28px; }
+.abwiegen-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  z-index: 201;
+}
+
+/* Sync-Spinner im Header */
+.spin { animation: iconSpin 1.2s linear infinite; }
+
+@media (max-width: 700px) {
+  .zt-row-clean { grid-template-columns: 1fr 105px; font-size: 15px; }
+}

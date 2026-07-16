@@ -10,6 +10,8 @@ import { ConfirmProvider } from './components/ConfirmDialog.jsx';
 import { ToastProvider, useToast } from './components/Toast.jsx';
 import ThemeToggle from './components/ThemeToggle.jsx';
 import TopLoadingBar from './components/TopLoadingBar.jsx';
+import CloudStatus from './components/CloudStatus.jsx';
+import { DataProvider } from './context/DataContext.jsx';
 import { auth } from './services/api.js';
 
 // Hoert auf das CustomEvent 'sw-update' aus main.jsx und zeigt einen
@@ -77,6 +79,7 @@ export default function App() {
       <SwUpdateNotifier />
       <ConfirmProvider>
         <RequireAuth>
+          <DataProvider>
           <div className="app">
             <TopLoadingBar />
             {!online && (
@@ -90,6 +93,7 @@ export default function App() {
                 <img src="/logo.jpg" alt="Landbäckerei Oetzmann" className="brand-logo" />
                 <span className="brand-sub">Rezeptrechner</span>
                 <TopNav />
+                <CloudStatus />
                 <ThemeToggle />
               </div>
             </header>
@@ -107,6 +111,7 @@ export default function App() {
 
             <BottomNav />
           </div>
+          </DataProvider>
         </RequireAuth>
       </ConfirmProvider>
     </ToastProvider>
