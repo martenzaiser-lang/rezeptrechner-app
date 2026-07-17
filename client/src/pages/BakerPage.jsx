@@ -15,6 +15,7 @@ import { berechneBaker, teigZusammenfassung } from '../lib/calc/bakerBerechnung.
 import { schuettTemperatur, schuettHinweis } from '../lib/calc/schuettwasser.js';
 import { calcNutrition, getRezeptAllergene, formatAllergene } from '../lib/calc/naehrwerteLookup.js';
 import { calcRezeptKosten } from '../lib/preise.js';
+import { getAnzeige } from '../lib/anzeige.js';
 import MengenSteuerung from './baker/MengenSteuerung.jsx';
 import ZutatenListe from './baker/ZutatenListe.jsx';
 import QuickInfo from './baker/QuickInfo.jsx';
@@ -62,8 +63,9 @@ function fw(kg) {
 }
 
 export default function BakerPage() {
-  const { recipes, prices, initialLoadDone } = useData();
+  const { recipes, prices, settings, initialLoadDone } = useData();
   const role = auth.getRole();
+  const anzeige = getAnzeige(settings, role);
 
   const sichtbar = useMemo(() => sichtbareRezepte(recipes, role), [recipes, role]);
   const [selectedId, setSelectedId] = useState('');
@@ -250,7 +252,7 @@ export default function BakerPage() {
         <div className="card">
           <h2 style={{ margin: '0 0 10px' }}>{rezept.name}</h2>
           <MengenSteuerung rezept={rezept} eingabe={eingabe} onChange={updateEingabe} ergebnis={ergebnis} />
-          <QuickInfo rezept={rezept} sk={ergebnis?.sk} />
+          <QuickInfo rezept={rezept} sk={ergebnis?.sk} anzeige={anzeige} />
           {zusammenfassung && (
             <div className="teig-zusammenfassung">
               {[
@@ -273,11 +275,11 @@ export default function BakerPage() {
             </div>
           )}
           {ergebnis && (() => {
-            const nw = calcNutrition(rezept, ergebnis.sk);
-            const allergene = getRezeptAllergene(rezept);
+            const nw = anzeige.naehrwerte ? calcNutrition(rezept, ergebnis.sk) : { vollstaendig: false, fehlend: [] };
+            const allergene = anzeige.allergene ? getRezeptAllergene(rezept) : [];
             const eigenePreise = {};
             prices.forEach((p) => { eigenePreise[p.zutat_name] = { preis_kg: Number(p.preis_eur_kg) }; });
-            const kosten = calcRezeptKosten(rezept, ergebnis.sk, eigenePreise);
+            const kosten = anzeige.kosten ? calcRezeptKosten(rezept, ergebnis.sk, eigenePreise) : 0;
             const stueckzahl = rezept.produkte?.length > 1
               ? Object.values(eingabe.produktStueck || {}).reduce((a, b) => a + b, 0)
               : (eingabe.stueck || 1);

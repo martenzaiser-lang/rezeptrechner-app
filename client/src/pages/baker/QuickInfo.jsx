@@ -1,37 +1,41 @@
 // Quick-Info-Chips: TA, Knetzeiten, Teigtemperatur, Garezeiten, Backzeit,
 // Backtemperatur, Bedampfung + Naehrwert-/Allergen-Chips — wie die alte
-// App (Z. 2908-2930).
+// App (Z. 2908-2930). Sichtbarkeit pro Chip global steuerbar
+// (Admin-Einstellungen → anzeige-Prop, lib/anzeige.js).
 
 import { ta } from '../../lib/calc/ta.js';
 import { calcNutrition, getRezeptAllergene, formatAllergene } from '../../lib/calc/naehrwerteLookup.js';
+import { ANZEIGE_DEFAULTS } from '../../lib/anzeige.js';
 
-export default function QuickInfo({ rezept, sk }) {
+export default function QuickInfo({ rezept, sk, anzeige = ANZEIGE_DEFAULTS }) {
   const r = rezept;
-  const nw = sk ? calcNutrition(r, sk) : null;
-  const allergene = getRezeptAllergene(r);
+  const nw = anzeige.naehrwerte && sk ? calcNutrition(r, sk) : null;
+  const allergene = anzeige.allergene ? getRezeptAllergene(r) : [];
 
   return (
     <div className="baker-quick-info">
-      <span className="quick-chip highlight"><span className="chip-val">TA {ta(r)}</span></span>
-      {(r.kz_langsam || r.kz_schnell) ? (
+      {anzeige.ta && (
+        <span className="quick-chip highlight"><span className="chip-val">TA {ta(r)}</span></span>
+      )}
+      {anzeige.knetzeiten && (r.kz_langsam || r.kz_schnell) ? (
         <span className="quick-chip">🥣 <span className="chip-val">{r.kz_langsam || 0}/{r.kz_schnell || 0} min</span></span>
       ) : null}
-      {r.teigtemp_c ? (
+      {anzeige.teigtemp && r.teigtemp_c ? (
         <span className="quick-chip">🌡️ <span className="chip-val">{Number(r.teigtemp_c).toFixed(0)}°C</span></span>
       ) : null}
-      {r.stockgare ? (
+      {anzeige.garezeiten && r.stockgare ? (
         <span className="quick-chip">⏱️ Stock <span className="chip-val">{r.stockgare} min</span></span>
       ) : null}
-      {r.stueckgare ? (
+      {anzeige.garezeiten && r.stueckgare ? (
         <span className="quick-chip">⏱️ Stück <span className="chip-val">{r.stueckgare} min</span></span>
       ) : null}
-      {r.backzeit ? (
+      {anzeige.backdaten && r.backzeit ? (
         <span className="quick-chip">🔥 <span className="chip-val">{r.backzeit} min</span></span>
       ) : null}
-      {(r.back_ober || r.back_unter) ? (
+      {anzeige.backdaten && (r.back_ober || r.back_unter) ? (
         <span className="quick-chip">{r.back_ober || '–'}°/{r.back_unter || '–'}°</span>
       ) : null}
-      {r.bedampfung ? (
+      {anzeige.bedampfung && r.bedampfung ? (
         <span className="quick-chip chip-dampf">💨 {r.bedampf_hinweis || 'Dampf'}</span>
       ) : null}
       {nw?.vollstaendig && nw.gesamt > 0 && (
