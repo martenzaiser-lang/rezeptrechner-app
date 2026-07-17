@@ -106,11 +106,10 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   // 2026-07-17) — gleiche Werte wie 'Puddingpulver' (Pulver unzubereitet,
   // Maisstärke-Basis, laut Zutatenliste Stärke/Salz/Aroma allergenfrei).
   'Kochcreme': nw(370, 0.5, 0.2, 0.1, 91.0, 0.5, 0.3, 0.1, [], 'Dr. Oetker Puddingpulver zum Kochen (laut Marten); Werte wie Puddingpulver unzubereitet (fddb/yazio)'),
-  // 'Pizza-Quick' = Frank Rinne Bäckereisaaten Art. 223 "Mediterano"
-  // (Spezifikation-PDF von Marten, 18.03.2026). Zutaten u.a. Weizenmehl,
-  // Weizengluten, Weizensauerteig → Aa gesichert; Allergen-Anhang des
-  // PDFs fehlt (Brötchenbackmittel*). Ballaststoffe nicht angegeben → 0.
-  'Pizza-Quick': nw(311, 12.9, 1.5, 0.33, 60.2, 6.05, 0, 5.2, ['Aa'], 'Rinne Bäckereisaaten Spezifikation Art. 223 Mediterano (PDF 18.03.2026); Ballaststoffe nicht ausgewiesen; Allergen-Anhang fehlt, mind. Weizen'),
+  // 'Pizza-Quick': WAR hier als Rinne Art. 223 geseedet — laut IREKS-
+  // Qualitätszertifikat 124100 (Marten, 17.07.2026) ist es aber ein
+  // IREKS-Produkt → jetzt in client/src/data/ireks.js (hat Vorrang);
+  // der alte DB-Eintrag wurde gelöscht (cleanup-pizza-quick).
   'Streusel': nw(451, 5.3, 20.5, 10.5, 60.5, 25.2, 1.8, 0.15, ['Aa'], 'BERECHNET aus Standard-Streusel 2:1:1 (Weizenmehl 550 : Zucker : Homann Back Margarine, alle app-intern/PDF); Margarine laktosefrei → nur Aa'),
   'Vanille': nw(318, 3.9, 3.3, 0.8, 56.0, 55.4, 24.4, 0.01, [], 'fddb Rapunzel Bourbon-Vanille gemahlen; GFS geschätzt'),
 

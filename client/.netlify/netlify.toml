@@ -9,8 +9,8 @@ plugins = []
 publish = "C:\\Users\\marte\\rezeptrechner-app\\client\\dist"
 publishOrigin = "config"
 commandOrigin = "config"
-base = "C:\\Users\\marte\\rezeptrechner-app\\client"
 command = "npm install && npm run build"
+base = "C:\\Users\\marte\\rezeptrechner-app\\client"
 
 [build.environment]
 
@@ -49,6 +49,17 @@ for = "/assets/*"
 
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*"
+
+[headers.values]
+Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://rezeptrechner-api.onrender.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+Permissions-Policy = "bluetooth=(self), camera=(), microphone=(), geolocation=()"
 
 [[redirects]]
 from = "/assets/*"

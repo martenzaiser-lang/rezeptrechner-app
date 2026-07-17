@@ -1,6 +1,7 @@
 // IREKS-Produkte — LMIV-konforme Daten aus IREKS-Qualitätszertifikaten
-// Quelle: PDFs unter Downloads/ireks/ (Stand der Zertifikate: 02.07.2026),
-// Text per pypdf extrahiert, Werte manuell übertragen und stichprobengeprüft.
+// Quelle: PDFs unter Downloads/ireks/ (Stand der Zertifikate: 02.07.2026;
+// Pizza-Quick: 16.07.2026), Text per pypdf extrahiert, Werte manuell
+// übertragen und stichprobengeprüft.
 // Gleiches Format wie MEISTERMARKEN_DATEN (meistermarken.js):
 // Nährwerte pro 100g (8-Feld: kcal, eiweiss, fett, gfs, kh, zucker,
 // ballaststoffe, salz), zutaten_lmiv mit <b>Allergen</b>-Markierung,
@@ -74,6 +75,15 @@ export const IREKS_DATEN = {
     allergene: ['G'], spuren: ['A','C'],
     kcal:405, eiweiss:4.7, fett:5.0, gfs:3.8, kh:85.0, zucker:59.7, ballaststoffe:0.7, salz:0.77
   },
+  'Pizza-Quick': {
+    produkt: 'IREKS PIZZA-QUICK', art_nr: '124100',
+    bezeichnung: 'Premix für Pizza- und Snackgebäcke',
+    zutaten_lmiv: '<b>WEIZENmehl</b>; getrockneter Paprika; getrocknete Zwiebeln; Salz; Dextrose; getrockneter <b>WEIZEN-Natursauerteig</b> (<b>WEIZENmehl</b>, Starterkulturen); Tomatenpulver; Kräuter; <b>WEIZENkleber</b>; Palmöl; <b>WEIZENmalzmehl</b>; Gewürz; Mehlbehandlungsmittel Ascorbinsäure; Enzyme.',
+    allergene: ['Aa'], spuren: ['Ab','Ac','Ad','C','G','I'],
+    // Zertifikat Stand 16.07.2026 (von Marten hochgeladen 17.07.) —
+    // ersetzt die frühere Fehl-Zuordnung "Rinne Art. 223 Mediterano"
+    kcal:334, eiweiss:11.1, fett:2.0, gfs:0.6, kh:65.5, zucker:6.1, ballaststoffe:4.8, salz:3.5
+  },
   'Lievito Madre Dolce': {
     produkt: 'IREKS LIEVITO MADRE DOLCE', art_nr: '141000',
     bezeichnung: 'Cuvée für zart-schmelzende Hefefeinteig-Spezialitäten mit Lievito Madre (italienischer Weizensauerteig)',
@@ -136,5 +146,7 @@ export const IREKS_SYNONYME = {
   'vanillekrem':'Mella Bourbon-Vanillekrem','mella vanillekrem':'Mella Bourbon-Vanillekrem',
   // Lievito Madre Dolce (141000)
   'lievito madre dolce':'Lievito Madre Dolce','ireks lievito madre':'Lievito Madre Dolce',
-  'madre dolce':'Lievito Madre Dolce'
+  'madre dolce':'Lievito Madre Dolce',
+  // Pizza-Quick (124100)
+  'pizza-quick':'Pizza-Quick','pizza quick':'Pizza-Quick','pizzaquick':'Pizza-Quick'
 };

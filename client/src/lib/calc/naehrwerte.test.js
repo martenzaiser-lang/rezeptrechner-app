@@ -152,7 +152,7 @@ describe('formatAllergene', () => {
 });
 
 describe('IREKS-Integration', () => {
-  it('alle 9 IREKS-Produkte werden per Name gefunden', () => {
+  it(`alle ${Object.keys(IREKS_DATEN).length} IREKS-Produkte werden per Name gefunden`, () => {
     for (const key of Object.keys(IREKS_DATEN)) {
       expect(findHersteller(key), key).toBe(IREKS_DATEN[key]);
     }
