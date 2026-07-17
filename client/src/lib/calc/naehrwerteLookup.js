@@ -18,11 +18,13 @@ import { MEISTERMARKEN_DATEN } from '../../data/meistermarken.js';
 import { MEISTERMARKEN_SYNONYME } from '../../data/synonyme.js';
 import { IREKS_DATEN, IREKS_SYNONYME } from '../../data/ireks.js';
 import { SYNONYME_ERGAENZUNGEN } from '../../data/synonymeErgaenzungen.js';
+import { HERSTELLER_ERGAENZUNGEN } from '../../data/herstellerErgaenzungen.js';
 import { ZUTAT_NAEHRWERTE } from '../../data/naehrwerte.js';
 import { NAEHRWERTE_DEFAULT } from '../../data/naehrwerteDefault.js';
 
-// Hersteller-Datenblaetter zusammenfuehren (CSM/Meistermarken + IREKS)
-const HERSTELLER_DATEN = { ...MEISTERMARKEN_DATEN, ...IREKS_DATEN };
+// Hersteller-Datenblaetter zusammenfuehren (CSM/Meistermarken + IREKS
+// + nachtraegliche Ergaenzungen wie Dawn)
+const HERSTELLER_DATEN = { ...MEISTERMARKEN_DATEN, ...IREKS_DATEN, ...HERSTELLER_ERGAENZUNGEN };
 // SYNONYME_ERGAENZUNGEN: neue CSM-Synonyme aus den echten Rezeptnamen
 // (synonyme.js selbst ist verbatim-verifiziert und darf nicht wachsen).
 const HERSTELLER_SYNONYME = { ...MEISTERMARKEN_SYNONYME, ...IREKS_SYNONYME, ...SYNONYME_ERGAENZUNGEN };
