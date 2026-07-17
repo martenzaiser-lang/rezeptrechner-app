@@ -43,4 +43,31 @@ export const HERSTELLER_ERGAENZUNGEN = {
     spuren: ['A', 'C', 'F', 'G', 'I', 'K'],
     quelle: 'Amazon-Listing Hobbybäcker Art. 500355 (Herstellerangaben, Stand 2026-07-17)',
   },
+
+  // 'Exzellent' / 'Optimal' = Brotgewürze der Nährmittelfabrik
+  // Dr. Schweigmann & Co. Nachf. e.K. (bezogen über Rinne — PDFs unter
+  // Downloads/rinne/: Produktspezifikation 25.04.2025 + Allergen-Liste EU).
+  // Ballaststoffe sind in beiden Datenblättern NICHT ausgewiesen → 0
+  // angesetzt (bei 0,5-1 % Zugabemenge auf Mehl vernachlässigbar).
+  // Spuren = "Kreuzkontamination"-Spalte der Allergen-Liste.
+  'exzellent': {
+    produkt: 'Dr. Schweigmann Exzellent-Brotgewürz (Art. 1100/1101/1102)',
+    bezeichnung: 'Brotgewürz für helle Mischbrote, Bauern- und Landbrote (Zugabe 0,5-1 % auf Mehl)',
+    kcal: 347, eiweiss: 9.0, fett: 2.6, gfs: 0.4, kh: 66.3, zucker: 1.4,
+    ballaststoffe: 0, salz: 0.5,
+    zutaten_lmiv: 'Kartoffelmehl; Koriander; Kümmel; Fenchel.',
+    allergene: [],
+    spuren: ['Aa','Ab','Ac','Ad','Ae','F','G','K','M'],
+    quelle: 'Produktspezifikation + Allergen-Liste EU Dr. Schweigmann (Stand 25.04.2025, PDFs Downloads/rinne/)',
+  },
+  'optimal': {
+    produkt: 'Dr. Schweigmann Optimal-Brotgewürz (Art. 1300/1301/1302)',
+    bezeichnung: 'Brotgewürz für Bauern-/Landbrote, Körner- und Roggengebäcke (Zugabe 0,5-1 % auf Mehl)',
+    kcal: 307, eiweiss: 11.0, fett: 4.1, gfs: 0.58, kh: 55.1, zucker: 2.89,
+    ballaststoffe: 0, salz: 0.02,
+    zutaten_lmiv: '<b>WEIZENröstmalzmehl</b> (inaktiv); <b>GERSTENmalzmehl</b> (inaktiv); <b>WEIZENkleie</b>; Koriander; Kümmel; Fenchel.',
+    allergene: ['Aa','Ac'],
+    spuren: ['Ab','Ad','Ae','F','G','K','M'],
+    quelle: 'Produktspezifikation + Allergen-Liste EU Dr. Schweigmann (Stand 25.04.2025, PDFs Downloads/rinne/)',
+  },
 };

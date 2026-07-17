@@ -1,7 +1,7 @@
 // IREKS-Produkte — LMIV-konforme Daten aus IREKS-Qualitätszertifikaten
 // Quelle: PDFs unter Downloads/ireks/ (Stand der Zertifikate: 02.07.2026;
-// Pizza-Quick: 16.07.2026), Text per pypdf extrahiert, Werte manuell
-// übertragen und stichprobengeprüft.
+// Pizza-Quick und Mella HT Supersoft: 16.07.2026), Text per pypdf
+// extrahiert, Werte manuell übertragen und stichprobengeprüft.
 // Gleiches Format wie MEISTERMARKEN_DATEN (meistermarken.js):
 // Nährwerte pro 100g (8-Feld: kcal, eiweiss, fett, gfs, kh, zucker,
 // ballaststoffe, salz), zutaten_lmiv mit <b>Allergen</b>-Markierung,
@@ -53,6 +53,16 @@ export const IREKS_DATEN = {
     allergene: ['Aa','Ac'], spuren: ['Ab','Ad','C','G','J'],
     kcal:327, eiweiss:5.6, fett:6.7, gfs:3.5, kh:48.6, zucker:25.7, ballaststoffe:16.9, salz:3.2
   },
+  'Mella HT Supersoft': {
+    produkt: 'IREKS MELLA-HT-SUPERSOFT', art_nr: '133000',
+    bezeichnung: 'Premix für softig-zarte Hefefeingebäcke',
+    zutaten_lmiv: 'Zucker; <b>WEIZENmehl</b>; Emulgator E 471, E 482; <b>SüßMOLKENpulver</b>; Salz; Aroma; Säureregulator E 170, E 341; färbendes Lebensmittel Paprika- und Curcumaextrakt; Mehlbehandlungsmittel Ascorbinsäure; Enzyme.',
+    allergene: ['Aa','G'], spuren: ['Ab','Ac','Ad','C','F'],
+    // Zertifikat Stand 16.07.2026 (von Marten nachgeliefert 17.07.) —
+    // eigenes Produkt (133000), NICHT identisch mit Berliner Supersoft
+    // (133700), wie zunächst angenommen
+    kcal:387, eiweiss:5.2, fett:8.8, gfs:8.4, kh:71.2, zucker:44.9, ballaststoffe:0.8, salz:8.1
+  },
   'Mella Berliner Supersoft': {
     produkt: 'IREKS MELLA-BERLINER-SUPERSOFT', art_nr: '133700',
     bezeichnung: 'Premix für softig-zarte Berliner und Siedegebäckspezialitäten',
@@ -102,8 +112,6 @@ export const IREKS_DATEN = {
 // 'Classis Baguette', 'Baguette-Backmittel', 'Panitop - Roggen',
 // 'Berliner SuperSoft', 'Lievito Madre Dolce'.
 // ACHTUNG, bewusst NICHT aufgenommen:
-// - 'Mella HT SUPER' (Dump, Butterkuchen) = unklar, von Marten noch nicht
-//   bestätigt, dass es dasselbe wie Supersoft ist
 // - 'Biskuit-Mehl' (Dump) = mehrdeutig (könnte auch CSM Meister Biskuit sein)
 // - 'lievito madre' allein = echter Weizensauerteig, nicht das IREKS-Produkt
 export const IREKS_SYNONYME = {
@@ -132,12 +140,17 @@ export const IREKS_SYNONYME = {
   // Rezepten IREKS Eiszeit (ausser Baguetteteig → Weizenback, s.o.).
   // Gilt auch fuer "Broetchenbackmittel" (Dinkel fein).
   'backmittel':'Eiszeit','brötchenbackmittel':'Eiszeit',
+  // Mella HT Supersoft (133000) — Rezepte Zöpfe/Schnecken ('Mella HT
+  // SuperSoft') und Butterkuchen ('Mella HT SUPER'). Die frühere Annahme
+  // "= Berliner Supersoft" war falsch: eigenes Zertifikat 133000 liegt
+  // vor (17.07.2026), das Produkt ist laut IREKS der Premix für
+  // Hefefeingebäcke/Blechkuchen — passt zu beiden Rezepten.
+  'mella ht supersoft':'Mella HT Supersoft','mella-ht-supersoft':'Mella HT Supersoft',
+  'mella ht super':'Mella HT Supersoft','mella ht super soft':'Mella HT Supersoft',
+  'ht supersoft':'Mella HT Supersoft',
   // Mella Berliner Supersoft (133700)
   'mella berliner supersoft':'Mella Berliner Supersoft','mella-berliner-supersoft':'Mella Berliner Supersoft',
   'berliner supersoft':'Mella Berliner Supersoft',
-  // 'Mella HT SuperSoft' (Rezept Zöpfe/Schnecken) = laut Marten
-  // (2026-07-17) dasselbe Produkt wie (Berliner) Supersoft.
-  'mella ht supersoft':'Mella Berliner Supersoft',
   // Weizenback 1856 (136600)
   'weizenback 1856':'Weizenback 1856','weizenback':'Weizenback 1856','ireks weizenback':'Weizenback 1856',
   // Mella Bourbon-Vanillekrem (140200)

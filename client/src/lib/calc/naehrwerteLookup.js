@@ -7,8 +7,9 @@
 //    — fuer den LMIV-Block im Admin (Z. 5737 ff.)
 //
 // Lookup-Prioritaet (Original): custom > Meistermarken/IREKS > default > fuzzy.
-// NEU gegenueber alt: IREKS_DATEN (9 Produkte aus den Qualitaetszertifikaten)
-// werden gleichrangig mit den Meistermarken behandelt.
+// NEU gegenueber alt: IREKS_DATEN (11 Produkte aus den Qualitaetszertifikaten)
+// und HERSTELLER_ERGAENZUNGEN werden gleichrangig mit den Meistermarken
+// behandelt.
 //
 // Custom-Zutaten kommen jetzt aus der DB (custom_ingredients) statt
 // localStorage: als Objekt { nameLowerCase: data }.

@@ -1,5 +1,6 @@
-// Synonym-ERGÄNZUNGEN für CSM/Meistermarken-Produkte (Zutatennamen aus
-// echten Rezepten → Key in MEISTERMARKEN_DATEN).
+// Synonym-ERGÄNZUNGEN für Hersteller-Produkte (Zutatennamen aus
+// echten Rezepten → Key in HERSTELLER_DATEN, d.h. Meistermarken,
+// IREKS oder herstellerErgaenzungen.js).
 //
 // Eigene Datei, weil synonyme.js/meistermarken.js verbatim mit der
 // Alt-App verifiziert werden (test/verify-data.mjs) und dort nichts
@@ -18,4 +19,7 @@ export const SYNONYME_ERGAENZUNGEN = {
   'easy rühr': 'rühr & easy',
   'käsekuchenpulver': 'käsekuchen-basis',
   'neutral': 'sahnessa neutral',
+  // 'Exzelent' (ein l) = Schreibweise in echten Rezepten für das
+  // Exzellent-Brotgewürz (herstellerErgaenzungen.js)
+  'exzelent': 'exzellent',
 };
