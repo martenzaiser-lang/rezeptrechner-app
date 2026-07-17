@@ -2,10 +2,16 @@
 // Funktionen der Alt-App, ueber alle 92 echten Rezepte.
 //
 // WICHTIG: Abweichungen sind NUR dort erlaubt, wo ein Rezept eine Zutat
-// enthaelt, die jetzt ueber ein IREKS-Datenblatt aufgeloest wird (neu,
-// gewuenscht — die Alt-App kannte diese Herstellerdaten nicht). Solche
-// Rezepte werden gegen die IREKS-Erwartung geprueft, alle anderen muessen
-// das Original EXAKT treffen.
+// enthaelt, die jetzt ueber ein Hersteller-Datenblatt aufgeloest wird,
+// das die Alt-App nicht kannte (neu, gewuenscht):
+//   - IREKS-Datenblaetter (ireks.js)
+//   - CSM-Synonym-Ergaenzungen (synonymeErgaenzungen.js, 2026-07):
+//     'Easy Ruehr'/'Kaesekuchenpulver'/'Neutral' und Substring-Treffer
+//     wie 'Sahnestand Neutral' loesen jetzt auf das Datenblatt auf
+//     (vorher z.T. falscher Fuzzy-Treffer, z.B. 'Sahnestand Neutral'
+//     -> Schlagsahne-Naehrwerte).
+// Solche Rezepte werden gegen die Hersteller-Erwartung geprueft, alle
+// anderen muessen das Original EXAKT treffen.
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -48,18 +54,19 @@ const original = new Function(`
   return { getNaehrwert, calcNutrition, getRezeptAllergene, formatAllergene, getRezeptSpuren, findNaehrwerte, findMeistermarke };
 `)();
 
-// Hat das Rezept eine Zutat, die NEU ueber IREKS aufgeloest wird
-// (frueher nicht als Herstellerdaten vorhanden)?
-function hatNeueIreksZutat(r) {
+// Hat das Rezept eine Zutat, die NEU ueber Herstellerdaten aufgeloest
+// wird (IREKS-Datenblatt oder CSM-Synonym-Ergaenzung — die Alt-App
+// kannte den Treffer nicht)?
+function hatNeueHerstellerZutat(r) {
   return r.zutaten.some((z) => {
     const alt = original.findMeistermarke(z.name);
     const neu = findHersteller(z.name);
-    return !alt && neu && Object.values(IREKS_DATEN).includes(neu);
+    return !alt && neu;
   });
 }
 
-const mitIreks = dump.rezepte.filter(hatNeueIreksZutat);
-const ohneIreks = dump.rezepte.filter((r) => !hatNeueIreksZutat(r));
+const mitIreks = dump.rezepte.filter(hatNeueHerstellerZutat);
+const ohneIreks = dump.rezepte.filter((r) => !hatNeueHerstellerZutat(r));
 
 // BEWUSSTE Abweichungen von der Alt-App (dokumentierte Bugfixes):
 // Singular/Plural-Normalisierung — "Rosine" traf in der Alt-App per
@@ -81,8 +88,8 @@ describe('Allergene: exakt wie Alt-App (Rezepte ohne IREKS-Zutaten)', () => {
   }
 });
 
-describe('Allergene: Rezepte mit IREKS-Zutaten (neue Datenblätter)', () => {
-  it(`es gibt IREKS-Rezepte im Bestand (gefunden: ${mitIreks.length})`, () => {
+describe('Allergene: Rezepte mit neuen Hersteller-Zutaten (IREKS/CSM-Synonyme)', () => {
+  it(`es gibt solche Rezepte im Bestand (gefunden: ${mitIreks.length})`, () => {
     expect(mitIreks.length).toBeGreaterThan(0);
   });
   for (const r of mitIreks) {

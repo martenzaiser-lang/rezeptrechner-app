@@ -99,6 +99,9 @@ export const IREKS_SYNONYME = {
   // Mella Sandbiskuit (107400)
   'mella sandbiskuit':'Mella Sandbiskuit','mella-sandbiskuit':'Mella Sandbiskuit',
   'sandbiskuit':'Mella Sandbiskuit','ireks sandbiskuit':'Mella Sandbiskuit',
+  // 'Mellasand' = betriebsübliche Kurzform (Rezepte Sandtortenmasse,
+  // Tortenböden) — ergänzt 2026-07
+  'mellasand':'Mella Sandbiskuit',
   // Stabilase (109300)
   'stabilase':'Stabilase','ireks stabilase':'Stabilase',
   // Classic Baguette (130100)

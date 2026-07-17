@@ -10,6 +10,16 @@ import { MEISTERMARKEN_DATEN } from '../src/data/meistermarken.js';
 import { IREKS_DATEN, IREKS_SYNONYME } from '../src/data/ireks.js';
 import { MEISTERMARKEN_SYNONYME } from '../src/data/synonyme.js';
 import { findHersteller, findNaehrwerte, getNaehrwert, getRezeptAllergene, berechneNaehrwerte } from '../src/lib/calc/naehrwerteLookup.js';
+// Spiegel der DB-Tabelle custom_ingredients (Seed-Daten, siehe
+// server/scripts/seed-naehrwerte-ergaenzungen.js). Die App laedt diese
+// Eintraege zur Laufzeit aus der DB; das Audit hat keinen DB-Zugriff und
+// nutzt daher den Seed-Export. ACHTUNG: von Marten NACHTRAEGLICH ueber das
+// Zutat-Daten-Modal gepflegte Eintraege kennt das Audit nicht.
+import { NAEHRWERT_ERGAENZUNGEN } from '../../server/scripts/seed-naehrwerte-ergaenzungen.js';
+
+const CUSTOM = Object.fromEntries(
+  Object.entries(NAEHRWERT_ERGAENZUNGEN).map(([k, v]) => [k.toLowerCase(), v])
+);
 
 const dump = JSON.parse(readFileSync('C:/Users/marte/Rezeptrechner/app_daten_dump.json', 'utf8'));
 
@@ -35,6 +45,9 @@ function nwWeg(name) {
   const n = name.toLowerCase().trim();
   if (findHersteller(n)) return 'HERSTELLER';
   if (ZUTAT_NAEHRWERTE[n]) return 'direkt';
+  // custom_ingredients (DB) — Position wie in findNaehrwerte():
+  // nach Hersteller/direkt, vor Substring-Matching
+  if (CUSTOM[n]) return 'custom (DB-Seed)';
   for (const key of Object.keys(ZUTAT_NAEHRWERTE)) {
     if (n.includes(key) || key.includes(n)) return `substring→"${key}"`;
   }
@@ -53,6 +66,9 @@ function nwWeg(name) {
 // Aufloesungsweg fuer Allergene nachbilden
 function allergenWeg(name) {
   const n = name.toLowerCase().trim();
+  // custom_ingredients (DB) haben in getRezeptAllergene() hoechste
+  // Prioritaet — aber nur, wenn der Eintrag a/allergene setzt
+  if (CUSTOM[n] && (CUSTOM[n].a || CUSTOM[n].allergene)) return 'custom (DB-Seed)';
   if (findHersteller(n)) return 'HERSTELLER';
   if (ZUTAT_ALLERGENE[n]) return 'direkt';
   for (const key of Object.keys(ZUTAT_ALLERGENE)) {
