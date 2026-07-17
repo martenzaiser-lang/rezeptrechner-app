@@ -252,8 +252,13 @@ export function findNaehrwerte(zutatName, customZutaten = []) {
   const direkt = direktEintrag(ZUTAT_NAEHRWERTE, name);
   if (direkt !== undefined) return direkt;
 
+  // BEWUSSTE Abweichung vom Original (Bugfix 2026-07): das Original liess
+  // hier gfs und zucker weg — dadurch wurden gesaettigte Fettsaeuren und
+  // Zucker fuer ALLE Custom-Zutaten als 0 summiert (LMIV: Werte zu niedrig
+  // ausgewiesen). Die DB-Eintraege (ZutatDatenModal + Seed) fuehren beide
+  // Felder, sie werden jetzt mit durchgereicht.
   const custom = customZutaten.find((z) => z.name.toLowerCase() === name);
-  if (custom) return { kcal: custom.kcal, eiweiss: custom.eiweiss, fett: custom.fett, kh: custom.kh, ballaststoffe: custom.ballaststoffe, salz: custom.salz };
+  if (custom) return { kcal: custom.kcal, eiweiss: custom.eiweiss, fett: custom.fett, gfs: custom.gfs, kh: custom.kh, zucker: custom.zucker, ballaststoffe: custom.ballaststoffe, salz: custom.salz };
 
   for (const [key, nw] of Object.entries(ZUTAT_NAEHRWERTE)) {
     if (name.includes(key) || key.includes(name)) return nw;

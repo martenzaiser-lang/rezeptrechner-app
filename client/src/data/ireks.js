@@ -92,7 +92,8 @@ export const IREKS_DATEN = {
 // 'Classis Baguette', 'Baguette-Backmittel', 'Panitop - Roggen',
 // 'Berliner SuperSoft', 'Lievito Madre Dolce'.
 // ACHTUNG, bewusst NICHT aufgenommen:
-// - 'Mella HT SuperSoft' (Dump) = anderes IREKS-Produkt, kein Zertifikat vorhanden
+// - 'Mella HT SUPER' (Dump, Butterkuchen) = unklar, von Marten noch nicht
+//   bestätigt, dass es dasselbe wie Supersoft ist
 // - 'Biskuit-Mehl' (Dump) = mehrdeutig (könnte auch CSM Meister Biskuit sein)
 // - 'lievito madre' allein = echter Weizensauerteig, nicht das IREKS-Produkt
 export const IREKS_SYNONYME = {
@@ -124,6 +125,9 @@ export const IREKS_SYNONYME = {
   // Mella Berliner Supersoft (133700)
   'mella berliner supersoft':'Mella Berliner Supersoft','mella-berliner-supersoft':'Mella Berliner Supersoft',
   'berliner supersoft':'Mella Berliner Supersoft',
+  // 'Mella HT SuperSoft' (Rezept Zöpfe/Schnecken) = laut Marten
+  // (2026-07-17) dasselbe Produkt wie (Berliner) Supersoft.
+  'mella ht supersoft':'Mella Berliner Supersoft',
   // Weizenback 1856 (136600)
   'weizenback 1856':'Weizenback 1856','weizenback':'Weizenback 1856','ireks weizenback':'Weizenback 1856',
   // Mella Bourbon-Vanillekrem (140200)

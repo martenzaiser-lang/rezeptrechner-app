@@ -67,7 +67,12 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   'Fetakäse': nw(250, 16.5, 20.0, 13.5, 1.0, 1.0, 0, 2.8, ['G'], 'Mittel aus fddb/openfoodfacts/naehrwertrechner Feta 45% i.Tr. (214-276 kcal je Marke)'),
   'Frischkäse': nw(255, 4.8, 25.0, 16.5, 3.0, 3.0, 0, 0.75, ['G'], 'fddb K-Classic/TiP Frischkäse Doppelrahmstufe (252-264 kcal)'),
   'Gouda': nw(364, 22.0, 31.0, 21.2, 0, 0, 0, 2.0, ['G'], 'naehrwertrechner.de (BLS) Gouda 48% F.i.Tr.'),
+  // 'Käsemix' = 1:1-Mischung Gouda + Emmentaler (laut Marten 2026-07-17).
+  // Mittel aus Gouda (s.o.) und Emmentaler 45% F.i.Tr. (BLS: 382 kcal,
+  // 28.7 EW, 29.7 F, 17.7 GFS, 0.6 Salz).
+  'Käsemix': nw(373, 25.4, 30.4, 19.5, 0, 0, 0, 1.3, ['G'], '1:1 Gouda + Emmentaler (laut Marten); Werte gemittelt aus naehrwertrechner.de (BLS)'),
   'Schmand': nw(240, 2.9, 24.0, 15.5, 3.4, 3.4, 0, 0.1, ['G'], 'fddb/wikifit Schmand 24% Fett (238-244 kcal)'),
+  'Skyr': nw(63, 11.0, 0.2, 0.1, 4.0, 4.0, 0, 0.13, ['G'], 'fddb Arla/Milram Skyr natur (63-66 kcal je Marke)'),
   'Schinken': nw(122, 19.5, 4.5, 1.6, 1.0, 0.8, 0, 2.3, null, 'fddb/yazio Kochschinken (Mittel, 107-166 kcal je Produkt); Allergene OFFEN: herstellerabhängig, Etikett prüfen'),
 
   // ── Obst, Gemüse (Web) ──
@@ -108,6 +113,22 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   'Pizza-Quick': nw(311, 12.9, 1.5, 0.33, 60.2, 6.05, 0, 5.2, ['Aa'], 'Rinne Bäckereisaaten Spezifikation Art. 223 Mediterano (PDF 18.03.2026); Ballaststoffe nicht ausgewiesen; Allergen-Anhang fehlt, mind. Weizen'),
   'Streusel': nw(451, 5.3, 20.5, 10.5, 60.5, 25.2, 1.8, 0.15, ['Aa'], 'BERECHNET aus Standard-Streusel 2:1:1 (Weizenmehl 550 : Zucker : Homann Back Margarine, alle app-intern/PDF); Margarine laktosefrei → nur Aa'),
   'Vanille': nw(318, 3.9, 3.3, 0.8, 56.0, 55.4, 24.4, 0.01, [], 'fddb Rapunzel Bourbon-Vanille gemahlen; GFS geschätzt'),
+
+  // ── Zutaten, die eigene REZEPTE sind (laut Marten 2026-07-17) ──
+  // BERECHNET aus den DB-Rezepten per server/scripts/berechne-rezept-
+  // zutaten.js (pro 100 g rohe Mischung/Teig). Bei Rezeptänderung an
+  // 'Brotmischung' oder 'Urstück': Skript neu laufen lassen, Werte hier
+  // aktualisieren, Seed erneut ausführen!
+  // GRENZEN: (1) Rezept Brotmischung enthält 'Optimal' (5 von 38,9 kg =
+  // 13%) — Produkt noch ungeklärt, trägt hier 0 bei → kcal etwas zu
+  // niedrig. (2) Spuren der Unterprodukte (Panitop: Ac,Ad,C,F,G) können
+  // über Custom-Einträge nicht weitergegeben werden.
+  'Brotmischung': nw(241, 11.7, 2.1, 1.1, 41.3, 0.4, 3.4, 18.82, ['Aa', 'Ab'], 'BERECHNET aus Rezept "Brotmischung" (Stand 2026-07-17); Zutat "Optimal" (13%) fehlt noch — nach Klärung neu berechnen!'),
+  // 'Mischung' = Brotmischung (laut Marten 2026-07-17 dasselbe)
+  'Mischung': nw(241, 11.7, 2.1, 1.1, 41.3, 0.4, 3.4, 18.82, ['Aa', 'Ab'], '= Brotmischung (laut Marten dasselbe); BERECHNET aus Rezept "Brotmischung" (Stand 2026-07-17)'),
+  // 'Urstückteig' = Rezept 'Urstück' (Saaten-Quellteig); enthält selbst
+  // Brotmischung — mit dem berechneten Wert von oben aufgelöst.
+  'Urstückteig': nw(261, 10.0, 11.8, 1.4, 26.5, 1.1, 6.8, 1.14, ['Aa', 'Ab', 'Ac', 'Ad', 'K'], 'BERECHNET aus Rezept "Urstück" (Stand 2026-07-17); bei Rezeptänderung neu berechnen (berechne-rezept-zutaten.js)'),
 
   // ── Gewürze, Sonstiges (Web) ──
   'Backpulver': nw(86, 0.1, 0, 0, 21.4, 0.3, 0, 44.8, [], 'fddb RUF Backpulver; hoher LMIV-Salzwert korrekt (Natriumsalze der Triebmittel, kein NaCl)'),
