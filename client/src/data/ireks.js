@@ -107,13 +107,20 @@ export const IREKS_SYNONYME = {
   // Classic Baguette (130100)
   'classic baguette':'Classic Baguette','classis baguette':'Classic Baguette',
   'klassik baguette':'Classic Baguette','baguette classic':'Classic Baguette',
-  'baguette-backmittel':'Classic Baguette','baguette backmittel':'Classic Baguette',
   'classic-baguette':'Classic Baguette',
+  // 'Baguette-Backmittel' im Baguetteteig ist laut Marten (2026-07-17)
+  // "IREKS 1859" = Weizenback 1856 (einziges 18xx-Produkt im Sortiment;
+  // falls es doch ein anderes ist, hier korrigieren) — NICHT Classic Baguette.
+  'baguette-backmittel':'Weizenback 1856','baguette backmittel':'Weizenback 1856',
   // Panitop Roggen (132000)
   'panitop roggen':'Panitop Roggen','panitop - roggen':'Panitop Roggen',
   'panitop-roggen':'Panitop Roggen','panitop':'Panitop Roggen',
   // Eiszeit (132200)
   'eiszeit':'Eiszeit','ireks eiszeit':'Eiszeit','eis zeit':'Eiszeit','eiszeit backmittel':'Eiszeit',
+  // Laut Marten (2026-07-17): das generische "Backmittel" ist in ALLEN
+  // Rezepten IREKS Eiszeit (ausser Baguetteteig → Weizenback, s.o.).
+  // Gilt auch fuer "Broetchenbackmittel" (Dinkel fein).
+  'backmittel':'Eiszeit','brötchenbackmittel':'Eiszeit',
   // Mella Berliner Supersoft (133700)
   'mella berliner supersoft':'Mella Berliner Supersoft','mella-berliner-supersoft':'Mella Berliner Supersoft',
   'berliner supersoft':'Mella Berliner Supersoft',

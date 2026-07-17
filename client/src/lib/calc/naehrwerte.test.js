@@ -101,7 +101,10 @@ describe('Allergene: Rezepte mit neuen Hersteller-Zutaten (IREKS/CSM-Synonyme)',
       // Datenblatt entfallen, wenn das Produkt laut Hersteller keine Gerste
       // ENTHAELT — dann muss sie aber als Spur erscheinen).
       const spuren = new Set(getRezeptSpuren(r));
-      for (const code of original.getRezeptAllergene(r)) {
+      const fix = ERWARTETE_FIXES[r.name];
+      const originalCodes = original.getRezeptAllergene(r)
+        .filter((c) => !fix?.entfernt.includes(c));
+      for (const code of originalCodes) {
         const haupt = code.charAt(0);
         const abgedeckt =
           neu.has(code) ||
