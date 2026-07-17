@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup: Verkaufs-Ansicht (Personalplaner)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: { colors: {
+    cream: '#F5F0E8',
+    brown: { 900: '#3E2723', 700: '#5D4037', 300: '#A1887F' },
+  }}}
+}
+</script>
+</head>
+<body class="bg-cream min-h-screen" style="font-family: Inter, system-ui, sans-serif">
+
+<!-- Kopf wie Personalplaner Employee-Portal -->
+<div class="bg-white border-b border-amber-200 px-4 py-3 flex items-center justify-between sticky top-0">
+  <div>
+    <h1 class="text-lg font-bold text-amber-900">🥨 Produkt-Auskunft</h1>
+    <p class="text-xs text-amber-700">Allergene · Zutaten · Nährwerte</p>
+  </div>
+  <span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full font-medium">Stand: heute 04:52</span>
+</div>
+
+<div class="p-4 space-y-3 max-w-md mx-auto">
+
+  <!-- Suche -->
+  <input type="search" placeholder="🔍 Produkt suchen… (z.B. Dinkel)"
+    class="w-full border border-amber-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-amber-500 bg-white" value="dinkel">
+
+  <!-- Kategorie-Chips -->
+  <div class="flex gap-2 overflow-x-auto pb-1">
+    <button class="px-4 py-1.5 rounded-full bg-amber-700 text-white text-sm font-medium whitespace-nowrap">Alle</button>
+    <button class="px-4 py-1.5 rounded-full bg-white border border-amber-300 text-amber-800 text-sm whitespace-nowrap">Brot</button>
+    <button class="px-4 py-1.5 rounded-full bg-white border border-amber-300 text-amber-800 text-sm whitespace-nowrap">Brötchen</button>
+    <button class="px-4 py-1.5 rounded-full bg-white border border-amber-300 text-amber-800 text-sm whitespace-nowrap">Kuchen</button>
+    <button class="px-4 py-1.5 rounded-full bg-white border border-amber-300 text-amber-800 text-sm whitespace-nowrap">Feingebäck</button>
+  </div>
+
+  <!-- Produkt zugeklappt -->
+  <div class="bg-white rounded-xl border border-amber-200 shadow-sm p-4 flex items-center justify-between">
+    <div>
+      <h3 class="font-semibold text-amber-900">Dinkel fein</h3>
+      <div class="flex gap-1 mt-1">
+        <span class="text-[11px] bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-medium">Gluten (Dinkel)</span>
+      </div>
+    </div>
+    <span class="text-amber-400 text-xl">›</span>
+  </div>
+
+  <!-- Produkt AUFGEKLAPPT (Kern des Entwurfs) -->
+  <div class="bg-white rounded-xl border-2 border-amber-400 shadow-md overflow-hidden">
+    <div class="p-4 pb-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-amber-900 text-lg">Dinkelvollkorn mit Skyr</h3>
+        <span class="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Brot</span>
+      </div>
+    </div>
+
+    <!-- ALLERGENE: das Wichtigste, groß und rot -->
+    <div class="mx-4 mb-3 bg-red-50 border border-red-200 rounded-lg p-3">
+      <div class="text-xs font-bold text-red-800 uppercase tracking-wide mb-1">⚠️ Enthält (Allergene)</div>
+      <div class="text-sm text-red-900 font-medium">Glutenhaltiges Getreide (Dinkel, Weizen) · Milch (inkl. Laktose)</div>
+      <div class="text-xs text-red-700 mt-1.5 pt-1.5 border-t border-red-200">
+        <span class="font-semibold">Kann Spuren enthalten:</span> Sesam, Schalenfrüchte
+      </div>
+    </div>
+
+    <!-- Zutaten (nur Namen, absteigend) -->
+    <div class="mx-4 mb-3 bg-amber-50 rounded-lg p-3">
+      <div class="text-xs font-bold text-amber-800 uppercase tracking-wide mb-1">Zutaten</div>
+      <p class="text-sm text-amber-900 leading-relaxed">
+        Dinkelvollkornmehl, Wasser, Skyr, Sauerteig, Sonnenblumenkerne, Salz, Hefe, Honig
+      </p>
+      <p class="text-[11px] text-amber-600 mt-1">Reihenfolge nach Anteil (LMIV) — ohne Mengenangaben</p>
+    </div>
+
+    <!-- Nährwerte kompakt -->
+    <div class="mx-4 mb-4">
+      <div class="text-xs font-bold text-amber-800 uppercase tracking-wide mb-1.5">Nährwerte pro 100 g gebacken</div>
+      <div class="grid grid-cols-4 gap-1.5 text-center">
+        <div class="bg-white border border-amber-200 rounded-lg py-2">
+          <div class="font-bold text-amber-900">221</div><div class="text-[10px] text-amber-600">kcal</div>
+        </div>
+        <div class="bg-white border border-amber-200 rounded-lg py-2">
+          <div class="font-bold text-amber-900">9,1 g</div><div class="text-[10px] text-amber-600">Eiweiß</div>
+        </div>
+        <div class="bg-white border border-amber-200 rounded-lg py-2">
+          <div class="font-bold text-amber-900">40,2 g</div><div class="text-[10px] text-amber-600">Kohlenh.</div>
+        </div>
+        <div class="bg-white border border-amber-200 rounded-lg py-2">
+          <div class="font-bold text-amber-900">2,4 g</div><div class="text-[10px] text-amber-600">Fett</div>
+        </div>
+      </div>
+      <button class="text-xs text-amber-700 underline mt-1.5">alle 8 Werte anzeigen ▾</button>
+    </div>
+  </div>
+
+  <!-- Noch ein zugeklapptes Produkt -->
+  <div class="bg-white rounded-xl border border-amber-200 shadow-sm p-4 flex items-center justify-between opacity-80">
+    <div>
+      <h3 class="font-semibold text-amber-900">Dinkel Haferbrot</h3>
+      <div class="flex gap-1 mt-1 flex-wrap">
+        <span class="text-[11px] bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-medium">Gluten (Dinkel, Hafer)</span>
+        <span class="text-[11px] bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-medium">Sesam</span>
+      </div>
+    </div>
+    <span class="text-amber-400 text-xl">›</span>
+  </div>
+
+</div>
+</body>
+</html>
