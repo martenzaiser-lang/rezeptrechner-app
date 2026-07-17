@@ -61,10 +61,22 @@ function hatNeueIreksZutat(r) {
 const mitIreks = dump.rezepte.filter(hatNeueIreksZutat);
 const ohneIreks = dump.rezepte.filter((r) => !hatNeueIreksZutat(r));
 
+// BEWUSSTE Abweichungen von der Alt-App (dokumentierte Bugfixes):
+// Singular/Plural-Normalisierung — "Rosine" traf in der Alt-App per
+// Substring faelschlich den Eintrag "rosinen geschwefelt" (Sulfit L),
+// waehrend "Rosinen" korrekt als ungeschwefelt/frei galt. Jetzt werden
+// beide Schreibweisen gleich behandelt (Direkt-Eintrag "rosinen").
+const ERWARTETE_FIXES = {
+  'Dinkel - Porridge': { entfernt: ['L'], grund: 'Zutat "Rosine" traf faelschlich "rosinen geschwefelt"' },
+};
+
 describe('Allergene: exakt wie Alt-App (Rezepte ohne IREKS-Zutaten)', () => {
   for (const r of ohneIreks) {
     it(r.name, () => {
-      expect(getRezeptAllergene(r)).toEqual(original.getRezeptAllergene(r));
+      const alt = original.getRezeptAllergene(r);
+      const fix = ERWARTETE_FIXES[r.name];
+      const erwartet = fix ? alt.filter((c) => !fix.entfernt.includes(c)) : alt;
+      expect(getRezeptAllergene(r)).toEqual(erwartet);
     });
   }
 });

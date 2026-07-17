@@ -1,0 +1,102 @@
+/* Design-Politur (Wunsch Marten 2026-07-17): runder, futuristischer,
+   mehr Bewegung — aufbauend auf theme.css/refresh-v3.css, nur sanfte
+   Ergaenzungen. Respektiert prefers-reduced-motion. */
+
+/* Rundere Grundformen */
+.card { border-radius: 18px; }
+.btn { border-radius: 12px; }
+input, select, textarea { border-radius: 12px; }
+.modal { border-radius: 20px; }
+.zt-section { border-radius: 14px; }
+.teig-box { border-radius: 14px; }
+.mp-card { border-radius: 14px; }
+
+/* Seiteninhalt gleitet sanft ein (einmalig pro Navigation) */
+.app-main > * {
+  animation: seiteRein 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes seiteRein {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Chips: dezentes Anheben + Glow beim Beruehren */
+.quick-chip {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.quick-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px var(--d1);
+}
+
+/* Zutatenzeilen: sanftes Hover-Highlight (Tablet: Tap-Feedback) */
+.zt-row-clean {
+  transition: background 140ms ease;
+}
+.zt-row-clean:hover {
+  background: var(--accent-light);
+}
+
+/* Sektions-Header: animierter Gradient-Schimmer (futuristischer Akzent) */
+.zt-section-header {
+  background-size: 200% 100%;
+  animation: sektionSchimmer 6s ease-in-out infinite;
+}
+@keyframes sektionSchimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Teig-Box: pulsiert kurz, wenn sich der Wert aendert (key-Wechsel) */
+.teig-val {
+  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.teig-box:has(.teig-val):active .teig-val {
+  transform: scale(1.05);
+}
+
+/* Stepper-Buttons: satteres Druck-Feedback */
+.stepper button, .mp-controls button {
+  transition: transform 120ms ease, background 120ms ease;
+}
+.stepper button:active, .mp-controls button:active {
+  transform: scale(0.9);
+  background: var(--accent-light);
+}
+
+/* Login-Konto-Buttons: Anheben beim Hover */
+.login-card button[type="button"] {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.login-card button[type="button"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -8px var(--d1);
+}
+
+/* Modals: weicherer Auftritt (ueberschreibt theme leicht) */
+.modal {
+  animation: modalRein 0.26s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+@keyframes modalRein {
+  from { opacity: 0; transform: scale(0.95) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Abwiegen-Vollbild gleitet von unten herein */
+.abwiegen-overlay {
+  animation: abwiegenRein 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes abwiegenRein {
+  from { opacity: 0; transform: translateY(4%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-main > *, .modal, .abwiegen-overlay, .zt-section-header {
+    animation: none;
+  }
+  .quick-chip, .zt-row-clean, .stepper button, .mp-controls button,
+  .login-card button[type="button"], .teig-val {
+    transition: none;
+  }
+}

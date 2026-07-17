@@ -24,6 +24,7 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
     stueckgewicht_g: r.stueckgewicht_g ?? 1000,
     min_stueck: r.min_stueck ?? 1,
     max_stueck: r.max_stueck ?? 999,
+    backverlust_pct: r.backverlust_pct || '',
     blech_breite_cm: r.blech_breite_cm || '',
     blech_laenge_cm: r.blech_laenge_cm || '',
     teigtemp_c: r.teigtemp_c ?? 26,
@@ -70,6 +71,7 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
       stueckgewicht_g: num(form.stueckgewicht_g, 1000),
       min_stueck: parseInt(form.min_stueck) || 1,
       max_stueck: parseInt(form.max_stueck) || 999,
+      backverlust_pct: num(form.backverlust_pct) || 0,
       blech_breite_cm: num(form.blech_breite_cm),
       blech_laenge_cm: num(form.blech_laenge_cm),
       teigtemp_c: num(form.teigtemp_c, 26),
@@ -128,10 +130,11 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
       </label>
 
       <h3 style={{ fontSize: 14, margin: '12px 0 6px' }}>Stückkalkulation</h3>
-      <div className="form-grid-3">
+      <div className="form-grid-4">
         {feld('Teiggewicht (g)', 'stueckgewicht_g', { type: 'number', step: 1 })}
         {feld('Min. Stückzahl', 'min_stueck', { type: 'number', min: 1 })}
         {feld('Max. Stückzahl', 'max_stueck', { type: 'number', min: 1 })}
+        {feld('Backverlust %', 'backverlust_pct', { type: 'number', min: 0, max: 40, placeholder: 'z.B. 12', title: 'Gewichtsverlust beim Backen — nötig für korrekte LMIV-Nährwerte pro 100 g gebacken' })}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0 6px' }}>

@@ -87,9 +87,27 @@ export function calcNutrition(r, skaliert, customNaehrwerte = {}) {
   return tot;
 }
 
+// Singular/Plural-Normalisierung fuer Direkt-Treffer: "Rosine" soll den
+// Eintrag "rosinen" treffen und NICHT per Substring auf "rosinen
+// geschwefelt" rutschen (Bug der alten App: "Rosine" bekam Sulfit-L,
+// "Rosinen" nicht — je nach Schreibweise im Rezept).
+function direktEintrag(map, name) {
+  if (map[name] !== undefined) return map[name];
+  if (map[name + 'n'] !== undefined) return map[name + 'n'];
+  if (name.endsWith('n') && map[name.slice(0, -1)] !== undefined) return map[name.slice(0, -1)];
+  return undefined;
+}
+
 // getRezeptAllergene (Original Z. 5602 — die "spaete", massgebliche Version)
-export function getRezeptAllergene(rezept) {
+// NEU: customZutaten (DB, Zutat-Daten-Modal) haben hoechste Prioritaet —
+// damit kann Marten jede Allergen-Zuordnung selbst korrigieren.
+export function getRezeptAllergene(rezept, customZutaten = []) {
   const allergene = new Set();
+  const customMap = {};
+  for (const c of customZutaten) {
+    const a = c.a || c.allergene || c.data?.a || c.data?.allergene;
+    if (a) customMap[(c.name || '').toLowerCase()] = a;
+  }
 
   const excludeFromDairy = /mandelmilch|sojamilch|hafermilch|kokosmilch|reismilch|cashewmilch|erdnussbutter|mandelbutter|cashewbutter|nussbutter/;
   const allergenFrei = ['wasser', 'salz', 'zucker', 'honig', 'rübensirup', 'sonnenblumenkerne', 'kürbiskerne', 'leinsamen', 'chiasamen', 'mohn', 'sonnenblumenöl', 'rapsöl', 'olivenöl', 'hefe', 'frischhefe', 'trockenhefe', 'backpulver', 'kümmel', 'koriander', 'fenchel', 'anis', 'zimt', 'pfeffer', 'brotgewürz', 'kürbis', 'karotten', 'rote bete', 'süßkartoffel', 'kartoffel', 'rosinen', 'sultaninen', 'orangensaft', 'buchweizenmehl', 'maismehl', 'reismehl', 'hopfenmehl'];
@@ -99,16 +117,23 @@ export function getRezeptAllergene(rezept) {
     const isPflanzlich = excludeFromDairy.test(name);
     const isAllergenFrei = allergenFrei.some((af) => name.includes(af));
 
-    // 0. Hersteller-Datenblatt (hoechste Prioritaet)
+    // 0a. Eigene Zutat-Daten (DB) — von Marten gepflegt, schlagen alles
+    if (customMap[name]) {
+      customMap[name].forEach((a) => allergene.add(a));
+      return;
+    }
+
+    // 0b. Hersteller-Datenblatt
     const m = findHersteller(name);
     if (m) {
       (m.allergene || []).forEach((a) => allergene.add(a));
       return;
     }
 
-    // 1. Direkter Eintrag
-    if (ZUTAT_ALLERGENE[name]) {
-      ZUTAT_ALLERGENE[name].forEach((a) => allergene.add(a));
+    // 1. Direkter Eintrag (inkl. Singular/Plural)
+    const direkt = direktEintrag(ZUTAT_ALLERGENE, name);
+    if (direkt !== undefined) {
+      direkt.forEach((a) => allergene.add(a));
       return;
     }
 
@@ -219,7 +244,8 @@ export function findNaehrwerte(zutatName, customZutaten = []) {
   const m = findHersteller(name);
   if (m) return herstellerToNw2(m);
 
-  if (ZUTAT_NAEHRWERTE[name]) return ZUTAT_NAEHRWERTE[name];
+  const direkt = direktEintrag(ZUTAT_NAEHRWERTE, name);
+  if (direkt !== undefined) return direkt;
 
   const custom = customZutaten.find((z) => z.name.toLowerCase() === name);
   if (custom) return { kcal: custom.kcal, eiweiss: custom.eiweiss, fett: custom.fett, kh: custom.kh, ballaststoffe: custom.ballaststoffe, salz: custom.salz };

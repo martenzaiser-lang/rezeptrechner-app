@@ -34,6 +34,9 @@ export const mkRezept = (d) => ({
   stueckgewicht_g: parseFloat(d.stueckgewicht_g) || 1000,
   min_stueck: parseInt(d.min_stueck) || 1,
   max_stueck: parseInt(d.max_stueck) || 999,
+  // Abweichung vom Original (Bug dort): mkRezept verwarf backverlust_pct,
+  // obwohl Excel-Import/-Export das Feld transportieren — hier erhalten.
+  backverlust_pct: parseFloat(d.backverlust_pct) || 0,
   teigtemp_c: parseFloat(d.teigtemp_c) || 26,
   kz_langsam: parseInt(d.kz_langsam) || 5,
   kz_schnell: parseInt(d.kz_schnell) || 8,

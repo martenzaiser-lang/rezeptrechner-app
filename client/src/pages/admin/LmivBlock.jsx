@@ -15,10 +15,31 @@ export default function LmivBlock({ rezept, customZutaten }) {
   const [offen, setOffen] = useState(false);
   const toast = useToast();
 
-  const allergene = getRezeptAllergene(rezept);
+  const allergene = getRezeptAllergene(rezept, customZutaten);
   const spuren = getRezeptSpuren(rezept).filter((s) => !allergene.includes(s));
   const lmivZutaten = getRezeptLmivZutaten(rezept);
-  const nw = berechneNaehrwerte(rezept, customZutaten);
+  const nwTeig = berechneNaehrwerte(rezept, customZutaten);
+
+  // LMIV: Deklaration bezieht sich auf 100 g des VERKAUFSFERTIGEN Produkts.
+  // Beim Backen verdunstet Wasser → Naehrstoffdichte steigt um den Faktor
+  // 100/(100 − Backverlust%). Ohne gepflegten Backverlust zeigen wir die
+  // Teig-Werte und weisen deutlich darauf hin.
+  const bv = rezept.backverlust_pct || 0;
+  const faktor = bv > 0 && bv < 100 ? 100 / (100 - bv) : 1;
+  const nw = nwTeig
+    ? {
+        ...nwTeig,
+        kcal: nwTeig.kcal * faktor,
+        eiweiss: nwTeig.eiweiss * faktor,
+        fett: nwTeig.fett * faktor,
+        gfs: nwTeig.gfs * faktor,
+        kh: nwTeig.kh * faktor,
+        zucker: nwTeig.zucker * faktor,
+        ballaststoffe: nwTeig.ballaststoffe * faktor,
+        salz: nwTeig.salz * faktor,
+      }
+    : null;
+  const bezug = bv > 0 ? `pro 100 g gebacken (Backverlust ${bv}%)` : 'pro 100 g Teig';
 
   function kopieren() {
     let text = `${rezept.name}\n\nZutaten:\n`;
@@ -30,7 +51,7 @@ export default function LmivBlock({ rezept, customZutaten }) {
     if (allergene.length) text += `\nEnthaltene Allergene: ${formatAllergene(allergene, true)}\n`;
     if (spuren.length) text += `Kann Spuren enthalten von: ${formatAllergene(spuren, true)}\n`;
     if (nw) {
-      text += `\nNährwerte pro 100 g (Teig):\nEnergie ${Math.round(nw.kcal)} kcal · Fett ${nw.fett.toFixed(1)} g (davon ges. FS ${nw.gfs.toFixed(1)} g) · Kohlenhydrate ${nw.kh.toFixed(1)} g (davon Zucker ${nw.zucker.toFixed(1)} g) · Ballaststoffe ${nw.ballaststoffe.toFixed(1)} g · Eiweiß ${nw.eiweiss.toFixed(1)} g · Salz ${nw.salz.toFixed(2)} g\n`;
+      text += `\nNährwerte ${bezug}:\nEnergie ${Math.round(nw.kcal)} kcal · Fett ${nw.fett.toFixed(1)} g (davon ges. FS ${nw.gfs.toFixed(1)} g) · Kohlenhydrate ${nw.kh.toFixed(1)} g (davon Zucker ${nw.zucker.toFixed(1)} g) · Ballaststoffe ${nw.ballaststoffe.toFixed(1)} g · Eiweiß ${nw.eiweiss.toFixed(1)} g · Salz ${nw.salz.toFixed(2)} g\n`;
     }
     navigator.clipboard.writeText(text).then(
       () => toast.success('Volldeklaration kopiert'),
@@ -80,7 +101,12 @@ export default function LmivBlock({ rezept, customZutaten }) {
           </div>
           {nw && (
             <div style={{ marginBottom: 10, fontSize: 13 }}>
-              <strong>Nährwerte pro 100 g Teig</strong>
+              <strong>Nährwerte {bezug}</strong>
+              {bv === 0 && (
+                <span style={{ color: 'var(--warning)' }}>
+                  {' '}— Backverlust nicht gepflegt! Für die LMIV-Deklaration in den Stammdaten eintragen (Brot typ. 10–13%).
+                </span>
+              )}
               {nw.fehlend.length > 0 && (
                 <span style={{ color: 'var(--error)' }}> (unvollständig — fehlend: {nw.fehlend.join(', ')})</span>
               )}

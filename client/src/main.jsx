@@ -6,6 +6,8 @@ import './styles/theme.css';
 // Design-Refresh v3: NACH theme.css laden — uebersteuert gezielt einzelne
 // v2-Regeln (Ladeanimationen, Mobile-Politur, Theming nativer Controls).
 import './styles/refresh-v3.css';
+// Eigene Politur (rundere Formen, Mikro-Animationen) — NACH refresh-v3.
+import './styles/polish.css';
 
 // Theme aus localStorage anwenden BEVOR React rendert — verhindert Flackern.
 try {

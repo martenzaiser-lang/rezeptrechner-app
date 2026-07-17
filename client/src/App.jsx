@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { LogOut } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import TopNav from './components/TopNav.jsx';
@@ -92,6 +93,15 @@ export default function App() {
                 <TopNav />
                 <CloudStatus />
                 <ThemeToggle />
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => auth.logout()}
+                  title={`Abmelden (${auth.getEmail()})`}
+                  aria-label="Abmelden"
+                  style={{ padding: 8 }}
+                >
+                  <LogOut size={18} />
+                </button>
               </div>
             </header>
 

@@ -13,6 +13,7 @@ import { settingsRouter } from './routes/settings.js';
 import { customIngredientsRouter } from './routes/custom-ingredients.js';
 import { pricesRouter } from './routes/prices.js';
 import { changelogRouter } from './routes/changelog.js';
+import { lmivRouter } from './routes/lmiv.js';
 
 export const app = express();
 
@@ -52,6 +53,7 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/custom-ingredients', customIngredientsRouter);
 app.use('/api/prices', pricesRouter);
 app.use('/api/changelog', changelogRouter);
+app.use('/api/lmiv', lmivRouter);
 
 // Zentraler Error-Handler
 app.use((err, _req, res, _next) => {

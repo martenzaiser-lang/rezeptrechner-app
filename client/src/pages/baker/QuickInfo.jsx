@@ -7,10 +7,10 @@ import { ta } from '../../lib/calc/ta.js';
 import { calcNutrition, getRezeptAllergene, formatAllergene } from '../../lib/calc/naehrwerteLookup.js';
 import { ANZEIGE_DEFAULTS } from '../../lib/anzeige.js';
 
-export default function QuickInfo({ rezept, sk, anzeige = ANZEIGE_DEFAULTS }) {
+export default function QuickInfo({ rezept, sk, anzeige = ANZEIGE_DEFAULTS, customZutaten = [] }) {
   const r = rezept;
   const nw = anzeige.naehrwerte && sk ? calcNutrition(r, sk) : null;
-  const allergene = anzeige.allergene ? getRezeptAllergene(r) : [];
+  const allergene = anzeige.allergene ? getRezeptAllergene(r, customZutaten) : [];
 
   return (
     <div className="baker-quick-info">

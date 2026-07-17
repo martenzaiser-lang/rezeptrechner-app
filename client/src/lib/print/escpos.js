@@ -281,7 +281,7 @@ export function generateBonBytes(rezept, skalierteZutaten, produktInfo, teilerIn
   }
   if (cfg.allergene && rezept) {
     try {
-      const allergene = getRezeptAllergene(rezept);
+      const allergene = getRezeptAllergene(rezept, customZutaten);
       if (allergene && allergene.length > 0) {
         const allergenStr = allergene.map((a) => ALLERGEN_NAMEN[a] || a).join(', ');
         bytes.push(...ESCPOS.DOUBLE_HEIGHT);
