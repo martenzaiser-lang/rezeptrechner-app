@@ -11,7 +11,10 @@ const schema = z.object({
   PORT: z.coerce.number().default(4001),
   DATABASE_URL: isProd ? z.string().min(1) : z.string().optional(),
   JWT_SECRET: isProd ? z.string().min(32) : z.string().min(1).default('dev-secret-nicht-fuer-produktion'),
-  JWT_EXPIRES_IN: z.string().default('7d'),
+  // 30 Tage: interne App, Baecker sollen nicht staendig neu anmelden
+  // (die alte App verlangte bei JEDEM Start einen Login — groesster
+  // Bedienungs-Schmerzpunkt laut Marten).
+  JWT_EXPIRES_IN: z.string().default('30d'),
   CORS_ORIGIN: z.string().default('http://localhost:5174'),
 });
 

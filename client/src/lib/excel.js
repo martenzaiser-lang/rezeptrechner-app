@@ -6,9 +6,16 @@
 // Fuer_Produkte als ';'-Liste. parseBakereiFormat liest historische
 // Baeckerei-Arbeitsblaetter (ein Rezept pro Sheet, Heuristiken).
 
-import * as XLSX from 'xlsx';
+// xlsx (424 kB) wird erst beim ersten Export/Import geladen — haelt das
+// Initial-Bundle der Verwaltung klein (wichtig auf den Tablets).
+let xlsxPromise;
+function getXLSX() {
+  xlsxPromise ??= import('xlsx');
+  return xlsxPromise;
+}
 
-export function exportExcel(rezepte) {
+export async function exportExcel(rezepte) {
+  const XLSX = await getXLSX();
   const wb = XLSX.utils.book_new();
   const rH = ['ID', 'Name', 'Kategorie', 'Aktiv', 'Fertiggewicht_g', 'Backverlust_pct', 'Min_Stueck', 'Max_Stueck', 'Teigtemp_C', 'Knetzeit_langsam_min', 'Knetzeit_schnell_min', 'Stockgare_min', 'Stueckgare_min', 'Backtemp_Ober_C', 'Backtemp_Unter_C', 'Backzeit_min', 'Bedampfung', 'Bedampf_Hinweis', 'Anmerkungen', 'Erstellt'];
   const rR = rezepte.map((r) => [r.id, r.name, r.kategorie, r.aktiv ? 'JA' : 'NEIN', r.stueckgewicht_g, r.backverlust_pct, r.min_stueck, r.max_stueck, r.teigtemp_c, r.kz_langsam, r.kz_schnell, r.stockgare, r.stueckgare, r.back_ober, r.back_unter, r.backzeit, r.bedampfung ? 'JA' : 'NEIN', r.bedampf_hinweis, r.anmerkungen, r.erstellt]);
@@ -26,7 +33,8 @@ export function exportExcel(rezepte) {
   XLSX.writeFile(wb, `Rezepte_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
-export function downloadTemplate() {
+export async function downloadTemplate() {
+  const XLSX = await getXLSX();
   const wb = XLSX.utils.book_new();
   const ws1 = XLSX.utils.aoa_to_sheet([
     ['ID', 'Name', 'Kategorie', 'Aktiv', 'Fertiggewicht_g', 'Backverlust_pct'],
@@ -52,7 +60,8 @@ export function exportJSON(rezepte, cfg) {
   a.click();
 }
 
-export function parseStandardFormat(wb) {
+export async function parseStandardFormat(wb) {
+  const XLSX = await getXLSX();
   const sR = wb.SheetNames.find((n) => n.toLowerCase().includes('rezept')) || wb.SheetNames[0];
   const sZ = wb.SheetNames.find((n) => n.toLowerCase().includes('zutat')) || wb.SheetNames[1];
   if (!sR) return [];
@@ -116,7 +125,8 @@ export function parseStandardFormat(wb) {
 }
 
 // Historisches Baeckerei-Arbeitsblatt-Format (ein Rezept pro Sheet).
-export function parseBakereiFormat(wb) {
+export async function parseBakereiFormat(wb) {
+  const XLSX = await getXLSX();
   const SKIP = ['Auswahlblatt', 'Rohdaten', 'Tabelle1', 'Tabelle2', 'Tabelle3', 'Übersicht', 'Auswahl', 'Index'];
   const STOP = ['gesamt', 'brote', 'pressen', 'zurück', 'gewicht pro presse', 'summe'];
   const SECTION = ['quellstück', 'kochstück', 'hefestück', 'hauptteig', 'einweichen', 'sauerteig', 'vorteig', 'brühstück', 'poolish', 'biga'];
@@ -283,7 +293,8 @@ export function parseBakereiFormat(wb) {
 }
 
 // Datei-Buffer parsen: Standard-Format bevorzugt, sonst Baeckerei-Format.
-export function parseImportBuffer(buf) {
+export async function parseImportBuffer(buf) {
+  const XLSX = await getXLSX();
   const wb = XLSX.read(buf, { type: 'array' });
   const hasStd =
     wb.SheetNames.some((n) => n.toLowerCase().includes('rezept')) &&

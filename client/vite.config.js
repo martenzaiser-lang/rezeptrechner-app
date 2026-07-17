@@ -19,8 +19,9 @@ export default defineConfig({
       output: {
         // xlsx (gross, nur Import/Export im Admin) und der React-Kern in
         // eigene Chunks — gleiche Bundle-Aufteilung wie in der Etiketten-App.
+        // xlsx bekommt durch den dynamischen Import in lib/excel.js
+        // automatisch einen eigenen Lazy-Chunk.
         manualChunks: {
-          xlsx: ['xlsx'],
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
         },
       },

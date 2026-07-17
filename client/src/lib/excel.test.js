@@ -24,12 +24,12 @@ function buildWorkbook(rezepte) {
 }
 
 describe('Excel-Roundtrip (Export → Import)', () => {
-  it('92 echte Rezepte: fachliche Felder bleiben erhalten', () => {
+  it('92 echte Rezepte: fachliche Felder bleiben erhalten', async () => {
     const rezepte = dump.rezepte.map(mkRezept);
     const wb = buildWorkbook(rezepte);
     // Ueber Buffer serialisieren (wie echter Datei-Roundtrip)
     const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
-    const zurueck = parseStandardFormat(XLSX.read(buf, { type: 'array' }));
+    const zurueck = await parseStandardFormat(XLSX.read(buf, { type: 'array' }));
 
     expect(zurueck).toHaveLength(rezepte.length);
     for (const orig of rezepte) {

@@ -136,6 +136,8 @@ export function getFrischeZutaten(rezept, skalierteZutaten) {
   return rezept.zutaten.map((z, i) => ({ ...z, menge: skalierteZutaten[i] || 0 }))
     .filter((z) => {
       if (z.menge <= 0) return false;
+      // Neues Flag (Zutat-Editor): explizit vom Bon ausgeschlossen
+      if (z.nicht_auf_bon) return false;
       const name = (z.name || '').toLowerCase();
       const bem = (z.bemerkung || '').toLowerCase().trim();
       if (z.ist_mehl) return false;
@@ -190,6 +192,7 @@ export function getVorteigZutaten(rezept, skalierteZutaten, vorteigTyp) {
   return rezept.zutaten.map((z, i) => ({ ...z, menge: skalierteZutaten[i] || 0 }))
     .filter((z) => {
       if (z.menge <= 0) return false;
+      if (z.nicht_auf_bon) return false;
       const name = (z.name || '').toLowerCase();
       const bem = (z.bemerkung || '').toLowerCase().trim();
       if (!bem.includes(typ)) return false;

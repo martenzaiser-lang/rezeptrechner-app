@@ -1,0 +1,35 @@
+# Weckt den Render-Free-Service vor Arbeitsbeginn und haelt ihn wach,
+# damit der Teigmacher nachts keinen ~50s-Kaltstart erlebt.
+#
+# Render schlaeft nach 15 min Ruhe ein → Ping alle 10 min.
+# Fenster: 23:00–05:50 UTC = ca. 00:00/01:00–06:50/07:50 Uhr Berlin
+# (deckt Sommer- und Winterzeit ab). Tagsueber halten die App-Nutzer
+# den Service selbst wach; vereinzelte Kaltstarts am Nachmittag faengt
+# der localStorage-Cache der App ab.
+#
+# Verbrauch: ~42 Laeufe/Tag × 1 Abrechnungsminute ≈ 1300 min/Monat
+# (Free-Kontingent fuer private Repos: 2000 min/Monat).
+
+name: Render wachhalten
+
+on:
+  schedule:
+    - cron: '*/10 23 * * *'
+    - cron: '*/10 0-5 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Health-Ping
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 90 https://rezeptrechner-api.onrender.com/api/health || echo "000")
+          echo "Health: HTTP $code"
+          # Kaltstart kann beim allerersten Ping >90s brauchen — einmal nachfassen
+          if [ "$code" != "200" ]; then
+            sleep 30
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 90 https://rezeptrechner-api.onrender.com/api/health || echo "000")
+            echo "Retry: HTTP $code"
+          fi

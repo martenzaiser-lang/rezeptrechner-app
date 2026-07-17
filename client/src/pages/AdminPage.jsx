@@ -42,6 +42,16 @@ export default function AdminPage() {
   const rezept = recipes.find((r) => r.id === selectedId) || null;
   const vorschlaege = useMemo(() => getZutatVorschlaege(recipes), [recipes]);
 
+  // Optimistisches Verschieben: Reihenfolge sofort anzeigen, Speichern
+  // entprellt (600 ms nach dem letzten Klick EIN Request statt vieler).
+  const [reihenfolgeDraft, setReihenfolgeDraft] = useState(null);
+  const saveTimer = useRef(null);
+  const zutatenAktuell = reihenfolgeDraft || rezept?.zutaten || [];
+  useEffect(() => {
+    setReihenfolgeDraft(null);
+    clearTimeout(saveTimer.current);
+  }, [selectedId]);
+
   // Gestapeltes Layout (Handy): nach Rezeptwahl zum Detail scrollen,
   // sonst bleibt der Nutzer in der langen Liste haengen.
   const detailRef = useRef(null);
@@ -87,11 +97,16 @@ export default function AdminPage() {
   }
 
   function moveZutat(idx, delta) {
-    const z = [...rezept.zutaten];
+    const z = [...zutatenAktuell];
     const j = idx + delta;
     if (j < 0 || j >= z.length) return;
     [z[idx], z[j]] = [z[j], z[idx]];
-    speichereZutaten(z);
+    setReihenfolgeDraft(z);
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      await speichereZutaten(z);
+      setReihenfolgeDraft(null);
+    }, 600);
   }
 
   async function loescheRezept(r) {
@@ -214,7 +229,7 @@ export default function AdminPage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '14px 0 8px' }}>
-            <h3 style={{ margin: 0, fontSize: 15 }}>Zutaten ({rezept.zutaten?.length || 0})</h3>
+            <h3 style={{ margin: 0, fontSize: 15 }}>Zutaten ({zutatenAktuell.length})</h3>
             <div style={{ display: 'flex', gap: 6 }}>
               <button className="btn" onClick={() => setModal({ typ: 'zutat', idx: null })}>
                 <Plus size={15} /> Zutat
@@ -226,7 +241,7 @@ export default function AdminPage() {
           </div>
 
           <div>
-            {(rezept.zutaten || []).map((z, idx) => (
+            {zutatenAktuell.map((z, idx) => (
               <div
                 key={idx}
                 className="admin-zutat-row"
@@ -261,7 +276,7 @@ export default function AdminPage() {
                   <button className="btn btn-ghost" onClick={() => moveZutat(idx, -1)} disabled={idx === 0} aria-label="Nach oben">
                     <ArrowUp size={14} />
                   </button>
-                  <button className="btn btn-ghost" onClick={() => moveZutat(idx, 1)} disabled={idx === rezept.zutaten.length - 1} aria-label="Nach unten">
+                  <button className="btn btn-ghost" onClick={() => moveZutat(idx, 1)} disabled={idx === zutatenAktuell.length - 1} aria-label="Nach unten">
                     <ArrowDown size={14} />
                   </button>
                   <button className="btn btn-ghost" onClick={() => setModal({ typ: 'zutat', idx })} aria-label="Bearbeiten">
@@ -273,7 +288,7 @@ export default function AdminPage() {
                     aria-label="Löschen"
                     onClick={async () => {
                       const ok = await confirm({ title: 'Zutat löschen', message: `„${z.name}" entfernen?`, confirmText: 'Löschen', danger: true });
-                      if (ok) speichereZutaten(rezept.zutaten.filter((_, j) => j !== idx));
+                      if (ok) speichereZutaten(zutatenAktuell.filter((_, j) => j !== idx));
                     }}
                   >
                     <Trash2 size={14} />
@@ -300,12 +315,12 @@ export default function AdminPage() {
       )}
       {modal?.typ === 'zutat' && rezept && (
         <ZutatEditorModal
-          zutat={modal.idx != null ? rezept.zutaten[modal.idx] : null}
+          zutat={modal.idx != null ? zutatenAktuell[modal.idx] : null}
           rezept={rezept}
           vorschlaege={vorschlaege}
           onClose={() => setModal(null)}
           onSave={(z) => {
-            const zutaten = [...(rezept.zutaten || [])];
+            const zutaten = [...zutatenAktuell];
             if (modal.idx != null) zutaten[modal.idx] = { ...zutaten[modal.idx], ...z };
             else zutaten.push(z);
             speichereZutaten(zutaten);
@@ -318,7 +333,7 @@ export default function AdminPage() {
           vorschlaege={vorschlaege}
           onClose={() => setModal(null)}
           onSave={(neue) => {
-            speichereZutaten([...(rezept.zutaten || []), ...neue]);
+            speichereZutaten([...zutatenAktuell, ...neue]);
             setModal(null);
             toast.success(`${neue.length} Zutaten hinzugefügt`);
           }}

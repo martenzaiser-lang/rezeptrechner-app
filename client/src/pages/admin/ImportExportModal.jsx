@@ -31,9 +31,9 @@ export default function ImportExportModal({ recipes, settings, onImport, onClose
       };
       reader.readAsText(f);
     } else {
-      reader.onload = (ev) => {
+      reader.onload = async (ev) => {
         try {
-          const parsed = parseImportBuffer(ev.target.result);
+          const parsed = await parseImportBuffer(ev.target.result);
           if (!parsed.length) {
             toast.error('Keine Rezepte gefunden');
             return;
@@ -90,7 +90,7 @@ export default function ImportExportModal({ recipes, settings, onImport, onClose
         <>
           <h3 style={{ fontSize: 14, margin: '0 0 8px' }}>Export</h3>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
-            <button className="btn" onClick={() => { exportExcel(recipes); toast.success('Excel-Export erstellt'); }}>
+            <button className="btn" onClick={async () => { await exportExcel(recipes); toast.success('Excel-Export erstellt'); }}>
               📊 Excel-Export
             </button>
             <button className="btn" onClick={() => { exportJSON(recipes, settings); toast.success('JSON-Sicherung erstellt'); }}>

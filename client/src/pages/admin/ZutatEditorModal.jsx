@@ -29,6 +29,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
   );
   const [dosenGewicht, setDosenGewicht] = useState(z.dosen_gewicht_g ? String(z.dosen_gewicht_g) : '');
   const [prosPresse, setProsPresse] = useState(z.menge_pro_presse ? String(z.menge_pro_presse) : '');
+  const [nichtAufBon, setNichtAufBon] = useState(!!z.nicht_auf_bon);
   const [fuerProdukte, setFuerProdukte] = useState(z.fuer_produkte || []);
   const [zusatzProzent, setZusatzProzent] = useState(z.zusatz_prozent ? String(z.zusatz_prozent) : '');
   const [zeigeVorschlaege, setZeigeVorschlaege] = useState(false);
@@ -49,6 +50,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
       fuer_produkte: fuerProdukte,
       zusatz_prozent: parseFloat(zusatzProzent) || 0,
       menge_pro_presse: parseFloat(prosPresse) || 0,
+      nicht_auf_bon: nichtAufBon,
       einheit: dosenModus ? 'dose' : '',
       dosen_gewicht_g: dosenModus ? (parseFloat(dosenGewicht) || 0) : 0,
       menge_kg: 0,
@@ -152,6 +154,10 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
             </div>
           )}
 
+          <label style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
+            <input type="checkbox" checked={nichtAufBon} onChange={(e) => setNichtAufBon(e.target.checked)} />
+            <span>🚫 Nicht auf Bon drucken (z.B. vorgewogenes Backmittel)</span>
+          </label>
           <div className="form-grid-2">
             <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <input type="checkbox" checked={istMehl} onChange={(e) => setIstMehl(e.target.checked)} />
