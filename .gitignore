@@ -5,3 +5,6 @@ dist/
 .DS_Store
 # Migrations-Zwischenstände (echte Rezeptdaten gehören nicht ins Repo)
 server/scripts/dump-*.json
+
+# Local Netlify folder
+.netlify
