@@ -118,6 +118,9 @@ export const auth = {
     localStorage.setItem('auth_token', data.token);
     localStorage.setItem('auth_email', data.email);
     localStorage.setItem('auth_role', data.role);
+    // Frischer Login: DataContext wartet dann sichtbar auf aktuelle Daten,
+    // statt still mit dem Cache zu starten (Lehre aus der alten App).
+    try { sessionStorage.setItem('frisch_eingeloggt', '1'); } catch {}
     return data;
   },
 

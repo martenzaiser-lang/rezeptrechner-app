@@ -11,6 +11,7 @@ import { ToastProvider, useToast } from './components/Toast.jsx';
 import ThemeToggle from './components/ThemeToggle.jsx';
 import TopLoadingBar from './components/TopLoadingBar.jsx';
 import CloudStatus from './components/CloudStatus.jsx';
+import { SyncGate, DatenstandBanner } from './components/SyncGate.jsx';
 import { DataProvider } from './context/DataContext.jsx';
 import { auth } from './services/api.js';
 
@@ -82,11 +83,7 @@ export default function App() {
           <DataProvider>
           <div className="app">
             <TopLoadingBar />
-            {!online && (
-              <div className="offline-banner">
-                Keine Verbindung — es wird mit lokalen Daten gearbeitet
-              </div>
-            )}
+            <DatenstandBanner />
 
             <header className="app-header">
               <div className="app-header-inner">
@@ -100,12 +97,14 @@ export default function App() {
 
             <main className="app-main">
               <ErrorBoundary>
+                <SyncGate>
                 <Routes>
                   <Route path="/" element={<Navigate to="/backen" replace />} />
                   <Route path="/backen" element={<BakerPage />} />
                   <Route path="/verwaltung" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
                   <Route path="*" element={<Navigate to="/backen" replace />} />
                 </Routes>
+                </SyncGate>
               </ErrorBoundary>
             </main>
 

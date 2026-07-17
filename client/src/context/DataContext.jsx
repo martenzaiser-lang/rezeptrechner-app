@@ -67,6 +67,24 @@ export function DataProvider({ children }) {
   // 'online' | 'sync' | 'fehler' | 'offline'
   const [cloudStatus, setCloudStatus] = useState(navigator.onLine ? 'sync' : 'offline');
   const [initialLoadDone, setInitialLoadDone] = useState(Boolean(cached));
+  // Zeitpunkt des letzten erfolgreichen Server-Syncs (fuer den
+  // "Daten-Stand"-Banner, wenn der Server nicht erreichbar ist).
+  const [letzterSync, setLetzterSync] = useState(cached?.ts || null);
+  // Frischer Login: sichtbar auf aktuelle Daten warten statt still den
+  // Cache zu zeigen (der stille Cache-Start war der Kernfehler der
+  // alten Firestore-App). Endet bei Erfolg, Fehler oder nach 10 s.
+  const [wartetAufDaten, setWartetAufDaten] = useState(() => {
+    try {
+      return sessionStorage.getItem('frisch_eingeloggt') === '1' && navigator.onLine;
+    } catch {
+      return false;
+    }
+  });
+
+  const beendeWarten = useCallback(() => {
+    try { sessionStorage.removeItem('frisch_eingeloggt'); } catch {}
+    setWartetAufDaten(false);
+  }, []);
 
   const etagRef = useRef(cached?.etag || null);
   const stateRef = useRef({ recipes, settings, prices, customIngredients });
@@ -115,18 +133,25 @@ export function DataProvider({ children }) {
       }
       setCloudStatus('online');
       setInitialLoadDone(true);
+      setLetzterSync(Date.now());
+      beendeWarten();
     } catch (err) {
       // 401 wird im api-Client behandelt (Redirect). Alles andere: Status rot,
       // App arbeitet mit dem Cache weiter.
       console.warn('[sync] Refresh fehlgeschlagen:', err.message);
       setCloudStatus(navigator.onLine ? 'fehler' : 'offline');
+      beendeWarten();
     }
-  }, [initialLoadDone]);
+  }, [initialLoadDone, beendeWarten]);
 
   useEffect(() => {
     if (!auth.isLoggedIn()) return;
 
     refresh({ full: true });
+
+    // Sicherheitsnetz: nach 10 s nicht laenger blockieren (Render-Kaltstart
+    // kann laenger dauern — dann lieber Cache + Daten-Stand-Banner zeigen).
+    const wartenTimeout = setTimeout(beendeWarten, 10_000);
 
     const interval = setInterval(() => refresh(), POLL_INTERVAL_MS);
     const onVisible = () => {
@@ -139,6 +164,7 @@ export function DataProvider({ children }) {
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
     return () => {
+      clearTimeout(wartenTimeout);
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('online', onOnline);
@@ -164,6 +190,8 @@ export function DataProvider({ children }) {
         customIngredients,
         cloudStatus,
         initialLoadDone,
+        letzterSync,
+        wartetAufDaten,
         refresh,
         mutateAndRefresh,
       }}
