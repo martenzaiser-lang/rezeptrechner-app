@@ -15,7 +15,9 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
   const bekannteSektion = SECTIONS.find((s) => bem.toLowerCase().includes(s.toLowerCase().slice(0, 5)));
 
   const [name, setName] = useState(z.name || '');
-  const [mengeG, setMengeG] = useState(z.menge_kg ? String(Math.round(z.menge_kg * 1000)) : '');
+  // Dezimalgramm erhalten (z.B. 16,5 g) — Math.round würde sie beim
+  // erneuten Öffnen des Editors verwerfen
+  const [mengeG, setMengeG] = useState(z.menge_kg ? String(+(z.menge_kg * 1000).toFixed(2)) : '');
   const [istKommentar, setIstKommentar] = useState(!!z.ist_kommentar);
   const [istMehl, setIstMehl] = useState(!!z.ist_mehl);
   const [istWasser, setIstWasser] = useState(!!z.ist_wasser);
@@ -126,7 +128,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
                   Dosen-Eingabe
                 </button>
               </label>
-              <input type="number" step="1" min="0" value={mengeG} onChange={(e) => setMengeG(e.target.value)} style={{ width: '100%' }} />
+              <input type="number" step="any" min="0" value={mengeG} onChange={(e) => setMengeG(e.target.value)} style={{ width: '100%' }} />
             </div>
           ) : (
             <div style={{ marginBottom: 10, padding: 12, background: 'var(--accent-light)', borderRadius: 10 }}>
@@ -143,7 +145,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
                 </div>
                 <div>
                   <label style={{ fontSize: 12 }}>Gewicht / Dose (g)</label>
-                  <input type="number" step="1" min="1" value={dosenGewicht} onChange={(e) => setDosenGewicht(e.target.value)} style={{ width: '100%' }} />
+                  <input type="number" step="any" min="1" value={dosenGewicht} onChange={(e) => setDosenGewicht(e.target.value)} style={{ width: '100%' }} />
                 </div>
               </div>
               {dosenSummeG > 0 && (

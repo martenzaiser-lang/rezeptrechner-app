@@ -262,7 +262,7 @@ export default function AdminPage() {
                     {z.einheit === 'dose' && z.dosen_gewicht_g > 0
                       ? `${Math.round((z.menge_kg * 1000) / z.dosen_gewicht_g * 10) / 10} Do. à ${z.dosen_gewicht_g}g`
                       : z.menge_kg > 0
-                        ? `${Math.round(z.menge_kg * 1000).toLocaleString('de-DE')} g`
+                        ? `${(+(z.menge_kg * 1000).toFixed(2)).toLocaleString('de-DE')} g`
                         : z.zusatz_prozent > 0
                           ? `${z.zusatz_prozent}%`
                           : z.menge_pro_presse > 0
