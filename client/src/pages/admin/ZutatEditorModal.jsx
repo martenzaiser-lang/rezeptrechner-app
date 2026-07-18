@@ -8,6 +8,13 @@ import Modal from '../../components/Modal.jsx';
 
 const SECTIONS = ['Hauptteig', 'Quellstück', 'Kochstück', 'Sauerteig', 'Vorteig', 'Brühstück', 'Früchte'];
 
+// Dezimal-Eingabe: type="number" verwirft je nach Browser-Sprache das
+// Komma (React erhält dann '' statt des Werts) — deshalb Textfelder mit
+// Dezimal-Tastatur (inputMode) und eigener Umwandlung Komma → Punkt.
+const dezimal = (s) => parseFloat(String(s).replace(',', '.')) || 0;
+// erlaubt Ziffern mit optional EINEM Komma/Punkt (auch unvollständig wie "16,")
+const dezimalOk = (s) => /^\d*[.,]?\d*$/.test(s);
+
 export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, onClose }) {
   const isNew = !zutat;
   const z = zutat || {};
@@ -16,8 +23,8 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
 
   const [name, setName] = useState(z.name || '');
   // Dezimalgramm erhalten (z.B. 16,5 g) — Math.round würde sie beim
-  // erneuten Öffnen des Editors verwerfen
-  const [mengeG, setMengeG] = useState(z.menge_kg ? String(+(z.menge_kg * 1000).toFixed(2)) : '');
+  // erneuten Öffnen des Editors verwerfen; Anzeige im de-Format (Komma)
+  const [mengeG, setMengeG] = useState(z.menge_kg ? String(+(z.menge_kg * 1000).toFixed(2)).replace('.', ',') : '');
   const [istKommentar, setIstKommentar] = useState(!!z.ist_kommentar);
   const [istMehl, setIstMehl] = useState(!!z.ist_mehl);
   const [istWasser, setIstWasser] = useState(!!z.ist_wasser);
@@ -26,14 +33,14 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
   const [dosenModus, setDosenModus] = useState(z.einheit === 'dose' && z.dosen_gewicht_g > 0);
   const [dosenAnzahl, setDosenAnzahl] = useState(
     z.einheit === 'dose' && z.dosen_gewicht_g > 0
-      ? String(Math.round((z.menge_kg * 1000 / z.dosen_gewicht_g) * 100) / 100)
+      ? String(Math.round((z.menge_kg * 1000 / z.dosen_gewicht_g) * 100) / 100).replace('.', ',')
       : ''
   );
-  const [dosenGewicht, setDosenGewicht] = useState(z.dosen_gewicht_g ? String(z.dosen_gewicht_g) : '');
-  const [prosPresse, setProsPresse] = useState(z.menge_pro_presse ? String(z.menge_pro_presse) : '');
+  const [dosenGewicht, setDosenGewicht] = useState(z.dosen_gewicht_g ? String(z.dosen_gewicht_g).replace('.', ',') : '');
+  const [prosPresse, setProsPresse] = useState(z.menge_pro_presse ? String(z.menge_pro_presse).replace('.', ',') : '');
   const [nichtAufBon, setNichtAufBon] = useState(!!z.nicht_auf_bon);
   const [fuerProdukte, setFuerProdukte] = useState(z.fuer_produkte || []);
-  const [zusatzProzent, setZusatzProzent] = useState(z.zusatz_prozent ? String(z.zusatz_prozent) : '');
+  const [zusatzProzent, setZusatzProzent] = useState(z.zusatz_prozent ? String(z.zusatz_prozent).replace('.', ',') : '');
   const [zeigeVorschlaege, setZeigeVorschlaege] = useState(false);
 
   const hatProdukte = rezept.produkte && rezept.produkte.length > 1;
@@ -50,26 +57,24 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
       ist_wasser: istKommentar ? false : istWasser,
       bemerkung: istKommentar ? (z.bemerkung || '') : (freiAbschnitt.trim() || (sektion === 'Hauptteig' ? '' : sektion)),
       fuer_produkte: fuerProdukte,
-      zusatz_prozent: parseFloat(zusatzProzent) || 0,
-      menge_pro_presse: parseFloat(prosPresse) || 0,
+      zusatz_prozent: dezimal(zusatzProzent),
+      menge_pro_presse: dezimal(prosPresse),
       nicht_auf_bon: nichtAufBon,
       einheit: dosenModus ? 'dose' : '',
-      dosen_gewicht_g: dosenModus ? (parseFloat(dosenGewicht) || 0) : 0,
+      dosen_gewicht_g: dosenModus ? dezimal(dosenGewicht) : 0,
       menge_kg: 0,
     };
     if (!istKommentar) {
       if (dosenModus) {
-        const anz = parseFloat(String(dosenAnzahl).replace(',', '.')) || 0;
-        const gew = parseFloat(dosenGewicht) || 0;
-        neu.menge_kg = +((anz * gew) / 1000).toFixed(6);
+        neu.menge_kg = +((dezimal(dosenAnzahl) * dezimal(dosenGewicht)) / 1000).toFixed(6);
       } else {
-        neu.menge_kg = +((parseFloat(String(mengeG).replace(',', '.')) || 0) / 1000).toFixed(6);
+        neu.menge_kg = +(dezimal(mengeG) / 1000).toFixed(6);
       }
     }
     onSave(neu);
   }
 
-  const dosenSummeG = (parseFloat(String(dosenAnzahl).replace(',', '.')) || 0) * (parseFloat(dosenGewicht) || 0);
+  const dosenSummeG = dezimal(dosenAnzahl) * dezimal(dosenGewicht);
 
   return (
     <Modal
@@ -128,7 +133,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
                   Dosen-Eingabe
                 </button>
               </label>
-              <input type="number" step="any" min="0" value={mengeG} onChange={(e) => setMengeG(e.target.value)} style={{ width: '100%' }} />
+              <input type="text" inputMode="decimal" placeholder="z.B. 500 oder 16,5" value={mengeG} onChange={(e) => { if (dezimalOk(e.target.value)) setMengeG(e.target.value); }} style={{ width: '100%' }} />
             </div>
           ) : (
             <div style={{ marginBottom: 10, padding: 12, background: 'var(--accent-light)', borderRadius: 10 }}>
@@ -141,11 +146,11 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
               <div className="form-grid-2" style={{ marginBottom: 0 }}>
                 <div>
                   <label style={{ fontSize: 12 }}>Anzahl Dosen</label>
-                  <input type="number" step="0.1" min="0" value={dosenAnzahl} onChange={(e) => setDosenAnzahl(e.target.value)} style={{ width: '100%' }} />
+                  <input type="text" inputMode="decimal" value={dosenAnzahl} onChange={(e) => { if (dezimalOk(e.target.value)) setDosenAnzahl(e.target.value); }} style={{ width: '100%' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: 12 }}>Gewicht / Dose (g)</label>
-                  <input type="number" step="any" min="1" value={dosenGewicht} onChange={(e) => setDosenGewicht(e.target.value)} style={{ width: '100%' }} />
+                  <input type="text" inputMode="decimal" value={dosenGewicht} onChange={(e) => { if (dezimalOk(e.target.value)) setDosenGewicht(e.target.value); }} style={{ width: '100%' }} />
                 </div>
               </div>
               {dosenSummeG > 0 && (
@@ -207,7 +212,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
 
           <div style={{ marginBottom: 10, padding: 12, background: 'var(--bg-subtle)', borderRadius: 10 }}>
             <label>Menge pro Presse (kg) – optional</label>
-            <input type="number" step="0.1" min="0" value={prosPresse} onChange={(e) => setProsPresse(e.target.value)} style={{ width: '100%' }} placeholder="leer = normale Skalierung" />
+            <input type="text" inputMode="decimal" value={prosPresse} onChange={(e) => { if (dezimalOk(e.target.value)) setProsPresse(e.target.value); }} style={{ width: '100%' }} placeholder="leer = normale Skalierung" />
             <p style={{ fontSize: 11, color: 'var(--muted)', margin: '6px 0 0' }}>💡 Bei 1 kg und 3 Pressen → 3 kg</p>
           </div>
 
@@ -235,7 +240,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
 
           <div style={{ marginBottom: 10 }}>
             <label>Zusatz: % vom Teig (optional, statt fester Menge)</label>
-            <input type="number" step="0.1" min="0" max="200" value={zusatzProzent} onChange={(e) => setZusatzProzent(e.target.value)} style={{ width: '100%' }} placeholder="z.B. 20 für 20% Rosinen" />
+            <input type="text" inputMode="decimal" value={zusatzProzent} onChange={(e) => { if (dezimalOk(e.target.value)) setZusatzProzent(e.target.value); }} style={{ width: '100%' }} placeholder="z.B. 20 für 20% Rosinen" />
             <p style={{ fontSize: 11, color: 'var(--muted)', margin: '6px 0 0' }}>
               💡 Nur wirksam, wenn keine feste Menge (g) gesetzt ist.
             </p>
