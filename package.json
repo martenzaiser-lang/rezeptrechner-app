@@ -10,6 +10,7 @@
     "dev:client": "npm --workspace client run dev",
     "dev:server": "npm --workspace server run dev",
     "build": "npm --workspace client run build",
+    "deploy:client": "node server/scripts/deploy-client.mjs",
     "test": "npm --workspace server run test && npm --workspace client run test"
   }
 }

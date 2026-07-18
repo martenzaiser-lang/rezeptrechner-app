@@ -5,11 +5,20 @@ Express-API (Render Free-Tier — schläft nach 15 min!), PostgreSQL bei
 Neon (eigene DB `rezeptrechner` im bestehenden Neon-Projekt).
 Sprache im Repo: Deutsch (Kommentare, Commits, UI).
 
-**Parallelbetrieb:** Die alte App (github.com/martenzaiser-lang/Rezeptrechner,
-teigmaster.netlify.app, Firebase/Firestore) läuft unverändert weiter und ist
-die Referenz für Vergleichstests. NIE ins alte Repo committen oder Firebase
-ändern. Umstellung erst auf explizite Anweisung von Marten (Phase 11,
-Checkliste im Plan).
+**Umzug erfolgt (17.07.2026):** teigmaster.netlify.app liefert jetzt DIESE
+neue App aus (Netlify-Site "teigmaster", bb11dabb…). Die alte App
+(github.com/martenzaiser-lang/Rezeptrechner, Firebase/Firestore) bleibt nur
+noch als Referenz für Vergleichstests — NIE ins alte Repo committen oder
+Firebase ändern.
+
+**DEPLOY — WICHTIG:** Die Netlify-Site ist NICHT mit diesem Repo verbunden.
+`git push` deployt NICHTS! Client live bringen ausschließlich mit:
+```bash
+npm run deploy:client   # baut mit VITE_API_URL, deployt, verifiziert
+```
+(server/scripts/deploy-client.mjs — niemals `netlify deploy` von Hand ohne
+VITE_API_URL im Build, sonst ist die API-Anbindung im Bundle kaputt.)
+Der Server (Render) deployt automatisch bei Push auf main.
 
 ## Befehle (npm-Workspaces, EIN Lockfile im Root)
 
