@@ -26,6 +26,7 @@ import DruckerModal, { getRezeptBonOverrides } from './baker/DruckerModal.jsx';
 import PrintSheet from './baker/PrintSheet.jsx';
 import { SkeletonCardList } from '../components/Skeleton.jsx';
 import { useToast } from '../components/Toast.jsx';
+import DezimalInput from '../components/DezimalInput.jsx';
 import {
   generateBonBytes, generateVorteigBonBytes, getVorteigZutaten,
   getBonConfig, teilerInfoText,
@@ -349,11 +350,9 @@ export default function BakerPage() {
             ].map(([key, label]) => (
               <div key={key} style={{ marginBottom: 10 }}>
                 <label>{label}</label>
-                <input
-                  type="number"
-                  step="0.5"
+                <DezimalInput
                   value={schuett[key]}
-                  onChange={(e) => setSchuett({ ...schuett, [key]: parseFloat(e.target.value) || 0 })}
+                  onValue={(v) => setSchuett({ ...schuett, [key]: v })}
                   style={{ width: '100%' }}
                 />
               </div>

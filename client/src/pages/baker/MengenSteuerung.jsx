@@ -1,7 +1,9 @@
 // Mengensteuerung: Stueck-Stepper / Blech-Eingaben / Multi-Produkt-Cards
 // + Teiler-Auswahl + Teig-Gesamt-Box. Verhalten wie alte App.
+// Dezimal-Eingaben laufen ueber DezimalInput (haelt Roh-Text beim Tippen,
+// sonst frisst das Re-Format das Komma — aus "2,5" wurde "25").
 
-import { parseLocaleFloat } from '../../lib/format.js';
+import DezimalInput from '../../components/DezimalInput.jsx';
 
 const TEILER = [
   { v: 1, label: '1× (Voll)' },
@@ -48,13 +50,10 @@ export default function MengenSteuerung({ rezept, eingabe, onChange, ergebnis })
                 <span className="mp-weight">{isPresse ? `${p.stueck_pro_presse}×${p.gewicht_g}g` : `${p.gewicht_g}g`}</span>
                 <div className="mp-controls">
                   <button onClick={() => setProdukt(p.name, val - 1)}>−</button>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={String(val).replace('.', ',')}
+                  <DezimalInput
+                    value={val}
                     placeholder={isPresse ? 'Pressen' : 'Stück'}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => setProdukt(p.name, parseLocaleFloat(e.target.value))}
+                    onValue={(v) => setProdukt(p.name, v)}
                   />
                   <button onClick={() => setProdukt(p.name, val + 1)}>+</button>
                 </div>
@@ -79,23 +78,19 @@ export default function MengenSteuerung({ rezept, eingabe, onChange, ergebnis })
               <button onClick={() => set({ blechN: (eingabe.blechN || 1) + 1 })}>+</button>
             </div>
             <span style={{ fontWeight: 700 }}>×</span>
-            <input
+            <DezimalInput
               className="blech-input"
-              type="text"
-              inputMode="decimal"
-              value={eingabe.blechB || ''}
-              onFocus={(e) => e.target.select()}
-              onChange={(e) => set({ blechB: parseLocaleFloat(e.target.value) })}
+              value={eingabe.blechB}
+              leerBeiNull
+              onValue={(v) => set({ blechB: v })}
               aria-label="Blechbreite (cm)"
             />
             <span style={{ fontWeight: 700 }}>×</span>
-            <input
+            <DezimalInput
               className="blech-input"
-              type="text"
-              inputMode="decimal"
-              value={eingabe.blechL || ''}
-              onFocus={(e) => e.target.select()}
-              onChange={(e) => set({ blechL: parseLocaleFloat(e.target.value) })}
+              value={eingabe.blechL}
+              leerBeiNull
+              onValue={(v) => set({ blechL: v })}
               aria-label="Blechlänge (cm)"
             />
             <span className="muted" style={{ fontSize: 13 }}>cm</span>
@@ -105,12 +100,9 @@ export default function MengenSteuerung({ rezept, eingabe, onChange, ergebnis })
         {!isBlech && !hasMulti && (
           <div className="stepper">
             <button onClick={() => setStueck((eingabe.stueck || 0) - 1)}>−</button>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={String(eingabe.stueck ?? 0).replace('.', ',')}
-              onFocus={(e) => e.target.select()}
-              onChange={(e) => setStueck(parseLocaleFloat(e.target.value))}
+            <DezimalInput
+              value={eingabe.stueck ?? 0}
+              onValue={setStueck}
               aria-label="Stückzahl"
             />
             <button onClick={() => setStueck((eingabe.stueck || 0) + 1)}>+</button>

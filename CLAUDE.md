@@ -11,14 +11,15 @@ neue App aus (Netlify-Site "teigmaster", bb11dabb…). Die alte App
 noch als Referenz für Vergleichstests — NIE ins alte Repo committen oder
 Firebase ändern.
 
-**DEPLOY — WICHTIG:** Die Netlify-Site ist NICHT mit diesem Repo verbunden.
-`git push` deployt NICHTS! Client live bringen ausschließlich mit:
+**DEPLOY:** Seit 18.07.2026 ist die Netlify-Site mit DIESEM Repo verbunden —
+Push auf main deployt Client (Netlify) UND Server (Render) automatisch.
+Nach dem Push kurz prüfen, dass der Netlify-Build durchläuft und das neue
+Bundle live ist (Hash in index.html vergleichen). VITE_API_URL kommt beim
+Netlify-Build aus den Site-Env-Vars im Dashboard — fehlt sie, hat das
+Bundle keine API-Anbindung! Notfall-Weg (Netlify-Build klemmt):
 ```bash
-npm run deploy:client   # baut mit VITE_API_URL, deployt, verifiziert
+npm run deploy:client   # baut lokal mit VITE_API_URL, deployt, verifiziert
 ```
-(server/scripts/deploy-client.mjs — niemals `netlify deploy` von Hand ohne
-VITE_API_URL im Build, sonst ist die API-Anbindung im Bundle kaputt.)
-Der Server (Render) deployt automatisch bei Push auf main.
 
 ## Befehle (npm-Workspaces, EIN Lockfile im Root)
 
