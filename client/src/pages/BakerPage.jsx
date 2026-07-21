@@ -69,6 +69,17 @@ export default function BakerPage() {
   const anzeige = getAnzeige(settings, role);
 
   const sichtbar = useMemo(() => sichtbareRezepte(recipes, role), [recipes, role]);
+  // Custom-Zutaten (DB-Zeilen { name, data }) in die beiden Lookup-Formate:
+  // calcNutrition erwartet { nameLower: data }, berechneNaehrwerte (Bon)
+  // ein flaches Array [{ name, ...felder }].
+  const customMap = useMemo(
+    () => Object.fromEntries(customIngredients.map((c) => [c.name.toLowerCase(), c.data])),
+    [customIngredients]
+  );
+  const customFlach = useMemo(
+    () => customIngredients.map((c) => ({ name: c.name, ...c.data })),
+    [customIngredients]
+  );
   const [selectedId, setSelectedId] = useState('');
   const [eingabe, setEingabe] = useState(null);
   const [abwiegen, setAbwiegen] = useState(false);
@@ -150,7 +161,7 @@ export default function BakerPage() {
       }
 
       let bonCount = 1;
-      await sendToPrinter(generateBonBytes(rezept, ergebnis.sk, produktInfo, teiler, { cfg, customZutaten: customIngredients }));
+      await sendToPrinter(generateBonBytes(rezept, ergebnis.sk, produktInfo, teiler, { cfg, customZutaten: customFlach }));
       for (const [option, typ, titel] of [
         ['bonQuellstueck', 'quellstück', 'QUELLSTÜCK'],
         ['bonBruehstueck', 'brühstück', 'BRÜHSTÜCK'],
@@ -253,7 +264,7 @@ export default function BakerPage() {
         <div className="card">
           <h2 style={{ margin: '0 0 10px' }}>{rezept.name}</h2>
           <MengenSteuerung rezept={rezept} eingabe={eingabe} onChange={updateEingabe} ergebnis={ergebnis} />
-          <QuickInfo rezept={rezept} sk={ergebnis?.sk} anzeige={anzeige} customZutaten={customIngredients} />
+          <QuickInfo rezept={rezept} sk={ergebnis?.sk} anzeige={anzeige} customZutaten={customFlach} />
           {zusammenfassung && (
             <div className="teig-zusammenfassung">
               {[
@@ -276,8 +287,8 @@ export default function BakerPage() {
             </div>
           )}
           {ergebnis && (() => {
-            const nw = anzeige.naehrwerte ? calcNutrition(rezept, ergebnis.sk) : { vollstaendig: false, fehlend: [] };
-            const allergene = anzeige.allergene ? getRezeptAllergene(rezept, customIngredients) : [];
+            const nw = anzeige.naehrwerte ? calcNutrition(rezept, ergebnis.sk, customMap) : { vollstaendig: false, fehlend: [] };
+            const allergene = anzeige.allergene ? getRezeptAllergene(rezept, customFlach) : [];
             const eigenePreise = {};
             prices.forEach((p) => { eigenePreise[p.zutat_name] = { preis_kg: Number(p.preis_eur_kg) }; });
             const kosten = anzeige.kosten ? calcRezeptKosten(rezept, ergebnis.sk, eigenePreise) : 0;

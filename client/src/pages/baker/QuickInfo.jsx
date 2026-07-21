@@ -9,7 +9,11 @@ import { ANZEIGE_DEFAULTS } from '../../lib/anzeige.js';
 
 export default function QuickInfo({ rezept, sk, anzeige = ANZEIGE_DEFAULTS, customZutaten = [] }) {
   const r = rezept;
-  const nw = anzeige.naehrwerte && sk ? calcNutrition(r, sk) : null;
+  // customZutaten: flaches Array [{ name, ...felder }]; calcNutrition
+  // erwartet ein Objekt { nameLower: felder } (c.data ?? c: verträgt auch
+  // rohe DB-Zeilen { name, data })
+  const customMap = Object.fromEntries(customZutaten.map((c) => [c.name.toLowerCase(), c.data ?? c]));
+  const nw = anzeige.naehrwerte && sk ? calcNutrition(r, sk, customMap) : null;
   const allergene = anzeige.allergene ? getRezeptAllergene(r, customZutaten) : [];
 
   return (
