@@ -24,6 +24,7 @@ import ImportExportModal from './admin/ImportExportModal.jsx';
 import PasteImportModal from './admin/PasteImportModal.jsx';
 import LmivBlock from './admin/LmivBlock.jsx';
 import KostenBlock from './admin/KostenBlock.jsx';
+import KalkulationBlock from './admin/KalkulationBlock.jsx';
 import '../styles/baker.css';
 import '../styles/admin.css';
 
@@ -42,6 +43,10 @@ export default function AdminPage() {
     : sorted;
   const rezept = recipes.find((r) => r.id === selectedId) || null;
   const vorschlaege = useMemo(() => getZutatVorschlaege(recipes), [recipes]);
+  const eigenePreiseMap = useMemo(
+    () => Object.fromEntries(prices.map((p) => [p.zutat_name, { preis_kg: Number(p.preis_eur_kg) }])),
+    [prices]
+  );
 
   // Optimistisches Verschieben: Reihenfolge sofort anzeigen, Speichern
   // entprellt (600 ms nach dem letzten Klick EIN Request statt vieler).
@@ -299,9 +304,12 @@ export default function AdminPage() {
             ))}
           </div>
 
-          <KostenBlock
+          <KostenBlock rezept={rezept} eigenePreise={eigenePreiseMap} />
+          <KalkulationBlock
             rezept={rezept}
-            eigenePreise={Object.fromEntries(prices.map((p) => [p.zutat_name, { preis_kg: Number(p.preis_eur_kg) }]))}
+            eigenePreise={eigenePreiseMap}
+            kalkulation={settings?.kalkulation}
+            onSave={(k) => speichereSettings({ ...settings, kalkulation: k })}
           />
           <LmivBlock rezept={rezept} customZutaten={customIngredients.map((c) => ({ name: c.name, ...c.data }))} />
         </div>

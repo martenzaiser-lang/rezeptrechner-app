@@ -2,6 +2,7 @@
 // Eigene Preise (DB) haben Vorrang, BAEKO-Standardpreise sind Fallback.
 
 import { ZUTAT_PREISE } from '../data/baekoPreise.js';
+import { skaliere, skaliereBlech } from './calc/skalierung.js';
 
 export function findZutatPreis(zutatName) {
   if (!zutatName) return null;
@@ -30,6 +31,38 @@ export function calcRezeptKosten(r, sk, eigenePreise = {}) {
     }
   });
   return kosten;
+}
+
+// Rohstoffkosten pro Kalkulationsbasis: 1 Stück (Teiggewicht) bzw. bei
+// Kuchen 1 Basis-Blech. Liefert die Zeilen für die Anzeige mit; Wasser
+// zählt bewusst als 0 € ohne Warnung, Zutaten ohne Preis landen in
+// ohnePreis (Summe wäre sonst stillschweigend zu niedrig).
+// eigenePreise: { zutatName: { preis_kg } } (aus DB-prices abgeleitet)
+export function berechneRohstoffkosten(rezept, eigenePreise = {}) {
+  const istBlech = rezept.berechnung === 'blech';
+  const sk = istBlech ? skaliereBlech(rezept, 1) : skaliere(rezept, 1);
+  const zeilen = [];
+  const ohnePreis = [];
+  let summe = 0;
+  rezept.zutaten.forEach((z, idx) => {
+    if (z.ist_kommentar || !z.name || z.name.toLowerCase() === 'gesamt') return;
+    const kg = sk[idx] || 0;
+    if (kg <= 0) return;
+    const eigen = eigenePreise[z.name];
+    const preisKg = eigen?.preis_kg ?? findZutatPreis(z.name);
+    const istWasser = z.name.toLowerCase().includes('wasser');
+    const kosten = preisKg != null ? kg * preisKg : 0;
+    summe += kosten;
+    if (preisKg == null && !istWasser) ohnePreis.push(z.name);
+    zeilen.push({
+      name: z.name,
+      gramm: kg * 1000,
+      preisKg,
+      kosten,
+      quelle: eigen?.preis_kg != null ? 'eigen' : preisKg != null ? 'bäko' : istWasser ? 'wasser' : 'fehlt',
+    });
+  });
+  return { summe, zeilen, ohnePreis, istBlech };
 }
 
 // BAEKO-CSV-Parser: CSV (ISO-8859-1, Semikolon) → [{zutat_name, preis_eur_kg, lieferant}]

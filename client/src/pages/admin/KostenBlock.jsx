@@ -6,8 +6,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { skaliere, skaliereBlech } from '../../lib/calc/skalierung.js';
-import { findZutatPreis } from '../../lib/preise.js';
+import { berechneRohstoffkosten } from '../../lib/preise.js';
 
 const de = (v, dez = 2) =>
   v.toLocaleString('de-DE', { minimumFractionDigits: dez, maximumFractionDigits: dez });
@@ -15,33 +14,10 @@ const de = (v, dez = 2) =>
 export default function KostenBlock({ rezept, eigenePreise = {} }) {
   const [offen, setOffen] = useState(false);
 
-  const istBlech = rezept.berechnung === 'blech';
-  const sk = istBlech ? skaliereBlech(rezept, 1) : skaliere(rezept, 1);
+  const { summe, zeilen, ohnePreis, istBlech } = berechneRohstoffkosten(rezept, eigenePreise);
   const bezug = istBlech
     ? `pro Blech ${rezept.blech_breite_cm || 50}×${rezept.blech_laenge_cm || 80} cm`
     : `pro Stück (${rezept.stueckgewicht_g || 1000} g Teig)`;
-
-  const zeilen = [];
-  let summe = 0;
-  const ohnePreis = [];
-  rezept.zutaten.forEach((z, idx) => {
-    if (z.ist_kommentar || !z.name || z.name.toLowerCase() === 'gesamt') return;
-    const kg = sk[idx] || 0;
-    if (kg <= 0) return;
-    const eigen = eigenePreise[z.name];
-    const preisKg = eigen?.preis_kg ?? findZutatPreis(z.name);
-    const istWasser = z.name.toLowerCase().includes('wasser');
-    const kosten = preisKg != null ? kg * preisKg : 0;
-    summe += kosten;
-    if (preisKg == null && !istWasser) ohnePreis.push(z.name);
-    zeilen.push({
-      name: z.name,
-      gramm: kg * 1000,
-      preisKg,
-      kosten,
-      quelle: eigen?.preis_kg != null ? 'eigen' : preisKg != null ? 'bäko' : istWasser ? 'wasser' : 'fehlt',
-    });
-  });
 
   return (
     <div style={{ marginTop: 16, border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
