@@ -10,10 +10,9 @@
 // Zuordnung anhand des Rezept-Kontexts (app_daten_dump.json), 2026-07:
 // - 'Easy Rühr' (Donauwelle) = Meister Rühr & Easy PO SG — eindeutig.
 // - 'Käsekuchenpulver' (Quarkstriezel) = Meister Käsekuchen-Basis —
-//   einziges Käsekuchen-Pulver im Betrieb (PDF vorhanden). ANNAHME,
-//   von Marten zu bestätigen.
+//   von Marten bestätigt 2026-07-22.
 // - 'Neutral' (Tiramisu) = Meister Sahnessa Neutral (Sahnestandmittel) —
-//   passt zur Tiramisu-Sahnecreme. ANNAHME, von Marten zu bestätigen.
+//   von Marten bestätigt 2026-07-22.
 
 export const SYNONYME_ERGAENZUNGEN = {
   'easy rühr': 'rühr & easy',
