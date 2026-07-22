@@ -22,4 +22,8 @@ export const SYNONYME_ERGAENZUNGEN = {
   // 'Exzelent' (ein l) = Schreibweise in echten Rezepten für das
   // Exzellent-Brotgewürz (herstellerErgaenzungen.js)
   'exzelent': 'exzellent',
+  // 'Biskuit-Mehl' (Rezepte) = CSM Meister Biskuit — von Marten
+  // bestätigt 2026-07-22 (nicht IREKS Mella Sandbiskuit)
+  'biskuit-mehl': 'meister biskuit',
+  'biskuitmehl': 'meister biskuit',
 };

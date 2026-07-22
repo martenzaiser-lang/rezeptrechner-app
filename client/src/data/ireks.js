@@ -112,7 +112,8 @@ export const IREKS_DATEN = {
 // 'Classis Baguette', 'Baguette-Backmittel', 'Panitop - Roggen',
 // 'Berliner SuperSoft', 'Lievito Madre Dolce'.
 // ACHTUNG, bewusst NICHT aufgenommen:
-// - 'Biskuit-Mehl' (Dump) = mehrdeutig (könnte auch CSM Meister Biskuit sein)
+// - 'Biskuit-Mehl' (Dump) = CSM Meister Biskuit, NICHT Mella Sandbiskuit
+//   (von Marten geklärt 2026-07-22, Synonym in synonymeErgaenzungen.js)
 // - 'lievito madre' allein = echter Weizensauerteig, nicht das IREKS-Produkt
 export const IREKS_SYNONYME = {
   // Mella Sandbiskuit (107400)
