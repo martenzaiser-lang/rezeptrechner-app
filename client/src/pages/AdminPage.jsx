@@ -23,6 +23,7 @@ import ZutatDatenModal from './admin/ZutatDatenModal.jsx';
 import ImportExportModal from './admin/ImportExportModal.jsx';
 import PasteImportModal from './admin/PasteImportModal.jsx';
 import LmivBlock from './admin/LmivBlock.jsx';
+import KostenBlock from './admin/KostenBlock.jsx';
 import '../styles/baker.css';
 import '../styles/admin.css';
 
@@ -298,6 +299,10 @@ export default function AdminPage() {
             ))}
           </div>
 
+          <KostenBlock
+            rezept={rezept}
+            eigenePreise={Object.fromEntries(prices.map((p) => [p.zutat_name, { preis_kg: Number(p.preis_eur_kg) }]))}
+          />
           <LmivBlock rezept={rezept} customZutaten={customIngredients.map((c) => ({ name: c.name, ...c.data }))} />
         </div>
       ) : (
