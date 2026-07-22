@@ -62,7 +62,7 @@ const ZUORDNUNG = {
   'Leinsaat': 'Leinsaat Reinheit mind.99,90%',
   'Leinsaat (eingeweicht)': 'Leinsaat Reinheit mind.99,90%',
   'Lupinenschrot': 'Lupinenschrot',
-  'Süßlupine': 'Lupinenschrot', // ANNAHME: Lupinenschrot = Süßlupine
+  'Süßlupine': 'Lupinenschrot', // Marten 22.07.2026 bestätigt: Lupinenschrot = Süßlupine
   'Mohn': 'Blaumohn',
   'Kürbiskerne': 'Kürbiskerne gesch. shine skin',
   'Sonnenblumenkerne': 'Sonnenblumenkerne bakery',
@@ -104,7 +104,8 @@ const ZUORDNUNG = {
   'Mellasand': 'Ir.Mella Sand Biskuit',
   'Biskuit-Mehl': 'Meister Biskuit',
   'Käsekuchenpulver': 'Meister Käsekuchen-Basis',
-  'Brötchenbackmittel': 'Ir.Weizenback 1856', // ANNAHME
+  'Brötchenbackmittel': 'Ir.Eiszeit', // Marten 22.07.2026: preislich wie Datenzuordnung = IREKS Eiszeit (vorher ANNAHME Weizenback 1856)
+  'Creme Margarine': 'Homann Creme', // Marten 22.07.2026: Rezept Schlemmerriegel (vorher Tippfehler "Creme-Marzipan")
   'Kochcreme': 'Komplet Bourbon Kochcreme',
   'Puddingpulver': 'Ir.Mella Bourbon Vanillekrem', // Marten 22.07.2026 bestätigt
   'Silvia': 'Dawn Sylvia Obstkuchen 3652',

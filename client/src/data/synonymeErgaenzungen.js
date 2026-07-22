@@ -25,4 +25,12 @@ export const SYNONYME_ERGAENZUNGEN = {
   // bestätigt 2026-07-22 (nicht IREKS Mella Sandbiskuit)
   'biskuit-mehl': 'meister biskuit',
   'biskuitmehl': 'meister biskuit',
+  // Creme-Margarine = CSM Homann Creme (herstellerErgaenzungen.js).
+  // 'creme-marzipan' war ein Tippfehler im Rezept Schlemmerriegel
+  // (Marten 2026-07-22) — als Sicherheitsnetz ebenfalls gemappt, falls
+  // die alte Schreibweise irgendwo wieder auftaucht.
+  'creme margarine': 'homann creme',
+  'creme-margarine': 'homann creme',
+  'hohmann creme': 'homann creme',
+  'creme-marzipan': 'homann creme',
 };

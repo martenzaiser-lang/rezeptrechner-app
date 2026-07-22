@@ -151,6 +151,8 @@ function komponenteFuerVerkauf(raw) {
 
   // ", getrocknet"-Suffix weg (sonst wirkt es in der Liste wie zwei Zutaten)
   zutat = zutat.replace(/,\s*getrocknet$/i, '').trim();
+  // Datenblatt-Floskel ohne Informationswert fuer die Kundenauskunft
+  zutat = zutat.replace(/,?\s*in veränderlichen Gewichtsanteilen/gi, '').trim();
   // "Pflanzliche Fette: Palm, ..." → "Pflanzliche Fette (Palm, ...)"
   zutat = zutat.replace(/^([^:(]+):\s*(.+)$/, '$1 ($2)');
 

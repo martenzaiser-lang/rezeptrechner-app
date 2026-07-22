@@ -4,6 +4,23 @@
 // Wird in naehrwerteLookup.js in HERSTELLER_DATEN gemergt.
 
 export const HERSTELLER_ERGAENZUNGEN = {
+  // 'Homann Creme' = CSM Homann Creme PO MB (Art. 10096417) — die
+  // Creme-Margarine (Rezept Schlemmerriegel; dort stand fälschlich
+  // "Creme-Marzipan", von Marten geklärt 2026-07-22). Daten aus der
+  // CSM-Produktspezifikation (Downloads/meistermarken/Spezi Homann
+  // Creme.pdf, Stand 05.08.2025). Allergene laut Datenblatt: KEINE
+  // (auch Sulfite 0 ppm), Kreuzkontamination: "Kann Spuren enthalten
+  // von: -" → keine Spuren.
+  'homann creme': {
+    produkt: 'Homann Creme PO MB', art_nr: '10096417',
+    bezeichnung: 'Margarine (pflanzliche Backmargarine)',
+    zutaten_lmiv: 'Pflanzliche Fette: Palm, Kokos, Ganz gehärtetes Palm, in veränderlichen Gewichtsanteilen; Wasser; Pflanzliche Öle: Raps, Sonnenblume, in veränderlichen Gewichtsanteilen, Palm; Emulgator: Mono- und Diglyceride von Speisefettsäuren, Lecithine; Speisesalz; Säureregulator: Citronensäure.',
+    allergene: [], spuren: [],
+    kcal: 720, eiweiss: 0.0, fett: 80.0, gfs: 47.5, kh: 0.0, zucker: 0.0,
+    ballaststoffe: 0.0, salz: 0.1033,
+    quelle: 'CSM-Produktspezifikation 10096417 (PDF, Stand 05.08.2025)',
+  },
+
   // 'Silvia' = Dawn Silvia Soft Meringue (Art. 2.03652.114). Daten aus
   // der offiziellen Dawn-Produktspezifikation (Version 1.5, PDF von
   // Marten 2026-07-17: Downloads/SILVIA05 DAWN SILVIA FRUIT TART SOFT

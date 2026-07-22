@@ -48,19 +48,19 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   'Möhren': nw(41, 0.9, 0.2, 0, 8.0, 4.7, 2.8, 0.07, [], '= Karotten (app-interne ZUTAT_NAEHRWERTE "karottenstifte")'),
   'Rote-Bete': nw(43, 1.6, 0.2, 0, 8.0, 7.0, 2.8, 0.08, [], '= app-interne ZUTAT_NAEHRWERTE "rote bete" (Bindestrich-Schreibweise)'),
   'Leinsaat': nw(488, 22.0, 36.0, 3.2, 0, 0, 35.0, 0.05, [], '= app-interne ZUTAT_NAEHRWERTE "leinsamen"'),
-  'Leinsaat (eingeweicht)': nw(488, 22.0, 36.0, 3.2, 0, 0, 35.0, 0.05, [], '= Leinsamen trocken (app-intern); ANNAHME: Rezeptmenge = Trockensaat, Quellwasser separat'),
+  'Leinsaat (eingeweicht)': nw(488, 22.0, 36.0, 3.2, 0, 0, 35.0, 0.05, [], '= Leinsamen trocken (app-intern); bestätigt (Marten 22.07.2026): Rezeptmenge = Trockensaat, Quellwasser separat'),
   'Kleber': nw(370, 75.0, 1.8, 0.3, 14.0, 0.5, 0.6, 0.02, ['Aa'], '= Weizenkleber/Gluten (app-interne ZUTAT_NAEHRWERTE "weizengluten")'),
   'Eiklar': nw(47, 11.0, 0.1, 0, 0.7, 0.7, 0, 0.4, ['C'], '= app-interne ZUTAT_NAEHRWERTE "eiweiß"'),
 
   // ── Getreide, Stärken, Saaten, Hülsenfrüchte (Web/BLS) ──
-  'Grieß': nw(326, 9.6, 0.8, 0.2, 68.9, 0.7, 7.1, 0.01, ['Aa'], 'naehrwertrechner.de (BLS) Weizengrieß; ANNAHME: Grieß = Weizengrieß'),
+  'Grieß': nw(326, 9.6, 0.8, 0.2, 68.9, 0.7, 7.1, 0.01, ['Aa'], 'naehrwertrechner.de (BLS); bestätigt (Marten 22.07.2026): Grieß = Hartweizengrieß (nährwertgleich mit Weizengrieß, s. Eintrag Hartweizengrieß)'),
   'Weizengrieß': nw(326, 9.6, 0.8, 0.2, 68.9, 0.7, 7.1, 0.01, ['Aa'], 'naehrwertrechner.de (BLS) Weizen Grieß'),
   'Hartweizengrieß': nw(326, 9.6, 0.8, 0.2, 68.9, 0.7, 7.1, 0.01, ['Aa'], 'naehrwertrechner.de (BLS) Weizengrieß; Hartweizen nährwertgleich'),
   'Hartweizengreiß': nw(326, 9.6, 0.8, 0.2, 68.9, 0.7, 7.1, 0.01, ['Aa'], 'wie Hartweizengrieß (Tippfehler-Schreibweise im Rezept Sauerteigbrötchen)'),
   'Weizenstärke': nw(353, 0.4, 0.1, 0, 86.0, 0.3, 1.0, 0.01, ['Aa'], 'wikifit/bmi-rechner Weizenstärke; Weizenstärke ist LMIV-deklarationspflichtig (Aa)'),
   'Stärke': nw(353, 0.4, 0.1, 0, 86.0, 0.3, 1.0, 0.01, null, 'wie Weizenstärke/Speisestärke (fddb 349-353); Allergen OFFEN: Weizen- oder Maisstärke? Von Marten zu klären'),
   'Hirse': nw(360, 10.5, 3.9, 0.6, 71.0, 1.0, 3.8, 0.01, [], 'naehrwertrechner.de (BLS) Hirse roh, glutenfrei'),
-  'Linsen': nw(284, 23.5, 1.6, 0.2, 42.0, 1.5, 17.0, 0.01, [], 'BLS/naehrwertrechner Linsen reif getrocknet; ANNAHME: trockene Ware'),
+  'Linsen': nw(284, 23.5, 1.6, 0.2, 42.0, 1.5, 17.0, 0.01, [], 'BLS/naehrwertrechner Linsen reif getrocknet; bestätigt (Marten 22.07.2026): trockene Ware'),
   'Süßlupine': nw(362, 43.0, 9.0, 1.9, 13.0, 4.5, 27.0, 0.09, ['M'], 'naehrwertrechner.de (BLS) Lupinenschrot; Zucker geschätzt aus typ. Etiketten; ALLERGEN LUPINE (M)!'),
 
   // ── Milchprodukte, Käse, Fleisch (Web) ──
@@ -77,14 +77,14 @@ export const NAEHRWERT_ERGAENZUNGEN = {
 
   // ── Obst, Gemüse (Web) ──
   'Himbeere': nw(34, 1.3, 0.3, 0, 4.8, 4.8, 6.7, 0.01, [], 'naehrwertrechner.de (BLS)/Plantura Himbeere frisch/TK'),
-  'Sauerkirschen': nw(53, 0.9, 0.5, 0.1, 9.9, 9.6, 1.1, 0.01, [], 'naehrwertrechner.de (BLS) Sauerkirsche; ANNAHME: ungezuckerte Ware (Dunst/TK); gezuckerte Konserve läge höher'),
-  'Stachelbeeren': nw(44, 0.8, 0.2, 0, 8.5, 8.0, 3.0, 0.01, [], 'bmi-rechner.net (BLS) Stachelbeeren frisch; ANNAHME: ungezuckerte Ware'),
+  'Sauerkirschen': nw(53, 0.9, 0.5, 0.1, 9.9, 9.6, 1.1, 0.01, [], 'naehrwertrechner.de (BLS) Sauerkirsche; bestätigt (Marten 22.07.2026): ungezuckerte Ware (Dunst/TK)'),
+  'Stachelbeeren': nw(63, 0.6, 0.2, 0, 14.0, 13.5, 2.2, 0.01, [], 'BLS/fddb Stachelbeeren Konserve gezuckert; korrigiert (Marten 22.07.2026): gezuckerte Ware, nicht frisch'),
   'Dunstäpfel': nw(54, 0.3, 0.1, 0, 11.4, 10.3, 2.0, 0.01, [], 'BLS Apfel; Dunstobst = ohne Zuckerzusatz gegart, Nährwerte ≈ roh'),
   'Apfelsaft': nw(46, 0.1, 0.1, 0, 11.1, 10.5, 0.1, 0.01, [], 'bmi-rechner.net/kalorientabelle.net Apfelsaft'),
   'Zitrone': nw(39, 0.7, 0.6, 0.1, 3.2, 2.5, 1.3, 0.01, [], 'naehrwertrechner.de (BLS) Zitrone frisch'),
   'Zitronensaft': nw(25, 0.4, 0.2, 0, 2.4, 2.4, 0.1, 0.01, [], 'fddb/nutriscan Zitronensaft pur'),
   'Zitronenschale': nw(47, 1.5, 0.3, 0.1, 5.4, 4.2, 10.6, 0.02, [], 'USDA lemon peel (KH exkl. Ballaststoffe umgerechnet)'),
-  'Kartoffeln': nw(71, 1.9, 0.1, 0, 14.8, 0.8, 1.8, 0.01, [], 'BLS/Lebensmittelklarheit Kartoffeln geschält gekocht; ANNAHME: gegart verwogen'),
+  'Kartoffeln': nw(71, 1.9, 0.1, 0, 14.8, 0.8, 1.8, 0.01, [], 'BLS/Lebensmittelklarheit Kartoffeln geschält gekocht; bestätigt (Marten 22.07.2026): gegart verwogen'),
   'Kartoffelwürfel': nw(71, 1.9, 0.1, 0, 14.8, 0.8, 1.8, 0.01, [], 'wie Kartoffeln (geschält gekocht)'),
   'Zwiebel': nw(28, 1.2, 0.2, 0, 4.9, 4.2, 1.8, 0.01, [], 'BLS Zwiebel roh'),
   'Röstzwiebeln': nw(580, 6.0, 44.0, 20.0, 40.0, 15.0, 4.5, 1.0, ['Aa'], 'das-ist-drin.de Kühne Röstzwiebeln (Zutaten: Zwiebeln, Pflanzenöl, WEIZENMEHL, Salz)'),
@@ -96,11 +96,14 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   'Kuvertüre': nw(570, 5.5, 38.0, 24.0, 45.0, 40.0, 9.0, 0.02, null, 'Mittel Alnatura/dennree/REWE Zartbitter-Kuvertüre (567-578 kcal); Allergene OFFEN: Lecithin-Typ (Soja→F) und evtl. Milch am Etikett prüfen'),
   'Zartbitter-Kuvertüre': nw(570, 5.5, 38.0, 24.0, 45.0, 40.0, 9.0, 0.02, null, 'Mittel Alnatura/dennree/REWE Zartbitter-Kuvertüre; Allergene OFFEN: Lecithin-Typ (Soja→F) am Etikett prüfen'),
   'Schokoraspel': nw(510, 6.5, 28.0, 17.0, 54.0, 50.0, 8.0, 0.01, null, 'RUF/BENZ Raspelschokolade Zartbitter (510-520 kcal); Ballaststoffe typ. Zartbitter ergänzt; Allergene OFFEN: Lecithin-Typ prüfen'),
-  'Krokant': nw(480, 5.0, 17.0, 1.5, 72.0, 66.0, 3.5, 0.02, ['Hb'], 'Mittel fddb/EdelGut/RUF Haselnusskrokant (430-546 kcal je Nussanteil); ANNAHME: Haselnusskrokant (Hb)'),
+  'Krokant': nw(480, 5.0, 17.0, 1.5, 72.0, 66.0, 3.5, 0.02, ['Hb'], 'Mittel fddb/EdelGut/RUF Haselnusskrokant (430-546 kcal je Nussanteil); bestätigt (Marten 22.07.2026): Haselnusskrokant (Hb)'),
   'Marzipan': nw(512, 12.0, 35.0, 2.7, 37.0, 37.0, 10.0, 0.03, ['Ha'], 'naehrwertrechner.de (BLS)/fddb Marzipanrohmasse; GFS aus Mandelfett-Anteil'),
-  'Creme-Marzipan': nw(512, 12.0, 35.0, 2.7, 37.0, 37.0, 10.0, 0.03, ['Ha'], 'ANNAHME: ≈ Marzipanrohmasse (Produkt nicht identifiziert, kein Hersteller-PDF); von Marten zu bestätigen'),
-  'gehackte Nüsse': nw(628, 15.0, 61.0, 4.5, 6.0, 4.3, 10.0, 0.01, ['H'], 'ANNAHME: Haselnüsse (app-interne ZUTAT_NAEHRWERTE); Allergen generisch H=Schalenfrüchte, da Nussart nicht spezifiziert'),
-  'Gemahlene Nüsse': nw(628, 15.0, 61.0, 4.5, 6.0, 4.3, 10.0, 0.01, ['H'], 'ANNAHME: Haselnüsse (app-interne ZUTAT_NAEHRWERTE); Allergen generisch H=Schalenfrüchte, da Nussart nicht spezifiziert'),
+  // 'Creme-Marzipan' ENTFERNT (Marten 22.07.2026): den Artikel gibt es
+  // nicht — Tippfehler im Rezept Schlemmerriegel, gemeint ist die
+  // Creme-MARGARINE (CSM Homann Creme → herstellerErgaenzungen.js).
+  // Rezept korrigiert, DB-Eintrag per Cleanup gelöscht.
+  'gehackte Nüsse': nw(628, 15.0, 61.0, 4.5, 6.0, 4.3, 10.0, 0.01, ['Hb'], 'Haselnüsse (app-interne ZUTAT_NAEHRWERTE); bestätigt (Marten 22.07.2026): immer Haselnüsse → Hb statt generisch H'),
+  'Gemahlene Nüsse': nw(628, 15.0, 61.0, 4.5, 6.0, 4.3, 10.0, 0.01, ['Hb'], 'Haselnüsse (app-interne ZUTAT_NAEHRWERTE); bestätigt (Marten 22.07.2026): immer Haselnüsse → Hb statt generisch H'),
   'Puddingpulver': nw(370, 0.5, 0.2, 0.1, 91.0, 0.5, 0.3, 0.1, [], 'fddb/yazio Puddingpulver Vanille unzubereitet (360-382 kcal); Standard-Rezeptur Maisstärke = allergenfrei'),
   // 'Kochcreme' = Dr.-Oetker-Puddingpulver zum Kochen (laut Marten
   // 2026-07-17) — gleiche Werte wie 'Puddingpulver' (Pulver unzubereitet,
@@ -131,16 +134,16 @@ export const NAEHRWERT_ERGAENZUNGEN = {
 
   // ── Gewürze, Sonstiges (Web) ──
   'Backpulver': nw(86, 0.1, 0, 0, 21.4, 0.3, 0, 44.8, [], 'fddb RUF Backpulver; hoher LMIV-Salzwert korrekt (Natriumsalze der Triebmittel, kein NaCl)'),
-  'Backextrakt': nw(311, 3.3, 0.1, 0, 74.0, 50.0, 0, 0.05, ['Ac'], 'hobbybaecker.de Malzextrakt/Backextrakt aus Gerste; ANNAHME: Backextrakt = flüssiges Gerstenmalzextrakt (Ac)'),
+  'Backextrakt': nw(311, 3.3, 0.1, 0, 74.0, 50.0, 0, 0.05, ['Ac'], 'hobbybaecker.de Malzextrakt/Backextrakt aus Gerste; bestätigt (Marten 22.07.2026): flüssiges Gerstenmalzextrakt (Ac)'),
   'Muskat': nw(525, 5.8, 36.3, 25.9, 28.5, 3.0, 20.8, 0.04, [], 'USDA Muskatnuss gemahlen (KH exkl. Ballaststoffe umgerechnet)'),
   'Currypulver': nw(325, 14.3, 14.0, 2.2, 22.6, 2.8, 33.2, 0.13, null, 'USDA curry powder; Allergene OFFEN: Currymischungen können SENF/SELLERIE enthalten — Etikett prüfen!'),
   'Stollengewürz': nw(341, 0.6, 0.2, 0.1, 82.0, 0.1, 0, 0.1, null, 'hobbybaecker.de Stollengewürz (Herstellerstreuung 160-434 kcal!); Allergene OFFEN: Gewürzmischung — Etikett prüfen'),
-  'Paprika': nw(282, 14.1, 12.9, 2.1, 19.1, 10.3, 34.9, 0.17, [], 'USDA Paprikapulver edelsüß; ANNAHME: reines Paprikapulver (Rezept Pfefferkruste, Gewürzmenge)'),
-  'Chili': nw(318, 12.0, 17.3, 3.3, 29.4, 10.3, 27.2, 0.08, [], 'USDA Cayennepfeffer; ANNAHME: reines Chilipulver/-flocken, keine Mischung'),
-  'Rosmarin': nw(331, 4.9, 15.2, 7.4, 21.1, 0, 42.6, 0.13, [], 'USDA/fddb Rosmarin getrocknet; ANNAHME: getrocknete Ware'),
+  'Paprika': nw(282, 14.1, 12.9, 2.1, 19.1, 10.3, 34.9, 0.17, [], 'USDA Paprikapulver edelsüß; bestätigt (Marten 22.07.2026): reines Paprikapulver'),
+  'Chili': nw(318, 12.0, 17.3, 3.3, 29.4, 10.3, 27.2, 0.08, [], 'USDA Cayennepfeffer; bestätigt (Marten 22.07.2026): reines Chilipulver/-flocken'),
+  'Rosmarin': nw(331, 4.9, 15.2, 7.4, 21.1, 0, 42.6, 0.13, [], 'USDA/fddb Rosmarin getrocknet; bestätigt (Marten 22.07.2026): getrocknete Ware'),
   'Schnittlauch': nw(30, 3.0, 1.0, 0.2, 4.0, 1.0, 1.0, 0.03, [], 'ernaehrung.de (BLS) Schnittlauch frisch; Zucker geschätzt'),
   'Rum': nw(246, 0, 0, 0, 0, 0, 0, 0, [], 'wikifit/yazio Rum 40 Vol.% (kcal je 100 ml ≈ 100 g gesetzt)'),
-  'Kaffeepulver': nw(340, 4.5, 0.5, 0.2, 75.0, 3.0, 0, 0.1, [], 'fddb löslicher Standardkaffee (Pulver); ANNAHME: Instantkaffee (Tiramisu-Tränke); Zucker geschätzt'),
+  'Kaffeepulver': nw(340, 4.5, 0.5, 0.2, 75.0, 3.0, 0, 0.1, [], 'fddb löslicher Standardkaffee (Pulver); bestätigt (Marten 22.07.2026): Instantkaffee (Tiramisu-Tränke); Zucker geschätzt'),
 };
 
 // ── Seed-Ausführung (nur bei direktem Aufruf, nicht beim Import) ──
