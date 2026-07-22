@@ -32,8 +32,8 @@ const ZUORDNUNG = {
   'Hartweizengrieß': 'Rüning. Hartweizengrieß grob',
   'Hartweizengreiß': 'Rüning. Hartweizengrieß grob',
   'Roggenmehl 997': 'BÄKO Roggenmehl 997',
-  'Roggenmehl 1150': 'BÄKO Roggenmehl 997', // ANNAHME: nur 997 gelistet
-  'Roggenmehl 1370': 'BÄKO Roggenmehl 997', // ANNAHME: nur 997 gelistet
+  // Roggenmehl 1150/1370 NICHT aus der Liste: kostet laut Marten
+  // (22.07.2026) 0,42 €/kg — manuell in der DB gepflegt, nicht anfassen.
   'Roggenvollkornmehl': 'BÄKO Roggenvollkornmehl',
   'Roggenvollkorn': 'BÄKO Roggenvollkornmehl',
   'Roggenschrot': 'BÄKO Roggenvollkornschrot fein',
@@ -81,15 +81,17 @@ const ZUORDNUNG = {
   'Joghurt': 'FS Joghurt 3,5%',
   'Quark': '2 Plus Speisequark Magerstufe',
   'Schmand': 'FS Schmand 24%',
-  'Butter': 'Markenbutter Block 10kg', // ANNAHME: Block, nicht 4x2,5-Stg. (5,19)
+  'Butter': 'Dt. Markenbutter 4x2,5 Stg.', // Marten 22.07.2026: Stangen (leichter abzuwiegen)
   'Gouda': 'Gouda ger.4mm 5x2kg 48%',
   'Fetakäse': 'Rücker Hirtenkäse gewürfelt',
   'Margarine': 'SP Backmarg.CL PO RSPO MB',
-  'Fett': 'Meister Goldbiskin Super', // ANNAHME: Siedefett
+  'Fett': 'SP Backmarg.CL PO RSPO MB', // Marten 22.07.2026: Fett = Margarine (SP Back)
   'Frischhefe': "Frischbackhefe 'frohnatur'",
   // ── Backmittel & Markenprodukte ──
   'Stabilase': 'Ir.Stabilase',
   'Eiszeit': 'Ir.Eiszeit',
+  'Backmittel': 'Ir.Eiszeit', // Marten 22.07.2026: Backmittel = IREKS Eiszeit
+  'Eismalz': 'Ir.Eiszeit', // Marten 22.07.2026: Eismalz = IREKS Eiszeit
   'Spicy Topping': 'Ir.Spicy Topping',
   'Classic Baguette': 'Ir.Classic Baguette',
   'Classis Baguette': 'Ir.Classic Baguette',
@@ -104,7 +106,7 @@ const ZUORDNUNG = {
   'Käsekuchenpulver': 'Meister Käsekuchen-Basis',
   'Brötchenbackmittel': 'Ir.Weizenback 1856', // ANNAHME
   'Kochcreme': 'Komplet Bourbon Kochcreme',
-  'Puddingpulver': 'Ir.Mella Bourbon Vanillekrem', // ANNAHME
+  'Puddingpulver': 'Ir.Mella Bourbon Vanillekrem', // Marten 22.07.2026 bestätigt
   'Silvia': 'Dawn Sylvia Obstkuchen 3652',
   'Eisella Mohn': 'Meister eisella Mohn',
   'Eiweiß-Mix': 'Meister Eiweiß-Mix',
@@ -118,6 +120,7 @@ const ZUORDNUNG = {
   'Himbeere-Sahnessa': 'Meister Sahnessa Himbeer',
   'Zitrone-Sahnessa': 'Meister Sahnessa Zitrone',
   'Neutral-Sahnessa': 'Meister Sahnessa Neutral',
+  'Neutral': 'Meister Sahnessa Neutral', // Marten 22.07.2026 bestätigt
   'Sahnessen Käse-Sahne': 'Meister Sahn.Käse-Sahne-Torte',
   'Roggenmalz': 'Roggenmalzpulver',
   'Backpulver': 'BÄKO Backpulver',
@@ -141,8 +144,8 @@ const ZUORDNUNG = {
   'Mandeln (gehackt)': 'Mandeln gehackt',
   'gehackte Mandeln': 'Mandeln gehackt',
   'Haselnüsse': 'Haselnusskerne 11/13mm Vakuum',
-  'gehackte Nüsse': 'Haselnusskerne geha.ger.2-4mm', // ANNAHME: Nüsse = Haselnüsse
-  'Gemahlene Nüsse': 'Haselnussgrieß blanchiert', // ANNAHME: Nüsse = Haselnüsse
+  'gehackte Nüsse': 'Haselnusskerne geha.ger.2-4mm', // Marten 22.07.2026: Nüsse = Haselnuss
+  'Gemahlene Nüsse': 'Haselnussgrieß blanchiert', // Marten 22.07.2026: Nüsse = Haselnuss
   'Walnüsse': 'Walnusskernbruch hell 2x5kg',
   'Sauerkirschen': 'TK-Sauerkirschen',
   'Himbeere': 'TK-Himbeeren 4x2,5kg',
