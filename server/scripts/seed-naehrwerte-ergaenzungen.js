@@ -50,6 +50,9 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   'Leinsaat': nw(488, 22.0, 36.0, 3.2, 0, 0, 35.0, 0.05, [], '= app-interne ZUTAT_NAEHRWERTE "leinsamen"'),
   'Leinsaat (eingeweicht)': nw(488, 22.0, 36.0, 3.2, 0, 0, 35.0, 0.05, [], '= Leinsamen trocken (app-intern); bestätigt (Marten 22.07.2026): Rezeptmenge = Trockensaat, Quellwasser separat'),
   'Kleber': nw(370, 75.0, 1.8, 0.3, 14.0, 0.5, 0.6, 0.02, ['Aa'], '= Weizenkleber/Gluten (app-interne ZUTAT_NAEHRWERTE "weizengluten")'),
+  // Ohne diesen Eintrag zeigte die Baecker-Ansicht "1 Zutat ohne Daten"
+  // (System 1 hat keinen Oel-Fallback; System 2/LMIV fing es als Rapsöl ab)
+  'Speiseöl': nw(884, 0, 100.0, 7.0, 0, 0, 0, 0, [], '= Rapsöl (app-interne ZUTAT_NAEHRWERTE); bestätigt (Marten 22.07.2026): Speiseöl = Rapsöl'),
   'Eiklar': nw(47, 11.0, 0.1, 0, 0.7, 0.7, 0, 0.4, ['C'], '= app-interne ZUTAT_NAEHRWERTE "eiweiß"'),
 
   // ── Getreide, Stärken, Saaten, Hülsenfrüchte (Web/BLS) ──
