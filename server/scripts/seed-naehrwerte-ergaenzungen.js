@@ -78,7 +78,7 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   // ── Obst, Gemüse (Web) ──
   'Himbeere': nw(34, 1.3, 0.3, 0, 4.8, 4.8, 6.7, 0.01, [], 'naehrwertrechner.de (BLS)/Plantura Himbeere frisch/TK'),
   'Sauerkirschen': nw(53, 0.9, 0.5, 0.1, 9.9, 9.6, 1.1, 0.01, [], 'naehrwertrechner.de (BLS) Sauerkirsche; bestätigt (Marten 22.07.2026): ungezuckerte Ware (Dunst/TK)'),
-  'Stachelbeeren': nw(63, 0.6, 0.2, 0, 14.0, 13.5, 2.2, 0.01, [], 'BLS/fddb Stachelbeeren Konserve gezuckert; korrigiert (Marten 22.07.2026): gezuckerte Ware, nicht frisch'),
+  'Stachelbeeren': nw(55, 0.5, 0.2, 0.1, 10.7, 8.0, 2.9, 0, [], 'Steinhaus "Stachelbeeren, sehr leicht gezuckert" Art. 2.019.0 (Herstellerangaben steinhaus-fruchtkonserven.de); von Marten 22.07.2026: Steinhaus, leicht gezuckert — GFS <0,1 als 0,1 Obergrenze'),
   'Dunstäpfel': nw(54, 0.3, 0.1, 0, 11.4, 10.3, 2.0, 0.01, [], 'BLS Apfel; Dunstobst = ohne Zuckerzusatz gegart, Nährwerte ≈ roh'),
   'Apfelsaft': nw(46, 0.1, 0.1, 0, 11.1, 10.5, 0.1, 0.01, [], 'bmi-rechner.net/kalorientabelle.net Apfelsaft'),
   'Zitrone': nw(39, 0.7, 0.6, 0.1, 3.2, 2.5, 1.3, 0.01, [], 'naehrwertrechner.de (BLS) Zitrone frisch'),
