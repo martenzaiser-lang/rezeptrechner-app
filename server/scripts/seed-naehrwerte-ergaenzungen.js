@@ -58,7 +58,7 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   'Hartweizengrieß': nw(326, 9.6, 0.8, 0.2, 68.9, 0.7, 7.1, 0.01, ['Aa'], 'naehrwertrechner.de (BLS) Weizengrieß; Hartweizen nährwertgleich'),
   'Hartweizengreiß': nw(326, 9.6, 0.8, 0.2, 68.9, 0.7, 7.1, 0.01, ['Aa'], 'wie Hartweizengrieß (Tippfehler-Schreibweise im Rezept Sauerteigbrötchen)'),
   'Weizenstärke': nw(353, 0.4, 0.1, 0, 86.0, 0.3, 1.0, 0.01, ['Aa'], 'wikifit/bmi-rechner Weizenstärke; Weizenstärke ist LMIV-deklarationspflichtig (Aa)'),
-  'Stärke': nw(353, 0.4, 0.1, 0, 86.0, 0.3, 1.0, 0.01, null, 'wie Weizenstärke/Speisestärke (fddb 349-353); Allergen OFFEN: Weizen- oder Maisstärke? Von Marten zu klären'),
+  'Stärke': nw(353, 0.4, 0.1, 0, 86.0, 0.3, 1.0, 0.01, ['Aa'], 'wie Weizenstärke (fddb 349-353); bestätigt (Marten 22.07.2026): Stärke = Weizenstärke (Aa)'),
   'Hirse': nw(360, 10.5, 3.9, 0.6, 71.0, 1.0, 3.8, 0.01, [], 'naehrwertrechner.de (BLS) Hirse roh, glutenfrei'),
   'Linsen': nw(284, 23.5, 1.6, 0.2, 42.0, 1.5, 17.0, 0.01, [], 'BLS/naehrwertrechner Linsen reif getrocknet; bestätigt (Marten 22.07.2026): trockene Ware'),
   'Süßlupine': nw(362, 43.0, 9.0, 1.9, 13.0, 4.5, 27.0, 0.09, ['M'], 'naehrwertrechner.de (BLS) Lupinenschrot; Zucker geschätzt aus typ. Etiketten; ALLERGEN LUPINE (M)!'),
@@ -93,9 +93,9 @@ export const NAEHRWERT_ERGAENZUNGEN = {
 
   // ── Süßes, Nüsse, Backzutaten (Web) ──
   'Kakao': nw(339, 23.0, 20.0, 12.4, 18.0, 1.0, 26.0, 0.05, [], 'naehrwertrechner.de (BLS) Kakaopulver schwach entölt (20-22% Fett, Bäcker-Standard); Salz konservativ 0,05'),
-  'Kuvertüre': nw(570, 5.5, 38.0, 24.0, 45.0, 40.0, 9.0, 0.02, null, 'Mittel Alnatura/dennree/REWE Zartbitter-Kuvertüre (567-578 kcal); Allergene OFFEN: Lecithin-Typ (Soja→F) und evtl. Milch am Etikett prüfen'),
-  'Zartbitter-Kuvertüre': nw(570, 5.5, 38.0, 24.0, 45.0, 40.0, 9.0, 0.02, null, 'Mittel Alnatura/dennree/REWE Zartbitter-Kuvertüre; Allergene OFFEN: Lecithin-Typ (Soja→F) am Etikett prüfen'),
-  'Schokoraspel': nw(510, 6.5, 28.0, 17.0, 54.0, 50.0, 8.0, 0.01, null, 'RUF/BENZ Raspelschokolade Zartbitter (510-520 kcal); Ballaststoffe typ. Zartbitter ergänzt; Allergene OFFEN: Lecithin-Typ prüfen'),
+  'Kuvertüre': nw(570, 5.5, 38.0, 24.0, 45.0, 40.0, 9.0, 0.02, ['F'], 'Mittel Alnatura/dennree/REWE Zartbitter-Kuvertüre (567-578 kcal); bestätigt (Marten 22.07.2026): Sojalecithin → F'),
+  'Zartbitter-Kuvertüre': nw(570, 5.5, 38.0, 24.0, 45.0, 40.0, 9.0, 0.02, ['F'], 'Mittel Alnatura/dennree/REWE Zartbitter-Kuvertüre; bestätigt (Marten 22.07.2026): Sojalecithin → F'),
+  'Schokoraspel': nw(510, 6.5, 28.0, 17.0, 54.0, 50.0, 8.0, 0.01, ['F'], 'RUF/BENZ Raspelschokolade Zartbitter (510-520 kcal); Ballaststoffe typ. Zartbitter ergänzt; bestätigt (Marten 22.07.2026): Sojalecithin → F'),
   'Krokant': nw(480, 5.0, 17.0, 1.5, 72.0, 66.0, 3.5, 0.02, ['Hb'], 'Mittel fddb/EdelGut/RUF Haselnusskrokant (430-546 kcal je Nussanteil); bestätigt (Marten 22.07.2026): Haselnusskrokant (Hb)'),
   'Marzipan': nw(512, 12.0, 35.0, 2.7, 37.0, 37.0, 10.0, 0.03, ['Ha'], 'naehrwertrechner.de (BLS)/fddb Marzipanrohmasse; GFS aus Mandelfett-Anteil'),
   // 'Creme-Marzipan' ENTFERNT (Marten 22.07.2026): den Artikel gibt es
@@ -121,16 +121,17 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   // zutaten.js (pro 100 g rohe Mischung/Teig). Bei Rezeptänderung an
   // 'Brotmischung' oder 'Urstück': Skript neu laufen lassen, Werte hier
   // aktualisieren, Seed erneut ausführen!
-  // GRENZEN: (1) Rezept Brotmischung enthält 'Optimal' (5 von 38,9 kg =
-  // 13%) — Produkt noch ungeklärt, trägt hier 0 bei → kcal etwas zu
-  // niedrig. (2) Spuren der Unterprodukte (Panitop: Ac,Ad,C,F,G) können
+  // GRENZEN: Spuren der Unterprodukte (Panitop: Ac,Ad,C,F,G) können
   // über Custom-Einträge nicht weitergegeben werden.
-  'Brotmischung': nw(241, 11.7, 2.1, 1.1, 41.3, 0.4, 3.4, 18.82, ['Aa', 'Ab'], 'BERECHNET aus Rezept "Brotmischung" (Stand 2026-07-17); Zutat "Optimal" (13%) fehlt noch — nach Klärung neu berechnen!'),
+  // Neu berechnet 2026-07-22 MIT Brotgewürz Optimal (vorher 0-Beitrag):
+  // kcal 241→281, Allergen Ac (Gerste, aus dem Gewürz-Malzanteil) neu.
+  'Brotmischung': nw(281, 13.1, 2.6, 1.2, 48.3, 0.7, 3.4, 18.83, ['Aa', 'Ab', 'Ac'], 'BERECHNET aus Rezept "Brotmischung" (Stand 2026-07-22, inkl. Brotgewürz Optimal); bei Rezeptänderung neu berechnen (berechne-rezept-zutaten.js)'),
   // 'Mischung' = Brotmischung (laut Marten 2026-07-17 dasselbe)
-  'Mischung': nw(241, 11.7, 2.1, 1.1, 41.3, 0.4, 3.4, 18.82, ['Aa', 'Ab'], '= Brotmischung (laut Marten dasselbe); BERECHNET aus Rezept "Brotmischung" (Stand 2026-07-17)'),
+  'Mischung': nw(281, 13.1, 2.6, 1.2, 48.3, 0.7, 3.4, 18.83, ['Aa', 'Ab', 'Ac'], '= Brotmischung (laut Marten dasselbe); BERECHNET aus Rezept "Brotmischung" (Stand 2026-07-22, inkl. Brotgewürz Optimal)'),
   // 'Urstückteig' = Rezept 'Urstück' (Saaten-Quellteig); enthält selbst
   // Brotmischung — mit dem berechneten Wert von oben aufgelöst.
-  'Urstückteig': nw(261, 10.0, 11.8, 1.4, 26.5, 1.1, 6.8, 1.14, ['Aa', 'Ab', 'Ac', 'Ad', 'K'], 'BERECHNET aus Rezept "Urstück" (Stand 2026-07-17); bei Rezeptänderung neu berechnen (berechne-rezept-zutaten.js)'),
+  // (Neuberechnung 2026-07-22: Werte unverändert, Brotmischung-Anteil klein.)
+  'Urstückteig': nw(261, 10.0, 11.8, 1.4, 26.5, 1.1, 6.8, 1.14, ['Aa', 'Ab', 'Ac', 'Ad', 'K'], 'BERECHNET aus Rezept "Urstück" (Stand 2026-07-22); bei Rezeptänderung neu berechnen (berechne-rezept-zutaten.js)'),
 
   // ── Gewürze, Sonstiges (Web) ──
   'Backpulver': nw(86, 0.1, 0, 0, 21.4, 0.3, 0, 44.8, [], 'fddb RUF Backpulver; hoher LMIV-Salzwert korrekt (Natriumsalze der Triebmittel, kein NaCl)'),
