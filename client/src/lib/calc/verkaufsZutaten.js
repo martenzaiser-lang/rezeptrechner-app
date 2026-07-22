@@ -169,24 +169,39 @@ export function verkaufsKomponenten(lmivString) {
 
 // Kenntlichmachung nach LMIDV Anlage 4 (lose Ware): Zusatzstoff-Klassen,
 // die BEIM PRODUKT (Preisschild/Aushang) angegeben werden muessen.
-// Abgeleitet aus den Backmittel-Datenblaettern des Rezepts.
+// Abgeleitet aus den Backmittel-Datenblaettern UND den zutaten_lmiv der
+// Custom-Zutaten (z.B. Abraham Wuerfelschinken: Konservierungsstoff
+// Natriumnitrit + Antioxidationsmittel Natriumascorbat).
+// Klassen-Namen duerfen auch MITTEN in einem Komponententext stehen
+// (Etiketten trennen oft mit Komma statt Semikolon), daher Suche mit
+// Trennzeichen-Boundary statt Zeilenanfang.
 const KENNTLICHMACHUNG_LABELS = [
-  [/^farbstoff/i, 'mit Farbstoff'],
-  [/^konservierungsstoff/i, 'mit Konservierungsstoff'],
-  [/^antioxidationsmittel/i, 'mit Antioxidationsmittel'],
-  [/^geschmacksverst(ä|ae)rker/i, 'mit Geschmacksverstärker'],
-  [/^s(ü|ue)(ß|ss)ungsmittel/i, 'mit Süßungsmittel'],
+  ['farbstoff', 'mit Farbstoff'],
+  ['konservierungsstoff', 'mit Konservierungsstoff'],
+  ['antioxidationsmittel', 'mit Antioxidationsmittel'],
+  ['geschmacksverst(ä|ae)rker', 'mit Geschmacksverstärker'],
+  ['s(ü|ue)(ß|ss)ungsmittel', 'mit Süßungsmittel'],
 ];
 
-export function getRezeptKenntlichmachung(rezept) {
+function scanKenntlichmachung(lmivString, labels) {
+  const plain = lmivString.replace(/<\/?b>/gi, '');
+  for (const [muster, label] of KENNTLICHMACHUNG_LABELS) {
+    if (new RegExp('(^|[;,(\\[]\\s*)' + muster, 'i').test(plain)) labels.add(label);
+  }
+}
+
+export function getRezeptKenntlichmachung(rezept, customZutaten = []) {
+  const customLmiv = {};
+  for (const c of customZutaten) {
+    const lm = c.zutaten_lmiv || c.data?.zutaten_lmiv;
+    if (lm) customLmiv[(c.name || '').toLowerCase().trim()] = lm;
+  }
   const labels = new Set();
   for (const z of getRezeptLmivZutaten(rezept)) {
-    if (!z.lmiv) continue;
-    for (const raw of parseLmivKomponenten(z.lmiv)) {
-      const text = raw.replace(/<\/?b>/gi, '').trim();
-      for (const [re, label] of KENNTLICHMACHUNG_LABELS) {
-        if (re.test(text)) labels.add(label);
-      }
+    if (z.lmiv) scanKenntlichmachung(z.lmiv, labels);
+    else {
+      const lm = customLmiv[z.name.toLowerCase().trim()];
+      if (lm) scanKenntlichmachung(lm, labels);
     }
   }
   // stabile Reihenfolge wie in KENNTLICHMACHUNG_LABELS

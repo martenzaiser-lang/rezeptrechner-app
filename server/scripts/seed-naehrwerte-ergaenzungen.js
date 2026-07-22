@@ -73,7 +73,14 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   'Käsemix': nw(373, 25.4, 30.4, 19.5, 0, 0, 0, 1.3, ['G'], '1:1 Gouda + Emmentaler (laut Marten); Werte gemittelt aus naehrwertrechner.de (BLS)'),
   'Schmand': nw(240, 2.9, 24.0, 15.5, 3.4, 3.4, 0, 0.1, ['G'], 'fddb/wikifit Schmand 24% Fett (238-244 kcal)'),
   'Skyr': nw(63, 11.0, 0.2, 0.1, 4.0, 4.0, 0, 0.13, ['G'], 'fddb Arla/Milram Skyr natur (63-66 kcal je Marke)'),
-  'Schinken': nw(122, 19.5, 4.5, 1.6, 1.0, 0.8, 0, 2.3, null, 'fddb/yazio Kochschinken (Mittel, 107-166 kcal je Produkt); Allergene OFFEN: herstellerabhängig, Etikett prüfen'),
+  // Schinken = Abraham Würfelschinken Premium geräuchert (Marten
+  // 22.07.2026). zutaten_lmiv fürs Kenntlichmachungs-Scanning:
+  // Konservierungsstoff (Nitritpökelsalz) + Antioxidationsmittel sind
+  // bei loser Ware kenntlichmachungspflichtig!
+  'Schinken': {
+    ...nw(114, 23.0, 2.0, 0.7, 1.0, 1.0, 0, 5.0, [], 'Abraham Würfelschinken Premium geräuchert (Herstellerangaben); bestätigt (Marten 22.07.2026); keine Allergen-Zutat'),
+    zutaten_lmiv: 'Schweinefleisch; Speisesalz (teilweise jodiert); Dextrose; Gewürze; Gewürzextrakte; Antioxidationsmittel: Natriumascorbat; Säuerungsmittel: Citronensäure; Konservierungsstoff: Natriumnitrit, Kaliumnitrat; Buchenholzrauch.',
+  },
 
   // ── Obst, Gemüse (Web) ──
   'Himbeere': nw(34, 1.3, 0.3, 0, 4.8, 4.8, 6.7, 0.01, [], 'naehrwertrechner.de (BLS)/Plantura Himbeere frisch/TK'),
@@ -88,7 +95,7 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   'Kartoffelwürfel': nw(71, 1.9, 0.1, 0, 14.8, 0.8, 1.8, 0.01, [], 'wie Kartoffeln (geschält gekocht)'),
   'Zwiebel': nw(28, 1.2, 0.2, 0, 4.9, 4.2, 1.8, 0.01, [], 'BLS Zwiebel roh'),
   'Röstzwiebeln': nw(580, 6.0, 44.0, 20.0, 40.0, 15.0, 4.5, 1.0, ['Aa'], 'das-ist-drin.de Kühne Röstzwiebeln (Zutaten: Zwiebeln, Pflanzenöl, WEIZENMEHL, Salz)'),
-  'Peperoni': nw(22, 0.8, 0.4, 0.1, 4.6, 2.5, 1.5, 1.2, null, 'fddb Durchschnitt Peperoni eingelegt; Allergene OFFEN: Sulfit-Frage (Antioxidationsmittel im Glas) am Etikett prüfen'),
+  'Peperoni': nw(22, 0.8, 0.4, 0.1, 4.6, 2.5, 1.5, 1.2, [], 'fddb Durchschnitt Peperoni eingelegt; Etikett (Marten 22.07.2026): Peperoni, Wasser, Branntweinessig, Salz, Säuerungsmittel Citronensäure — KEIN Sulfit, keine Allergene'),
   'Tomatenflocken': nw(331, 12.0, 2.8, 0.5, 53.5, 35.0, 13.0, 0.15, [], 'teefabrik.de (Biller) Tomatenflocken getrocknet; Eiweiß/Zucker/Ballaststoffe ergänzt nach USDA getrocknete Tomaten'),
 
   // ── Süßes, Nüsse, Backzutaten (Web) ──
@@ -137,8 +144,8 @@ export const NAEHRWERT_ERGAENZUNGEN = {
   'Backpulver': nw(86, 0.1, 0, 0, 21.4, 0.3, 0, 44.8, [], 'fddb RUF Backpulver; hoher LMIV-Salzwert korrekt (Natriumsalze der Triebmittel, kein NaCl)'),
   'Backextrakt': nw(311, 3.3, 0.1, 0, 74.0, 50.0, 0, 0.05, ['Ac'], 'hobbybaecker.de Malzextrakt/Backextrakt aus Gerste; bestätigt (Marten 22.07.2026): flüssiges Gerstenmalzextrakt (Ac)'),
   'Muskat': nw(525, 5.8, 36.3, 25.9, 28.5, 3.0, 20.8, 0.04, [], 'USDA Muskatnuss gemahlen (KH exkl. Ballaststoffe umgerechnet)'),
-  'Currypulver': nw(325, 14.3, 14.0, 2.2, 22.6, 2.8, 33.2, 0.13, null, 'USDA curry powder; Allergene OFFEN: Currymischungen können SENF/SELLERIE enthalten — Etikett prüfen!'),
-  'Stollengewürz': nw(341, 0.6, 0.2, 0.1, 82.0, 0.1, 0, 0.1, null, 'hobbybaecker.de Stollengewürz (Herstellerstreuung 160-434 kcal!); Allergene OFFEN: Gewürzmischung — Etikett prüfen'),
+  'Currypulver': nw(332, 13.2, 11.6, 1.2, 26.9, 8.4, 0, 0.14, [], 'Fuchs Professional Curry Madras (Herstellerangaben fuchsgruppe.shop); bestätigt (Marten 22.07.2026): Zutaten nur Gewürze, keine Allergen-Zutat; Ballaststoffe nicht ausgewiesen → 0'),
+  'Stollengewürz': nw(341, 0.6, 0.2, 0.1, 82.0, 0.1, 0, 0.1, ['G'], 'Martin Braun "Stollen fein" Art. 1310001 (Marten 22.07.2026): Zutaten LAKTOSE; Macis; Kardamom; Aroma; Jamaica-Rum → ALLERGEN MILCH/LAKTOSE (G); Nährwerte geschätzt (Laktose-Basis), Datenblatt im MB-LMIV-Portal'),
   'Paprika': nw(282, 14.1, 12.9, 2.1, 19.1, 10.3, 34.9, 0.17, [], 'USDA Paprikapulver edelsüß; bestätigt (Marten 22.07.2026): reines Paprikapulver'),
   'Chili': nw(318, 12.0, 17.3, 3.3, 29.4, 10.3, 27.2, 0.08, [], 'USDA Cayennepfeffer; bestätigt (Marten 22.07.2026): reines Chilipulver/-flocken'),
   'Rosmarin': nw(331, 4.9, 15.2, 7.4, 21.1, 0, 42.6, 0.13, [], 'USDA/fddb Rosmarin getrocknet; bestätigt (Marten 22.07.2026): getrocknete Ware'),

@@ -125,6 +125,25 @@ describe('getRezeptVerkaufsZutaten — Aufschluesselung ohne Duplikate', () => {
     expect(getRezeptKenntlichmachung(rezept)).toEqual([]);
   });
 
+  it('Kenntlichmachung auch aus zutaten_lmiv von Custom-Zutaten (Schinken)', () => {
+    const schinkenBroetchen = {
+      zutaten: [
+        { name: 'Weizenmehl 550', menge_kg: 10 },
+        { name: 'Schinken', menge_kg: 1 },
+      ],
+    };
+    const customZutaten = [{
+      name: 'Schinken',
+      zutaten_lmiv: 'Schweinefleisch; Speisesalz; Antioxidationsmittel: Natriumascorbat; Konservierungsstoff: Natriumnitrit, Kaliumnitrat.',
+    }];
+    expect(getRezeptKenntlichmachung(schinkenBroetchen, customZutaten)).toEqual([
+      'mit Konservierungsstoff',
+      'mit Antioxidationsmittel',
+    ]);
+    // ohne customZutaten: nichts erkannt
+    expect(getRezeptKenntlichmachung(schinkenBroetchen)).toEqual([]);
+  });
+
   it('laesst Rezepte ohne Backmittel unveraendert', () => {
     const einfach = {
       zutaten: [

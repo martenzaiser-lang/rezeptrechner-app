@@ -88,7 +88,9 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
         spurenText: formatAllergene(spuren, true),
         zutatenverzeichnis,
         // LMIDV Anlage 4: "mit Farbstoff" etc. — fuer Preisschild/Aushang
-        kenntlichmachung: getRezeptKenntlichmachung(r),
+        // (customZutaten: auch Zusatzstoffe aus eigenen Zutaten wie
+        // Wuerfelschinken werden erfasst)
+        kenntlichmachung: getRezeptKenntlichmachung(r, customZutaten),
         naehrwerte,
         naehrwerteBezug: naehrwerte
           ? (bv > 0 ? `pro 100 g gebacken (Backverlust ${bv}%)` : 'pro 100 g Teig — Backverlust nicht gepflegt')
