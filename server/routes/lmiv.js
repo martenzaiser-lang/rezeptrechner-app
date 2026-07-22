@@ -13,9 +13,10 @@ import { Router } from 'express';
 import { timingSafeEqual, createHash } from 'node:crypto';
 import { pool } from '../db.js';
 import {
-  getRezeptAllergene, getRezeptSpuren, getRezeptLmivZutaten,
+  getRezeptAllergene, getRezeptSpuren,
   formatAllergene, berechneNaehrwerte,
 } from '../../client/src/lib/calc/naehrwerteLookup.js';
+import { getRezeptVerkaufsZutaten } from '../../client/src/lib/calc/verkaufsZutaten.js';
 
 export const lmivRouter = Router();
 
@@ -56,13 +57,10 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
       const spuren = getRezeptSpuren(r).filter((s) => !allergene.includes(s));
 
       // Zutatenverzeichnis: NUR Namen in absteigender Reihenfolge (LMIV),
-      // Herstellerprodukte mit Verkehrsbezeichnung + Unterzutaten.
-      // KEINE Mengen/Anteile — das Rezept bleibt im Haus.
-      const zutatenverzeichnis = getRezeptLmivZutaten(r).map((z) => ({
-        name: z.name,
-        bezeichnung: z.bezeichnung || null,
-        unterzutaten: z.lmiv ? z.lmiv.replace(/<\/?b>/g, '').trim() : null,
-      }));
+      // Backmittel/Herstellerprodukte aufgeschluesselt in ihre Komponenten
+      // (dedupliziert, reduziert auf das bei loser Ware Noetige — siehe
+      // verkaufsZutaten.js). KEINE Mengen/Anteile — das Rezept bleibt im Haus.
+      const zutatenverzeichnis = getRezeptVerkaufsZutaten(r).map((name) => ({ name }));
 
       const nwTeig = berechneNaehrwerte(r, customZutaten);
       const bv = r.backverlust_pct || 0;

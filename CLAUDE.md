@@ -47,6 +47,12 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
 - `client/src/lib/calc/` — Berechnungslogik als pure functions, 1:1 aus
   der alten index.html portiert. Fixture-Tests gegen die Alt-App —
   bei Änderungen IMMER `npm test --workspace client`.
+  NEU (Juli 2026): `verkaufsZutaten.js` — Zutatenverzeichnis für lose Ware
+  (LMIV-API → Personalplaner-Produkt-Auskunft): Backmittel werden in ihre
+  Komponenten aufgeschlüsselt, dedupliziert und auf das bei unverpackter
+  Ware Nötige reduziert (Zusatzstoff-Klassen ohne Kenntlichmachungspflicht
+  fallen weg, Allergene bleiben IMMER, Farbstoff/Konservierungsstoff/
+  Antioxidationsmittel/Süßungsmittel/Geschmacksverstärker bleiben).
 - `client/src/data/` — statische Datenbanken (Nährwerte, Meistermarken,
   IREKS, Allergene, Synonyme, BÄKO-Preise), 1:1 aus der alten App.
 - Design-System: `client/src/styles/theme.css` + `refresh-v3.css`
