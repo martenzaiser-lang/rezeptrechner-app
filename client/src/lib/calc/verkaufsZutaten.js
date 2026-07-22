@@ -165,6 +165,32 @@ export function verkaufsKomponenten(lmivString) {
     .flatMap((p) => komponenteFuerVerkauf(p) || []);
 }
 
+// Kenntlichmachung nach LMIDV Anlage 4 (lose Ware): Zusatzstoff-Klassen,
+// die BEIM PRODUKT (Preisschild/Aushang) angegeben werden muessen.
+// Abgeleitet aus den Backmittel-Datenblaettern des Rezepts.
+const KENNTLICHMACHUNG_LABELS = [
+  [/^farbstoff/i, 'mit Farbstoff'],
+  [/^konservierungsstoff/i, 'mit Konservierungsstoff'],
+  [/^antioxidationsmittel/i, 'mit Antioxidationsmittel'],
+  [/^geschmacksverst(ä|ae)rker/i, 'mit Geschmacksverstärker'],
+  [/^s(ü|ue)(ß|ss)ungsmittel/i, 'mit Süßungsmittel'],
+];
+
+export function getRezeptKenntlichmachung(rezept) {
+  const labels = new Set();
+  for (const z of getRezeptLmivZutaten(rezept)) {
+    if (!z.lmiv) continue;
+    for (const raw of parseLmivKomponenten(z.lmiv)) {
+      const text = raw.replace(/<\/?b>/gi, '').trim();
+      for (const [re, label] of KENNTLICHMACHUNG_LABELS) {
+        if (re.test(text)) labels.add(label);
+      }
+    }
+  }
+  // stabile Reihenfolge wie in KENNTLICHMACHUNG_LABELS
+  return KENNTLICHMACHUNG_LABELS.map(([, l]) => l).filter((l) => labels.has(l));
+}
+
 // Zutatenverzeichnis fuer die Verkaufs-Ansicht: Rezept-Zutaten absteigend
 // nach Anteil, Herstellerprodukte aufgeschluesselt, Duplikate entfernt
 // (erste Nennung gewinnt = groesster Anteil).

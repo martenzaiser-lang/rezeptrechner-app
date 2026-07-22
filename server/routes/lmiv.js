@@ -16,7 +16,7 @@ import {
   getRezeptAllergene, getRezeptSpuren,
   formatAllergene, berechneNaehrwerte,
 } from '../../client/src/lib/calc/naehrwerteLookup.js';
-import { getRezeptVerkaufsZutaten } from '../../client/src/lib/calc/verkaufsZutaten.js';
+import { getRezeptVerkaufsZutaten, getRezeptKenntlichmachung } from '../../client/src/lib/calc/verkaufsZutaten.js';
 
 export const lmivRouter = Router();
 
@@ -87,6 +87,8 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
         spuren,
         spurenText: formatAllergene(spuren, true),
         zutatenverzeichnis,
+        // LMIDV Anlage 4: "mit Farbstoff" etc. — fuer Preisschild/Aushang
+        kenntlichmachung: getRezeptKenntlichmachung(r),
         naehrwerte,
         naehrwerteBezug: naehrwerte
           ? (bv > 0 ? `pro 100 g gebacken (Backverlust ${bv}%)` : 'pro 100 g Teig — Backverlust nicht gepflegt')

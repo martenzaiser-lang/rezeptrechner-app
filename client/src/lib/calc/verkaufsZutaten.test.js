@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseLmivKomponenten, verkaufsKomponenten, dedupeKey,
-  getRezeptVerkaufsZutaten,
+  getRezeptVerkaufsZutaten, getRezeptKenntlichmachung,
 } from './verkaufsZutaten.js';
 import { findHersteller } from './naehrwerteLookup.js';
 
@@ -109,6 +109,20 @@ describe('getRezeptVerkaufsZutaten — Aufschluesselung ohne Duplikate', () => {
     // keine kompletten Duplikate
     const keys = liste.map(dedupeKey);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('Kenntlichmachung (LMIDV Anlage 4) aus Backmittel-Datenblaettern', () => {
+    // Sahnessa Erdbeer enthaelt "Farbstoff: Betenrot"
+    const mitFarbstoff = {
+      zutaten: [
+        { name: 'Sahne', menge_kg: 2 },
+        { name: 'Sahnessa Erdbeer', menge_kg: 0.3 },
+      ],
+    };
+    expect(getRezeptKenntlichmachung(mitFarbstoff)).toEqual(['mit Farbstoff']);
+
+    // Classic Baguette hat keine kenntlichmachungspflichtigen Zusatzstoffe
+    expect(getRezeptKenntlichmachung(rezept)).toEqual([]);
   });
 
   it('laesst Rezepte ohne Backmittel unveraendert', () => {
