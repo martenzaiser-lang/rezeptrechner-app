@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { NAEHRWERT_RECHERCHE } from '../../data/naehrwertRecherche.js';
-import { findNaehrwerte, getRezeptAllergene, getRezeptAllergenStatus, getRezeptLmivZutaten } from './naehrwerteLookup.js';
+import { findNaehrwerte, getRezeptAllergene, getRezeptAllergenStatus, getRezeptLmivZutaten, getRezeptSpuren } from './naehrwerteLookup.js';
+import { getRezeptKenntlichmachung } from './verkaufsZutaten.js';
 import { naehrwertStatus } from './naehrwertFelder.js';
 import { produktNaehrwerte } from './produktNaehrwerte.js';
 import { rezeptZutaten } from './rezeptZutaten.js';
@@ -38,7 +39,29 @@ describe('Recherche und bestätigte Produktzuordnungen Oktober 2026', () => {
     expect(findNaehrwerte('Öl')).toEqual(findNaehrwerte('Rapsöl'));
     expect(findNaehrwerte('Sahnestand Neutral')).toEqual(findNaehrwerte('Sahnessa Neutral'));
     expect(findNaehrwerte('Malz unbekannte Mischung')).toBeNull();
-    expect(findNaehrwerte('Oliven').referenz_artikel).toContain('Grüne Oliven');
+    expect(findNaehrwerte('Oliven').produkt).toContain('ADRIA');
+  });
+  it('berechnet bestätigten Erbsenschrot ohne die Nährwerte und Zutaten von Suppen-Backerbsen', () => {
+    const r = rezept([zutat('Backerbse', 1)]), p = produktNaehrwerte(r);
+    expect(p.deklarationVollstaendig).toBe(true);
+    expect(p.werte.kcal).toBe(287);
+    expect(p.werte.eiweiss).toBe(23.75);
+    expect(p.werte.fett).toBe(1.7);
+    expect(p.werte.ballaststoffe).toBeNull();
+    expect(getRezeptAllergene(r)).toEqual([]);
+    expect(getRezeptSpuren(r)).toContain('G');
+    expect(getRezeptLmivZutaten(r)[0].lmiv).toBe('Gelber Erbsenschrot, getoastet');
+  });
+  it('trennt reines Combani von Zucker und Semmelmischung und übernimmt die ADRIA-Zusammensetzung', () => {
+    const r = rezept([zutat('Combani', .08), zutat('Sizilia', .02)]);
+    expect(produktNaehrwerte(r).deklarationVollstaendig).toBe(true);
+    expect(produktNaehrwerte(r).werte.kcal).toBeCloseTo(81 * .8 + 114 * .2);
+    expect(getRezeptAllergene(r)).toEqual(['G']);
+    expect(getRezeptLmivZutaten(r)[0].lmiv).toContain('<b>MILCH</b>');
+    const oliven = rezept([zutat('Oliven', 1)]);
+    expect(produktNaehrwerte(oliven).deklarationVollstaendig).toBe(true);
+    expect(produktNaehrwerte(oliven).werte.salz).toBe(3.1);
+    expect(getRezeptKenntlichmachung(oliven)).toContain('mit Antioxidationsmittel');
   });
   it('erhält eigene offene Daten sowie Allergenunsicherheit trotz vollständiger Referenz', () => {
     const custom = [{name:'Kochcreme',data:{...findNaehrwerte('Kochcreme'),salz:null,allergene:[],allergene_geprueft:false}}];

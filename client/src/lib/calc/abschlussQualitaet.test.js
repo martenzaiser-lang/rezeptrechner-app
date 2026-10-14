@@ -43,11 +43,11 @@ describe('Abschlussprüfung: belegte Werte und vollständige Ausgaben', () => {
     expect(taErgebnis(r)).toEqual({status:'ignoriert',kategorie:'Trockenmischung',ta:null});
     expect(taLabel(r)).toBe('');
   });
-  it('erklärt Backerbsen ohne bestätigten Artikel nicht länger für allergenfrei', () => {
+  it('gibt einen ungeprüften eigenen Backerbsen-Altbestand trotz bestätigter Referenz nicht automatisch frei', () => {
     const r = rezept([zutat('Backerbse',1)]);
-    expect(getRezeptAllergenStatus(r).vollstaendig).toBe(false);
-    expect(produktNaehrwerte(r).deklarationVollstaendig).toBe(false);
-    expect(findNaehrwerte('Backerbse').referenz_allergene).toEqual(['Aa','C','G']);
+    const custom = [{name:'Backerbse',data:{...findNaehrwerte('Backerbse'),allergene_geprueft:false,zutaten_geprueft:false}}];
+    expect(getRezeptAllergenStatus(r,custom).vollstaendig).toBe(false);
+    expect(produktNaehrwerte(r,custom).deklarationVollstaendig).toBe(false);
   });
   it('sperrt fehlende Unterzutaten auch durch eine eigene Mischung hindurch', () => {
     const quelle = rezept([zutat('Neue Füllung',1)], {id:'streusel',name:'Streusel'});

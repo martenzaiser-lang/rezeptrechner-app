@@ -104,6 +104,14 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
    Für beauftragte Datenabgleiche: `server/scripts/apply-quality-plan.mjs` prüft
    einen externen JSON-Plan gegen den aktuellen Datenstand. Ohne `--apply` schreibt
    es nichts. Mit `--apply`: Dateisicherung, Versionsvergleich und eine Transaktion.
+   Bestätigungen vom 14.10.2026: „Backerbse“ ist getoasteter gelber Erbsenschrot
+   (Backstars/Kastanienerbsen), keine Suppeneinlage. Oliven: ADRIA grün ohne Stein
+   28/32, GTIN 4003735721635. Vanillezucker wird nicht verwendet: tatsächlich
+   Combani (80 g Amerikanerschnitte, 20 g Spanische je Grundansatz).
+   Sandtortenmasse: je 5 g Combani/Sizilia pro kg Mehl; Quarkstriezel: je 5 g
+   pro kg Quark plus 1 g Salz/kg Quark. Vorhandene Backverluste dürfen laut
+   Marten als Schätzungen verwendet werden; fehlende Werte bleiben offen.
+   Teilrezepte/Füllungen kennzeichnen ihren tatsächlichen Gewichtsbezug.
 8. **Produktionsdaten**: Prüfberichte und Neon-Sicherungen liegen außerhalb
    dieses Repositories. Browserprüfungen laufen mit isolierter Testdatenbank.
 9. **Sortimentskalkulation**: Admin → Sortiment kalkulieren. Jede aktive Variante
