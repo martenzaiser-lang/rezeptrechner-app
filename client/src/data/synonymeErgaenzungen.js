@@ -27,6 +27,7 @@ export const SYNONYME_ERGAENZUNGEN = {
   'easy rühr': 'rühr & easy',
   'käsekuchenpulver': 'käsekuchen-basis',
   'neutral': 'sahnessa neutral',
+  'sahnestand neutral': 'sahnessa neutral',
   // 'Exzelent' (ein l) = Schreibweise in echten Rezepten für das
   // Exzellent-Brotgewürz (herstellerErgaenzungen.js)
   'exzelent': 'exzellent',

@@ -12,6 +12,7 @@ import { ZUTAT_NAEHRWERTE } from '../../data/naehrwerte.js';
 import { istGewicht } from './ta.js';
 import { ROHSTOFF_ERGAENZUNGEN } from '../../data/rohstoffErgaenzungen.js';
 import { ROHSTOFF_SYNONYME } from '../../data/rohstoffSynonyme.js';
+import { NAEHRWERT_RECHERCHE } from '../../data/naehrwertRecherche.js';
 import { istGekochterRoggen, ROGGEN_KOCHPROFIL } from '../../data/betrieblicheVorstufen.js';
 
 import { naehrwertStatus, istNaehrwert, NAEHRWERT_LABEL } from './naehrwertFelder.js';
@@ -100,7 +101,7 @@ export function getRezeptAllergene(rezept, customZutaten = []) {
   const customMap = {};
   for (const c of customZutaten) {
     const a = c.a || c.allergene || c.data?.a || c.data?.allergene;
-    if (a) customMap[(c.name || '').toLowerCase()] = a;
+    if (a) customMap[(c.name || '').toLowerCase().trim()] = a;
   }
 
   const excludeFromDairy = /mandelmilch|sojamilch|hafermilch|kokosmilch|reismilch|cashewmilch|erdnussbutter|mandelbutter|cashewbutter|nussbutter/;
@@ -126,7 +127,12 @@ export function getRezeptAllergene(rezept, customZutaten = []) {
     }
 
     // 1. Direkter Eintrag (inkl. Singular/Plural)
-    const direkt = direktEintrag(ZUTAT_ALLERGENE, name);
+    const recherchiert = NAEHRWERT_RECHERCHE[name];
+    if (Array.isArray(recherchiert?.allergene)) {
+      recherchiert.allergene.forEach(a => allergene.add(a));
+      return;
+    }
+    const direkt = direktEintrag(ZUTAT_ALLERGENE, ROHSTOFF_SYNONYME[name] || name);
     if (direkt !== undefined) {
       direkt.forEach((a) => allergene.add(a));
       return;
@@ -193,6 +199,8 @@ export function getRezeptSpuren(rezept, customZutaten = []) {
     if (Array.isArray(eigen)) { eigen.forEach(s => spuren.add(s)); return; }
     const m = findHersteller(z.name);
     if (m && m.spuren) m.spuren.forEach((s) => spuren.add(s));
+    const recherchiert = NAEHRWERT_RECHERCHE[z.name.toLowerCase().trim()];
+    if (recherchiert?.spuren) recherchiert.spuren.forEach(s => spuren.add(s));
   });
   return [...spuren].sort();
 }
@@ -208,8 +216,10 @@ export function getRezeptAllergenStatus(rezept, customZutaten = []) {
     if (Array.isArray(eigen)) return false;
     const m = findHersteller(name);
     if (Array.isArray(m?.allergene)) return false;
-    if (direktEintrag(ZUTAT_ALLERGENE, name) !== undefined) return false;
-    return !['wasser', 'salz', 'zucker'].includes(name);
+    if (NAEHRWERT_RECHERCHE[name]?.allergene_geprueft === true) return false;
+    const basis = ROHSTOFF_SYNONYME[name] || name;
+    if (direktEintrag(ZUTAT_ALLERGENE, basis) !== undefined) return false;
+    return !['wasser', 'salz', 'zucker'].includes(basis);
   }).map(z => z.name);
   return { vollstaendig: !rezept.berechnungsfehler && fehlend.length === 0 && rezept.zutaten.some(istGewicht), fehlend };
 }
@@ -224,7 +234,8 @@ export function getRezeptLmivZutaten(rezept, customZutaten = []) {
     .map((z) => {
       const c = customZutaten.find(c => c.name?.toLowerCase().trim() === z.name.toLowerCase().trim());
       const eigen = c?.data || c;
-      const m = eigen?.zutaten_lmiv != null ? eigen : findHersteller(z.name);
+      const recherchiert = NAEHRWERT_RECHERCHE[z.name.toLowerCase().trim()];
+      const m = eigen?.zutaten_lmiv != null ? eigen : recherchiert?.zutaten_lmiv != null ? recherchiert : findHersteller(z.name);
       return {
         name: z.name,
         anteil: ((z.menge_kg || 0) / gesamtKg) * 100,
@@ -242,6 +253,9 @@ export function findNaehrwerte(zutatName, customZutaten = []) {
   const custom = customZutaten.find((z) => z.name?.toLowerCase().trim() === name);
   if (custom) return normalisiereNw(custom);
   if (istGekochterRoggen(name)) return ROGGEN_KOCHPROFIL;
+
+  const recherchiert = NAEHRWERT_RECHERCHE[ROHSTOFF_SYNONYME[name] || name];
+  if (recherchiert) return recherchiert;
 
   const m = findHersteller(name);
   if (m) return herstellerToNw2(m);

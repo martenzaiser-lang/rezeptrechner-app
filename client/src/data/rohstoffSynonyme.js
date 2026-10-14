@@ -3,6 +3,10 @@
 export const ROHSTOFF_SYNONYME = {
   // Betriebliche Zuordnung, bestätigt von Marten am 14.10.2026.
   'dinkelmehl': 'dinkelmehl 630',
+  // Beide Betriebsnamen führen in der Einkaufsliste denselben Weizenkleber.
+  'gluten': 'weizengluten',
+  'öl': 'rapsöl',
+  'o-saft': 'orangensaft',
   // Eindeutige Betriebsnamen laut KBO-Einkaufsliste.
   'dinkelvollkorn': 'dinkelvollkornmehl',
   'roggenvollkorn': 'roggenvollkornmehl',
@@ -13,6 +17,7 @@ export const ROHSTOFF_SYNONYME = {
   'wasser(heiß)': 'wasser',
   'weizenmehl type 550': 'weizenmehl 550',
   'roggenschrot, fein': 'roggenschrot fein',
+  'roggenschrot (fein)': 'roggenschrot fein',
   'roggenschrot, mittel': 'roggenschrot mittel',
   'gehackte mandeln': 'mandeln',
   'mandeln (gehackt)': 'mandeln',

@@ -30,7 +30,8 @@ export default function KalkulationBlock({ rezept, eigenePreise = {}, kalkulatio
     ? Object.fromEntries(Object.entries(draft).map(([k, v]) => [k, num(v)]))
     : gespeichert;
 
-  const { summe: rohstoffe, ohnePreis, istBlech } = berechneRohstoffkosten(rezept, eigenePreise);
+  const { summe: rohstoffe, zeilen, ohnePreis, istBlech } = berechneRohstoffkosten(rezept, eigenePreise);
+  const preisHinweise = [...new Set(zeilen.flatMap(z => z.preis_hinweise || []))];
   const quotenGueltig = !!kalkuliereVk(1, aktiv);
   const k = ohnePreis.length ? null : kalkuliereVk(rohstoffe, aktiv);
   const bezug = istBlech
@@ -49,6 +50,7 @@ export default function KalkulationBlock({ rezept, eigenePreise = {}, kalkulatio
       >
         <strong>
           Verkaufspreis: {k ? `${de(k.empfohlen)} €` : '—'} {bezug}
+          {preisHinweise.length > 0 && <span style={{ fontWeight: 400 }}> · mit Schätzwerten</span>}
           {ohnePreis.length > 0 && (
             <span style={{ color: 'var(--error)', fontWeight: 400 }}> — Rohstoffe unvollständig!</span>
           )}
@@ -91,6 +93,9 @@ export default function KalkulationBlock({ rezept, eigenePreise = {}, kalkulatio
             </>
           )}
 
+          {preisHinweise.map(hinweis => (
+            <p key={hinweis} className="muted" style={{ fontSize: 12, marginTop: 8, marginBottom: 0 }}>{hinweis}</p>
+          ))}
           <h4 style={{ fontSize: 13, margin: '14px 0 6px' }}>Zielquoten (Betrieb, gelten für alle Rezepte)</h4>
           <div className="form-grid-4" style={{ gap: 8, maxWidth: 560 }}>
             {FELDER.map(([key, label]) => (

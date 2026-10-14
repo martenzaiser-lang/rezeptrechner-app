@@ -15,6 +15,7 @@ export default function KostenBlock({ rezept, eigenePreise = {} }) {
   const [offen, setOffen] = useState(false);
 
   const { summe, zeilen, ohnePreis, istBlech, fehler } = berechneRohstoffkosten(rezept, eigenePreise);
+  const preisHinweise = [...new Set(zeilen.flatMap(z => z.preis_hinweise || []))];
   if (fehler) return <p role="alert" style={{ color: 'var(--error)' }}>Kosten nicht berechenbar: {fehler}</p>;
   const bezug = istBlech
     ? `pro Blech ${rezept.blech_breite_cm || 50}×${rezept.blech_laenge_cm || 80} cm`
@@ -29,6 +30,7 @@ export default function KostenBlock({ rezept, eigenePreise = {} }) {
       >
         <strong>
           {ohnePreis.length ? 'Bekannte Teilkosten' : 'Kosten'}: {de(summe)} € {bezug}
+          {preisHinweise.length > 0 && <span style={{ fontWeight: 400 }}> · mit Schätzwerten</span>}
           {ohnePreis.length > 0 && (
             <span style={{ color: 'var(--error)', fontWeight: 400 }}> — {ohnePreis.length} Zutat{ohnePreis.length > 1 ? 'en' : ''} ohne Preis!</span>
           )}
@@ -73,6 +75,9 @@ export default function KostenBlock({ rezept, eigenePreise = {} }) {
               <> Ohne Preis: {ohnePreis.join(', ')} — die Summe ist entsprechend zu niedrig.</>
             )}
           </p>
+          {preisHinweise.map(hinweis => (
+            <p key={hinweis} className="muted" style={{ fontSize: 12, marginTop: 8, marginBottom: 0 }}>{hinweis}</p>
+          ))}
         </div>
       )}
     </div>

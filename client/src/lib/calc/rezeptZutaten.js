@@ -1,4 +1,4 @@
-import { berechneNaehrwerte, getRezeptAllergene, getRezeptAllergenStatus, getRezeptSpuren, getRezeptLmivZutaten } from './naehrwerteLookup.js';
+import { berechneNaehrwerte, findNaehrwerte, getRezeptAllergene, getRezeptAllergenStatus, getRezeptSpuren, getRezeptLmivZutaten } from './naehrwerteLookup.js';
 import { NAEHRWERT_FELDER } from './naehrwertFelder.js';
 import { skaliereMitBezug } from './prozentSkalierung.js';
 import { produktionsRezept } from './produktion.js';
@@ -45,6 +45,9 @@ export function rezeptZutaten(recipes, customIngredients = []) {
       const allergene = getRezeptAllergene(roh, zutaten);
       const status = getRezeptAllergenStatus(roh, zutaten);
       const lmiv = getRezeptLmivZutaten(roh, zutaten);
+      const quellen = roh.zutaten.filter(z => !z.ist_kommentar && z.menge_kg > 0).map(z => findNaehrwerte(z.name, zutaten));
+      const referenzen = [...new Set(quellen.map(q => q?.referenz_artikel).filter(Boolean))];
+      const hinweise = [...new Set([r.naehrwert_hinweis, ...quellen.map(q => q?.naehrwert_hinweis)].filter(Boolean))];
       data = {
         ta_pro_kg: gesamt > 0 && !bilanz.fehler.length ? { mehl_kg: bilanz.mehl / gesamt, fluessigkeit_kg: bilanz.fluessigkeit / gesamt } : null,
         ta_fehler: bilanz.fehler.join('; '), ta_hinweise: bilanz.hinweise,
@@ -55,6 +58,8 @@ export function rezeptZutaten(recipes, customIngredients = []) {
         bezeichnung: quelle,
         zutaten_lmiv: lmiv.map(z => text(z.name) + (z.lmiv ? ` (${z.lmiv})` : '')).join('; '),
         quelle: `Aktuelles Rezept „${quelle}“, ungebackene Mischung; ohne Backverlust.`,
+        referenz_artikel: referenzen.length ? referenzen.join('; ') : undefined,
+        naehrwert_hinweis: hinweise.length ? hinweise.join(' · ') : undefined,
         datenhinweise: nw?.fehlend.length ? { zutaten: nw.fehlend.join(', ') } : undefined,
       };
     } catch (err) {

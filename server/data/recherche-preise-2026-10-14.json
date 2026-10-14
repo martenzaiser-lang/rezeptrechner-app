@@ -1,0 +1,11 @@
+[
+  {"namen":["Frischkäse"],"brutto":1.99,"kg":0.3,"mwst":0.07,"artikel":"Gut & Günstig Frischkäse Natur Doppelrahmstufe, 300 g; EDEKA Neumann über Wolt","url":"https://wolt.com/de/deu/stuttgart/venue/edeka-neumann/gut-gunstig-frischkase-natur-doppelrahmstufe-300-g-itemid-663917ff3b99eaac854afb97"},
+  {"namen":["Olivenöl","Olivenöl extra vergine"],"netto":66.25,"kg":4.575,"artikel":"Bockmeyer Bio Olivenöl nativ extra, 5 l; Dichte für Umrechnung geschätzt mit 0,915 kg/l","url":"https://www.bockmeyer.de/spirituosen-oele-essige/speiseoele/61243/5l-oel-olivenoel-aus-spanien-nativ-extra-bio-de-oeko-006"},
+  {"namen":["Tomatenflocken"],"netto":20.15,"kg":1,"artikel":"CARLA Épices, reine getrocknete Tomatenflocken, 1 kg","url":"https://www.europages.de/de/firma/carla-epices-et-assaisonnements-22260377/produkte/tomate-en-flocons-1kg-37432387"},
+  {"namen":["Vanille"],"brutto":229.99,"kg":1,"mwst":0.07,"artikel":"Buxtrade 100 % Bourbon Vanille gemahlen, 1-kg-Variante (öffentliche Produkt-JSON geprüft)","url":"https://buxtrade.de/products/bourbon-vanille-gemahlen"},
+  {"namen":["Vanillezucker"],"brutto":19.95,"kg":1,"mwst":0.07,"artikel":"Hanse & Pepper Vanillezucker mit Natur-Vanille, 1-kg-Variante","url":"https://hansepepper.de/products/vanillezucker-mit-natur-vanille"},
+  {"namen":["Weizengrieß"],"brutto":2.60,"kg":1,"mwst":0.07,"artikel":"Mühlenlädle Weichweizengrieß, 1 kg","url":"https://muehlenlaedle.de/produkt/weichweizengriess-1kg/"},
+  {"namen":["Zitrone"],"brutto":2.49,"kg":0.5,"mwst":0.07,"artikel":"EDEKA Bio Zitronen, 500 g; Helmschrott über Wolt","url":"https://wolt.com/de/deu/nuremberg/venue/edeka-helmschrott/items/zitronen-orangen-zitrusfruchte-7"},
+  {"namen":["Zitronenschale"],"brutto":8.70,"kg":0.5,"mwst":0.07,"artikel":"Ponthier 100 % Zitronenzesten, tiefgefroren, 500 g; BOS FOOD","url":"https://www.bosfood.de/shop-detail/kategorie/fruchtprodukte-puerees-gemuese-sprossen/subkategorie/puerees/detail/ponthier/produkt/zesten-granulat-zitronen-schale-tk-500-g_53178.html"},
+  {"namen":["Emmentaler"],"brutto":2.19,"kg":0.25,"mwst":0.07,"artikel":"Jeden Tag Emmentaler gerieben, 250 g; Combi; Rechengrundlage für Käsemix","url":"https://www.combi.de/emmentaler_210006552.html","nur_rechengrundlage":true}
+]

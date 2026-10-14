@@ -5,13 +5,15 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
-import { validateRecipe, validateCustomIngredient } from '../../shared/validation.js';
+import { validateRecipe, validateCustomIngredient, validatePrices } from '../../shared/validation.js';
 import { makeBackup } from '../../shared/backup.js';
 
 const [planFile, backupFile, option] = process.argv.slice(2);
 if (!planFile || !backupFile || (option && option !== '--apply')) throw new Error('PLAN.json SICHERUNG.json [--apply] angeben.');
 const plan = JSON.parse(readFileSync(planFile, 'utf8'));
 if (!Array.isArray(plan.recipes) || !Array.isArray(plan.customIngredients)) throw new Error('Ungültiges Planformat.');
+plan.prices ??= [];
+if (!Array.isArray(plan.prices) || new Set(plan.prices.map(p => p.zutat_name)).size !== plan.prices.length) throw new Error('Ungültige oder doppelte Preisänderungen.');
 if (new Set(plan.recipes.map(p => p.id)).size !== plan.recipes.length || new Set(plan.customIngredients.map(p => p.name)).size !== plan.customIngredients.length) throw new Error('Doppelte Einträge im Abgleichplan.');
 for (const p of plan.recipes) {
   if (p.data.id !== p.id || !Number.isInteger(p.version)) throw new Error('Rezept-ID/Version ungültig.');
@@ -20,6 +22,10 @@ for (const p of plan.recipes) {
 for (const p of plan.customIngredients) {
   if (!p.name || !Object.hasOwn(p, 'before')) throw new Error('Zutat/Erwartungswert fehlt.');
   const errors = validateCustomIngredient(p.data); if (errors.length) throw new Error(`${p.name}: ${errors.join(' ')}`);
+}
+for (const p of plan.prices) {
+  if (!p.data || p.zutat_name !== p.data.zutat_name || p.data.deleted || !Object.hasOwn(p, 'before')) throw new Error('Preisname/Erwartungswert fehlt.');
+  const errors = validatePrices([p.data]); if (errors.length) throw new Error(`${p.zutat_name}: ${errors.join(' ')}`);
 }
 const env = dotenv.parse(readFileSync(new URL('../.env', import.meta.url)));
 const dbUrl = new URL(env.DATABASE_URL);
@@ -40,9 +46,13 @@ try {
     const { rows } = await client.query('SELECT data FROM custom_ingredients WHERE name=$1 FOR UPDATE', [p.name]);
     if (!isDeepStrictEqual(rows[0]?.data ?? null, p.before)) throw new Error(`Zutat inzwischen geändert: ${p.name}`);
   }
+  for (const p of plan.prices) {
+    const { rows } = await client.query('SELECT zutat_name,preis_eur_kg,lieferant FROM prices WHERE zutat_name=$1 FOR UPDATE', [p.zutat_name]);
+    if (!isDeepStrictEqual(rows[0] ?? null, p.before)) throw new Error(`Preis inzwischen geändert: ${p.zutat_name}`);
+  }
   if (option !== '--apply') {
     await client.query('ROLLBACK'); transaction = false;
-    console.log(JSON.stringify({ geprueft: true, geschrieben: false, rezepte: plan.recipes.length, zutaten: plan.customIngredients.length }));
+    console.log(JSON.stringify({ geprueft: true, geschrieben: false, rezepte: plan.recipes.length, zutaten: plan.customIngredients.length, preise: plan.prices.length }));
   } else {
     if (existsSync(backupFile)) throw new Error('Sicherungsdatei existiert bereits; keine Sicherung überschreiben.');
     const recipes = (await client.query('SELECT data,version FROM recipes ORDER BY id')).rows.map(r => ({ ...r.data, _version: r.version }));
@@ -60,8 +70,13 @@ try {
       await client.query('INSERT INTO custom_ingredients (name,data) VALUES ($1,$2) ON CONFLICT(name) DO UPDATE SET data=$2,updated_at=now()', [p.name, JSON.stringify(p.data)]);
       await client.query('INSERT INTO change_log (user_email,action,details) VALUES ($1,$2,$3)', ['Qualitätsabgleich', 'custom_ingredient', JSON.stringify({ name: p.name, grund: p.reason })]);
     }
+    for (const p of plan.prices) {
+      await client.query('INSERT INTO prices (zutat_name,preis_eur_kg,lieferant) VALUES ($1,$2,$3) ON CONFLICT(zutat_name) DO UPDATE SET preis_eur_kg=$2,lieferant=$3,updated_at=now()',
+        [p.zutat_name, p.data.preis_eur_kg, p.data.lieferant]);
+      await client.query('INSERT INTO change_log (user_email,action,details) VALUES ($1,$2,$3)', ['Qualitätsabgleich', 'prices', JSON.stringify({ name: p.zutat_name, grund: p.reason })]);
+    }
     await client.query('COMMIT'); transaction = false;
-    console.log(JSON.stringify({ geschrieben: true, rezepte: plan.recipes.length, zutaten: plan.customIngredients.length, sicherung: backupFile }));
+    console.log(JSON.stringify({ geschrieben: true, rezepte: plan.recipes.length, zutaten: plan.customIngredients.length, preise: plan.prices.length, sicherung: backupFile }));
   }
 } finally {
   if (transaction) await client.query('ROLLBACK');

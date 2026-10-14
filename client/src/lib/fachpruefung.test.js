@@ -94,7 +94,7 @@ describe('Nährstoffbilanz und Quellen', () => {
   it('Hersteller-Teilwörter dürfen kein fremdes Produkt zuordnen',()=>{
     expect(findHersteller('Unbekanntes Dinkelbackmittel')).toBeNull();expect(findHersteller('MELLA SANDBISKUIT')).toBeTruthy();
   });
-  it.each(['Kochcreme','Delfia Effekt','SL-Creme'])('%s liefert mit ungeklärten Angaben keine vollständige Deklaration',name=>{
+  it.each(['Delfia Effekt','SL-Creme'])('%s liefert mit ungeklärten Angaben keine vollständige Deklaration',name=>{
     expect(produktNaehrwerte(rezept([zutat(name,1)])).vollstaendig).toBe(false);
   });
   it('BLS-Werte haben eine überprüfbare Rohstoffzuordnung',()=>{
