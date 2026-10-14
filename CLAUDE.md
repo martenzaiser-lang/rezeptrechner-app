@@ -123,6 +123,15 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
    keine automatische Kassenübertragung. Fehlende Preise verhindern Vorschläge;
    BÄKO-Referenzen bleiben auch in verschachtelten eigenen Mischungen sichtbar.
    `rezeptPreise` berechnet eigene Mischungen aus aktuellen Rohstoffpreisen.
+   Nur Verkaufsartikel (`verkaufsartikel`) anzeigen; ohne explizite Zuordnung
+   gelten eigene Quellrezepte/Trockenmischungen als intern. Fehlende Teiggewichte
+   oder Blechmaße verhindern Vorschläge. Entwurf v2 bindet Preise und Arbeitszeit
+   an Gewicht/Blechmaße/Schnittzahl (`basis`); Altentwürfe und Bezugswechsel
+   brauchen eine ausdrückliche Bestätigung. Ein leeres neues Preisfeld ist kein
+   übernommener Vorschlag. Optional ersetzen Arbeitsminuten × Personalvollkosten
+   je Stunde die pauschale Personalquote, niemals beide gleichzeitig berechnen.
+   Regionale Verkaufspreise (`data/regionaleVerkaufspreise.js`) sind datierte,
+   verlinkte Beispiele, keine repräsentative Marktspanne und keine Auto-Preise.
 10. **UI**: Politur ausschließlich in `polish.css`/`sortiment.css`, bestehende
     Farbpalette behalten. Dialoge haben scrollbaren Inhalt und erreichbare Aktionen.
     Bewegungsreduktion des Betriebssystems beachten; Druck bleibt schwarz/weiß.

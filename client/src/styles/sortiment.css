@@ -1,4 +1,8 @@
 .sortiment-open { width: 100%; justify-content: center; margin-bottom: 14px; }
+.sortiment-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
+.sortiment-bezug { border: 1px solid var(--border); border-radius: 8px; padding: 8px; margin-top: 8px; }
+.sortiment-bezug p { margin: 0 0 8px; font-size: 12px; }
+.sortiment-bezug .btn { margin: 3px; white-space: normal; }
 .sortiment-intro p { margin: 0 0 8px; line-height: 1.5; }
 .sortiment-intro p:first-child { font-weight: 600; }
 .sortiment-intro p + p, .sortiment-help { font-size: 13px; color: var(--text-secondary); }

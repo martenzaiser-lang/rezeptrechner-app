@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import Modal from '../../components/Modal.jsx';
 import { rezeptart } from '../../lib/calc/ta.js';
+import { istVerkaufsrezept } from '../../lib/verkaufsrezept.js';
 
 const KATEGORIEN = ['Brot', 'Brötchen', 'Feingebäck', 'Berliner / Krapfen', 'Plunder', 'Kuchen', 'Sonstiges'];
 
@@ -21,6 +22,7 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
     name: r.name || '',
     kategorie: r.kategorie || 'Brot',
     aktiv: r.aktiv !== false,
+    verkaufsartikel: istVerkaufsrezept(r),
     rezeptart: r.rezeptart || rezeptart(r),
     berechnung: r.berechnung || ((r.kategorie || 'Brot') === 'Kuchen' ? 'blech' : 'stueck'),
     stueckgewicht_g: r.produkte?.length === 1 ? r.produkte[0].gewicht_g : r.stueckgewicht_g ?? 1000,
@@ -147,6 +149,10 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
         <input type="checkbox" checked={form.aktiv} onChange={(e) => set('aktiv', e.target.checked)} />
         <span>Rezept aktiv</span>
+      </label>
+      <label style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+        <input type="checkbox" checked={form.verkaufsartikel} onChange={e => set('verkaufsartikel', e.target.checked)} />
+        <span>Verkaufsartikel – in der Sortimentskalkulation anzeigen</span>
       </label>
       <label style={{ display: 'block', marginBottom: 12 }}>Rezeptart
         <select aria-label="Rezeptart" value={form.rezeptart} onChange={e => set('rezeptart', e.target.value)} style={{ width: '100%' }}>

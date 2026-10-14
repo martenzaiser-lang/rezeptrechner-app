@@ -2,6 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { KALKULATION_DEFAULTS, kalkuliereVk, rundeAuf5Cent } from './kalkulation.js';
 
 describe('kalkuliereVk (Zielquoten-Kalkulation)', () => {
+  it('ersetzt die Personalquote bei bekannten Personalvollkosten und lehnt ungültige Kosten ab', () => {
+    const p = { personalPct:40,energiePct:5,gemeinkostenPct:15,gewinnPct:10,schwundPct:8,ustPct:7 };
+    const k = kalkuliereVk(1,p,{personalkosten:3});
+    expect(k.netto).toBeCloseTo((1.08+3)/.7);
+    for(const personalkosten of [-1,NaN,Infinity]) expect(kalkuliereVk(1,p,{personalkosten})).toBeNull();
+  });
   it('Branchen-Defaults: Materialanteil 27 %, Faktor ≈ 4 auf Rohstoffe', () => {
     const k = kalkuliereVk(0.612);
     // 0,612 × 1,08 = 0,66096; / 0,27 = 2,448; × 1,07 = 2,6194

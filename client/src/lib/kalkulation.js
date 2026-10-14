@@ -22,16 +22,19 @@ export const rundeAuf5Cent = (v) => Math.ceil(v / 0.05 - 1e-9) * 0.05;
 
 // rohstoffkosten: € pro Kalkulationsbasis (Stück/Blech), > 0.
 // Rückgabe null, wenn die Quoten keinen sinnvollen Materialanteil lassen.
-export function kalkuliereVk(rohstoffkosten, params = {}) {
+export function kalkuliereVk(rohstoffkosten, params = {}, { personalkosten = null } = {}) {
   const p = { ...KALKULATION_DEFAULTS, ...params };
   if (!Number.isFinite(rohstoffkosten) || Object.keys(KALKULATION_DEFAULTS).some(k => !Number.isFinite(p[k]) || p[k] < 0 || p[k] > 100)) return null;
-  const materialPct = 100 - p.personalPct - p.energiePct - p.gemeinkostenPct - p.gewinnPct;
+  if (personalkosten != null && (!Number.isFinite(personalkosten) || personalkosten < 0)) return null;
+  // Erfasste Personalkosten ERSETZEN die pauschale Personalquote.
+  const materialPct = 100 - (personalkosten == null ? p.personalPct : 0) - p.energiePct - p.gemeinkostenPct - p.gewinnPct;
   if (!(rohstoffkosten > 0) || materialPct < 5) return null;
   const rkEff = rohstoffkosten * (1 + p.schwundPct / 100);
-  const netto = rkEff / (materialPct / 100);
+  const netto = (rkEff + (personalkosten ?? 0)) / (materialPct / 100);
   const brutto = netto * (1 + p.ustPct / 100);
   return {
     rkEff,
+    personalkosten,
     materialPct,
     netto,
     brutto,

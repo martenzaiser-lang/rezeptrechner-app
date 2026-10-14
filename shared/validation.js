@@ -8,6 +8,7 @@ export function validateRecipe(r) {
   if (!Array.isArray(r.zutaten)) return [...errors, 'Zutaten müssen eine Liste sein.'];
   if (r.berechnung != null && !['blech', 'stueck'].includes(r.berechnung)) errors.push('Ungültiger Berechnungsmodus.');
   if (r.rezeptart && !['teig', 'masse', 'mischung', 'unbekannt'].includes(r.rezeptart)) errors.push('Ungültige Rezeptart.');
+  if (r.verkaufsartikel != null && typeof r.verkaufsartikel !== 'boolean') errors.push('Verkaufsartikel muss Ja/Nein sein.');
   if (r.backverlust_pct != null && (!number(r.backverlust_pct) || r.backverlust_pct >= 100)) errors.push('Backverlust muss zwischen 0 und unter 100 % liegen.');
   if (r.backverlust_status != null && !['unbestaetigt', 'geschaetzt', 'gemessen'].includes(r.backverlust_status)) errors.push('Grundlage des Backverlusts ungültig.');
   for (const key of ['stueckgewicht_g', 'min_stueck', 'max_stueck', 'blech_breite_cm', 'blech_laenge_cm', 'kz_langsam', 'kz_schnell', 'stockgare', 'stueckgare', 'backzeit']) {
