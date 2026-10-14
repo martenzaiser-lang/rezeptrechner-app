@@ -14,9 +14,12 @@ import { timingSafeEqual, createHash } from 'node:crypto';
 import { pool } from '../db.js';
 import {
   getRezeptAllergene, getRezeptSpuren,
-  formatAllergene, berechneNaehrwerte,
+  formatAllergene,
 } from '../../client/src/lib/calc/naehrwerteLookup.js';
 import { getRezeptVerkaufsZutaten, getRezeptKenntlichmachung } from '../../client/src/lib/calc/verkaufsZutaten.js';
+
+import { produktRezept } from '../../client/src/lib/calc/produktion.js';
+import { produktNaehrwerte } from '../../client/src/lib/calc/produktNaehrwerte.js';
 
 export const lmivRouter = Router();
 
@@ -52,50 +55,26 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
     );
     const customZutaten = customRows.map((c) => ({ name: c.name, ...c.data }));
 
-    const produkte = rows.map(({ data: r }) => {
-      const allergene = getRezeptAllergene(r, customZutaten);
-      const spuren = getRezeptSpuren(r).filter((s) => !allergene.includes(s));
-
-      // Zutatenverzeichnis: NUR Namen in absteigender Reihenfolge (LMIV),
-      // Backmittel/Herstellerprodukte aufgeschluesselt in ihre Komponenten
-      // (dedupliziert, reduziert auf das bei loser Ware Noetige — siehe
-      // verkaufsZutaten.js). KEINE Mengen/Anteile — das Rezept bleibt im Haus.
-      const zutatenverzeichnis = getRezeptVerkaufsZutaten(r).map((name) => ({ name }));
-
-      const nwTeig = berechneNaehrwerte(r, customZutaten);
-      const bv = r.backverlust_pct || 0;
-      const faktor = bv > 0 && bv < 100 ? 100 / (100 - bv) : 1;
-      const naehrwerte =
-        nwTeig && nwTeig.fehlend.length === 0
-          ? {
-              kcal: Math.round(nwTeig.kcal * faktor),
-              eiweiss_g: +(nwTeig.eiweiss * faktor).toFixed(1),
-              fett_g: +(nwTeig.fett * faktor).toFixed(1),
-              gesaettigte_fettsaeuren_g: +(nwTeig.gfs * faktor).toFixed(1),
-              kohlenhydrate_g: +(nwTeig.kh * faktor).toFixed(1),
-              zucker_g: +(nwTeig.zucker * faktor).toFixed(1),
-              ballaststoffe_g: +(nwTeig.ballaststoffe * faktor).toFixed(1),
-              salz_g: +(nwTeig.salz * faktor).toFixed(2),
-            }
-          : null;
-
-      return {
-        name: r.name,
-        kategorie: r.kategorie || '',
-        allergene,
-        allergeneText: formatAllergene(allergene, true),
-        spuren,
-        spurenText: formatAllergene(spuren, true),
-        zutatenverzeichnis,
-        // LMIDV Anlage 4: "mit Farbstoff" etc. — fuer Preisschild/Aushang
-        // (customZutaten: auch Zusatzstoffe aus eigenen Zutaten wie
-        // Wuerfelschinken werden erfasst)
-        kenntlichmachung: getRezeptKenntlichmachung(r, customZutaten),
-        naehrwerte,
-        naehrwerteBezug: naehrwerte
-          ? (bv > 0 ? `pro 100 g gebacken (Backverlust ${bv}%)` : 'pro 100 g Teig — Backverlust nicht gepflegt')
-          : 'unvollständige Daten',
-      };
+    const produkte = rows.flatMap(({ data }) => {
+      const namen = data.produkte?.length ? data.produkte.map(p => p.name) : [data.name];
+      return namen.map(name => {
+        const r = produktRezept(data, name);
+        const allergene = getRezeptAllergene(r, customZutaten);
+        const spuren = getRezeptSpuren(r, customZutaten).filter(s => !allergene.includes(s));
+        const profil = produktNaehrwerte(r, customZutaten);
+        const nw = profil.werte;
+        const naehrwerte = profil.vollstaendig ? {
+          kj: Math.round(nw.kj), kcal: Math.round(nw.kcal),
+          eiweiss_g: +nw.eiweiss.toFixed(1), fett_g: +nw.fett.toFixed(1),
+          gesaettigte_fettsaeuren_g: +nw.gfs.toFixed(1), kohlenhydrate_g: +nw.kh.toFixed(1),
+          zucker_g: +nw.zucker.toFixed(1), ballaststoffe_g: +nw.ballaststoffe.toFixed(1), salz_g: +nw.salz.toFixed(2),
+        } : null;
+        return { name:r.name, kategorie:r.kategorie || '', allergene, allergeneText:formatAllergene(allergene,true),
+          spuren, spurenText:formatAllergene(spuren,true), zutatenverzeichnis:getRezeptVerkaufsZutaten(r,customZutaten),
+          kenntlichmachung:getRezeptKenntlichmachung(r,customZutaten), naehrwerte,
+          naehrwerteBezug:profil.vollstaendig ? profil.bezug : 'Unvollständige Daten: ' + profil.fehlend.join(', '),
+        };
+      });
     });
 
     res.json({ stand: new Date().toISOString(), anzahl: produkte.length, produkte });

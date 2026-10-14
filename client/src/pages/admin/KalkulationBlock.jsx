@@ -27,11 +27,12 @@ export default function KalkulationBlock({ rezept, eigenePreise = {}, kalkulatio
   const gespeichert = { ...KALKULATION_DEFAULTS, ...(kalkulation || {}) };
   const num = (v) => parseFloat(String(v).replace(',', '.'));
   const aktiv = draft
-    ? Object.fromEntries(Object.entries(draft).map(([k, v]) => [k, Number.isFinite(num(v)) ? num(v) : 0]))
+    ? Object.fromEntries(Object.entries(draft).map(([k, v]) => [k, num(v)]))
     : gespeichert;
 
   const { summe: rohstoffe, ohnePreis, istBlech } = berechneRohstoffkosten(rezept, eigenePreise);
-  const k = kalkuliereVk(rohstoffe, aktiv);
+  const quotenGueltig = !!kalkuliereVk(1, aktiv);
+  const k = ohnePreis.length ? null : kalkuliereVk(rohstoffe, aktiv);
   const bezug = istBlech
     ? `pro Blech ${rezept.blech_breite_cm || 50}×${rezept.blech_laenge_cm || 80} cm`
     : `pro Stück (${rezept.stueckgewicht_g || 1000} g Teig)`;
@@ -97,6 +98,7 @@ export default function KalkulationBlock({ rezept, eigenePreise = {}, kalkulatio
                 <label style={{ fontSize: 11 }}>{label}</label>
                 <input
                   type="text"
+                  aria-label={label}
                   inputMode="decimal"
                   value={draft ? draft[key] : String(gespeichert[key]).replace('.', ',')}
                   onChange={(e) =>
@@ -114,9 +116,9 @@ export default function KalkulationBlock({ rezept, eigenePreise = {}, kalkulatio
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
               <button
                 className="btn btn-primary"
+                disabled={!quotenGueltig}
                 onClick={async () => {
-                  await onSave(aktiv);
-                  setDraft(null);
+                  if (await onSave(aktiv)) setDraft(null);
                 }}
               >
                 Quoten speichern
@@ -125,9 +127,8 @@ export default function KalkulationBlock({ rezept, eigenePreise = {}, kalkulatio
             </div>
           )}
           <p className="muted" style={{ fontSize: 12, marginTop: 10, marginBottom: 0 }}>
-            Defaults = Branchenwerte Bäckerhandwerk 2026 (Betriebsvergleich: Wareneinsatz 27–31 %,
-            Personal &gt; 40 %, Umsatzrendite 6–8 %). Mit eigenen Zahlen aus der BWA ersetzen,
-            sobald verfügbar.
+            Vorbelegte Modellannahmen mit den eigenen Zahlen aus der BWA abgleichen.
+            Retoure/Schwund wird hier als Zuschlag auf die Rohstoffkosten gerechnet.
           </p>
         </div>
       )}

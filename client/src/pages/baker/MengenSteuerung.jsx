@@ -8,7 +8,7 @@ import DezimalInput from '../../components/DezimalInput.jsx';
 const TEILER = [
   { v: 1, label: '1× (Voll)' },
   { v: 0.5, label: '½ (Halb)' },
-  { v: 0.333, label: '⅓ (Drittel)' },
+  { v: 1 / 3, label: '⅓ (Drittel)' },
   { v: 0.25, label: '¼ (Viertel)' },
   { v: 0.2, label: '⅕ (Fünftel)' },
   { v: 2, label: '2× (Doppelt)' },
@@ -16,7 +16,7 @@ const TEILER = [
 
 export default function MengenSteuerung({ rezept, eingabe, onChange, ergebnis }) {
   const isBlech = rezept.berechnung === 'blech';
-  const hasMulti = rezept.produkte && rezept.produkte.length > 1;
+  const hasMulti = !isBlech && rezept.produkte && rezept.produkte.length > 1;
 
   const set = (patch) => onChange({ ...eingabe, ...patch });
 
@@ -52,6 +52,7 @@ export default function MengenSteuerung({ rezept, eingabe, onChange, ergebnis })
                   <button onClick={() => setProdukt(p.name, val - 1)}>−</button>
                   <DezimalInput
                     value={val}
+                    aria-label={`${p.name}: ${isPresse ? 'Pressen' : 'Stück'}`}
                     placeholder={isPresse ? 'Pressen' : 'Stück'}
                     onValue={(v) => setProdukt(p.name, v)}
                   />
@@ -67,15 +68,16 @@ export default function MengenSteuerung({ rezept, eingabe, onChange, ergebnis })
         {isBlech && (
           <>
             <div className="stepper">
-              <button onClick={() => set({ blechN: Math.max(1, (eingabe.blechN || 1) - 1) })}>−</button>
+              <button onClick={() => set({ blechN: Math.max(0, (eingabe.blechN ?? 1) - 1) })}>−</button>
               <input
                 type="text"
                 inputMode="numeric"
-                value={eingabe.blechN || 1}
+                aria-label="Blechanzahl"
+                value={eingabe.blechN ?? 1}
                 onFocus={(e) => e.target.select()}
-                onChange={(e) => set({ blechN: Math.max(1, parseInt(e.target.value) || 1) })}
+                onChange={(e) => set({ blechN: Math.max(0, parseInt(e.target.value) || 0) })}
               />
-              <button onClick={() => set({ blechN: (eingabe.blechN || 1) + 1 })}>+</button>
+              <button onClick={() => set({ blechN: (eingabe.blechN ?? 1) + 1 })}>+</button>
             </div>
             <span style={{ fontWeight: 700 }}>×</span>
             <DezimalInput

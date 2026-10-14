@@ -19,6 +19,12 @@
 
 export const IREKS_DATEN = {
   'Mella Sandbiskuit': {
+    kj: 1554.0,
+    quelle_pdf: "107400_MELLA-SANDBISKUIT_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "577139d2631dafe1105dd27487a8aaa13efec92d377a612b86fe8c4b55712fe4",
+    geprueft_am: "2026-10-14",
+
     produkt: 'IREKS MELLA-SANDBISKUIT', art_nr: '107400',
     bezeichnung: 'Premix für alle Sand- und Biskuitmassen im All-in-Verfahren',
     zutaten_lmiv: '<b>WEIZENstärke</b>; <b>WEIZENmehl</b>; Glukosesirup; Emulgator E 477, E 472b, E 471, E 470a; Backtriebmittel E 450, E 500; Salz; <b>SüßMOLKENpulver</b>; <b>MILCHeiweiß</b>; Aroma; färbendes Lebensmittel Paprika- und Curcumaextrakt; Enzyme.',
@@ -26,6 +32,12 @@ export const IREKS_DATEN = {
     kcal:368, eiweiss:3.0, fett:6.6, gfs:6.4, kh:73.8, zucker:3.7, ballaststoffe:0.5, salz:4.5
   },
   'Stabilase': {
+    kj: 1689.0,
+    quelle_pdf: "109300_STABILASE_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "47c1ee65883589d3494a4d40cdfd08edfae7012f6ac5f61ae68a3f58641f187f",
+    geprueft_am: "2026-10-14",
+
     produkt: 'IREKS STABILASE', art_nr: '109300',
     bezeichnung: 'Backmittel zur Verbesserung von Gärstabilität, Volumen und Frischhaltung',
     zutaten_lmiv: '<b>WEIZENkleber</b>; Mehlbehandlungsmittel Ascorbinsäure; Enzyme.',
@@ -33,6 +45,12 @@ export const IREKS_DATEN = {
     kcal:399, eiweiss:71.9, fett:6.4, gfs:1.2, kh:12.4, zucker:0.5, ballaststoffe:1.6, salz:0.20
   },
   'Classic Baguette': {
+    kj: 1043.0,
+    quelle_pdf: "130100_CLASSIC-BAGUETTE_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "4c8c8bba31036f1ffbfed5365402016bc5eb6814a3ef00de688db727a57adc51",
+    geprueft_am: "2026-10-14",
+
     produkt: 'IREKS CLASSIC-BAGUETTE', art_nr: '130100',
     bezeichnung: 'Backmittel für Baguette/-brötchen und Weißbrotspezialitäten',
     zutaten_lmiv: '<b>WEIZENmehl</b>; getrockneter <b>WEIZENvorteig</b> (<b>WEIZENmehl</b>, Hefe); Salz; Stabilisator E 412, E 466; <b>WEIZENmalzmehl</b>; getrockneter <b>WEIZEN-Natursauerteig</b> (<b>WEIZENmehl</b>, Starterkulturen); Säureregulator E 450, E 263, E 341; Emulgator E 472e; <b>WEIZENkleber</b>; Dextrose; Rapsöl; Mehlbehandlungsmittel Ascorbinsäure; Enzyme (alpha-Amylase, Xylanase).',
@@ -40,6 +58,12 @@ export const IREKS_DATEN = {
     kcal:248, eiweiss:8.7, fett:2.5, gfs:1.3, kh:39.1, zucker:1.9, ballaststoffe:13.9, salz:21.0
   },
   'Panitop Roggen': {
+    kj: 1596.0,
+    quelle_pdf: "132000_PANITOP-ROGGEN_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "70af78d4d8aa5b47dbd646cd25c9fcc9a0694ac2f0b4efe2a79f38f261e4140d",
+    geprueft_am: "2026-10-14",
+
     produkt: 'IREKS PANITOP-ROGGEN', art_nr: '132000',
     bezeichnung: 'Sauerteig-Backmittel für Roggen- und Roggenmischbrot',
     zutaten_lmiv: 'getrockneter <b>ROGGENsauerteig</b> (<b>ROGGENmehl</b>, Starterkulturen); <b>WEIZENkleber</b>; Emulgator E 471; <b>ROGGENquellmehl</b>; Salz; Mehlbehandlungsmittel Ascorbinsäure; Enzyme.',
@@ -47,6 +71,12 @@ export const IREKS_DATEN = {
     kcal:379, eiweiss:36.4, fett:9.1, gfs:6.0, kh:27.6, zucker:1.3, ballaststoffe:9.1, salz:1.8
   },
   'Eiszeit': {
+    kj: 1373.0,
+    quelle_pdf: "132200_EISZEIT_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "a12408d5c43f526ddc5da4583488e5e05aa4c5f0d587293b95ae9ac053e8a9c0",
+    geprueft_am: "2026-10-14",
+
     produkt: 'IREKS EISZEIT', art_nr: '132200',
     bezeichnung: 'Backmittel für malzig-aromatisches Kleingebäck, speziell für moderne Kälteführungen',
     zutaten_lmiv: '<b>WEIZENmalzmehl</b>; Stabilisator E 412, E 466; Zucker; Malzextrakt (<b>GERSTENmalz</b>, Wasser); Emulgator E 472e; <b>WEIZENmehl</b>; Säureregulator E 450, E 341; Dextrose; Aroma; Mehlbehandlungsmittel Ascorbinsäure; Enzyme.',
@@ -54,6 +84,12 @@ export const IREKS_DATEN = {
     kcal:327, eiweiss:5.6, fett:6.7, gfs:3.5, kh:48.6, zucker:25.7, ballaststoffe:16.9, salz:3.2
   },
   'Mella HT Supersoft': {
+    kj: 1632.0,
+    quelle_pdf: "133000_MELLA-HT-SUPERSOFT_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "fc13433bd89c3f4c1c48f2472c11c008b50569051eb93efdbf3a2595a592257e",
+    geprueft_am: "2026-10-14",
+
     produkt: 'IREKS MELLA-HT-SUPERSOFT', art_nr: '133000',
     bezeichnung: 'Premix für softig-zarte Hefefeingebäcke',
     zutaten_lmiv: 'Zucker; <b>WEIZENmehl</b>; Emulgator E 471, E 482; <b>SüßMOLKENpulver</b>; Salz; Aroma; Säureregulator E 170, E 341; färbendes Lebensmittel Paprika- und Curcumaextrakt; Mehlbehandlungsmittel Ascorbinsäure; Enzyme.',
@@ -64,6 +100,12 @@ export const IREKS_DATEN = {
     kcal:387, eiweiss:5.2, fett:8.8, gfs:8.4, kh:71.2, zucker:44.9, ballaststoffe:0.8, salz:8.1
   },
   'Mella Berliner Supersoft': {
+    kj: 1731.0,
+    quelle_pdf: "133700_MELLA-BERLINER-SUPERSOFT_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "161b5ce54e6013ddf0ebebcdc109f9dc5e634c02dac738877c75df119025bbee",
+    geprueft_am: "2026-10-14",
+
     produkt: 'IREKS MELLA-BERLINER-SUPERSOFT', art_nr: '133700',
     bezeichnung: 'Premix für softig-zarte Berliner und Siedegebäckspezialitäten',
     zutaten_lmiv: '<b>WEIZENmehl</b>; Stärke; Rapsöl; <b>SüßMOLKENpulver</b>; Zucker; Emulgator E 471, E 472e, <b>SOJAlecithin</b>; <b>MILCHzucker</b>; Salz; <b>HühnerEIweiß getrocknet</b>; Palmöl; Aroma; Säureregulator E 341; färbendes Lebensmittel Paprika- und Curcumaextrakt; Mehlbehandlungsmittel Ascorbinsäure, L-Cystein; Enzyme.',
@@ -71,6 +113,13 @@ export const IREKS_DATEN = {
     kcal:411, eiweiss:10.8, fett:11.1, gfs:2.0, kh:65.5, zucker:7.7, ballaststoffe:2.4, salz:1.4
   },
   'Weizenback 1856': {
+    kj: 1521.0,
+    quelle_pdf: "136600_WEIZENBACK 1856_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "a27d3be50c81ae7e8cf192c1835bca6b701c31cd848b3cc516864a6d411aaa64",
+    geprueft_am: "2026-10-14",
+    obergrenzen: {"salz": 0.01},
+
     produkt: 'IREKS WEIZENBACK 1856', art_nr: '136600',
     bezeichnung: 'Backmittel für Gebäckspezialitäten und Weizengebäcke nach mediterraner Art',
     zutaten_lmiv: 'getrockneter <b>WEIZENsauerteig</b> (<b>WEIZENmehl</b>, Starterkulturen); getrockneter <b>WEIZENvorteig</b> (<b>WEIZENmehl</b>, Hefe); <b>HARTWEIZENgrieß</b>; <b>WEIZENkleber</b>; Mehlbehandlungsmittel Ascorbinsäure; Enzyme.',
@@ -79,13 +128,25 @@ export const IREKS_DATEN = {
     kcal:359, eiweiss:18.6, fett:1.8, gfs:0.6, kh:64.0, zucker:1.4, ballaststoffe:3.5, salz:0.01
   },
   'Mella Bourbon-Vanillekrem': {
+    kj: 1716.0,
+    quelle_pdf: "140200_MELLA-BOURBON-VANILLEKREM_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "206506d25482bcc9d11ded509f42542af9f13d24781cb614c198fac02e626100",
+    geprueft_am: "2026-10-14",
+
     produkt: 'IREKS MELLA-BOURBON-VANILLEKREM', art_nr: '140200',
     bezeichnung: 'Vanille-Kaltkrempulver für Back-, Füll- und Butterkrem',
     zutaten_lmiv: 'Zucker; modifizierte Stärke; <b>VollMILCHpulver</b>; Verdickungsmittel E 401; natürliches Bourbon-Vanillearoma; Salz; färbendes Lebensmittel Karottenextrakt.',
-    allergene: ['G'], spuren: ['A','C'],
+    allergene: ['G'], spuren: ['Aa','Ab','Ac','Ad','C'],
     kcal:405, eiweiss:4.7, fett:5.0, gfs:3.8, kh:85.0, zucker:59.7, ballaststoffe:0.7, salz:0.77
   },
   'Pizza-Quick': {
+    kj: 1416.0,
+    quelle_pdf: "124100_PIZZA-QUICK_Qualitaetszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "c6fc72a00da48c3894f8da1a5709a5af134ba8eda99c7b5d78ef4bfdf950c783",
+    geprueft_am: "2026-10-14",
+
     produkt: 'IREKS PIZZA-QUICK', art_nr: '124100',
     bezeichnung: 'Premix für Pizza- und Snackgebäcke',
     zutaten_lmiv: '<b>WEIZENmehl</b>; getrockneter Paprika; getrocknete Zwiebeln; Salz; Dextrose; getrockneter <b>WEIZEN-Natursauerteig</b> (<b>WEIZENmehl</b>, Starterkulturen); Tomatenpulver; Kräuter; <b>WEIZENkleber</b>; Palmöl; <b>WEIZENmalzmehl</b>; Gewürz; Mehlbehandlungsmittel Ascorbinsäure; Enzyme.',
@@ -95,6 +156,13 @@ export const IREKS_DATEN = {
     kcal:334, eiweiss:11.1, fett:2.0, gfs:0.6, kh:65.5, zucker:6.1, ballaststoffe:4.8, salz:3.5
   },
   'Lievito Madre Dolce': {
+    kj: 1652.0,
+    quelle_pdf: "141000_LIEVITO MADRE DOLCE_Qualitätszertifikat.pdf",
+    quelle_seite: 2,
+    quelle_sha256: "a236e6ded971bdcacdb5360bdf0bbbd7af317e3f94ac74b716397a8fbe7fb566",
+    geprueft_am: "2026-10-14",
+    obergrenzen: {"salz": 0.01},
+
     produkt: 'IREKS LIEVITO MADRE DOLCE', art_nr: '141000',
     bezeichnung: 'Cuvée für zart-schmelzende Hefefeinteig-Spezialitäten mit Lievito Madre (italienischer Weizensauerteig)',
     zutaten_lmiv: 'Zucker; getrockneter <b>WEIZENsauerteig</b> [<b>WEIZENmehl</b>, Anstellgut (<b>WEIZENmehl</b>, Wasser)]; <b>HARTWEIZENmehl</b>; <b>WEIZENkleber</b>; <b>WEIZENmalzmehl</b>; Enzyme.',

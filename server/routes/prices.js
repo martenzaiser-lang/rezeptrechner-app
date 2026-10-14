@@ -6,6 +6,7 @@ import { Router } from 'express';
 import { pool } from '../db.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { addLog } from '../services/changelog-service.js';
+import { validatePrices } from '../../shared/validation.js';
 
 export const pricesRouter = Router();
 
@@ -21,9 +22,12 @@ pricesRouter.get('/', requireAuth, async (_req, res, next) => {
 });
 
 pricesRouter.put('/', requireAdmin, async (req, res, next) => {
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     const { prices } = req.body || {};
+    const errors = validatePrices(prices);
+    if (errors.length) return res.status(400).json({ error: errors.join(' ') });
     if (!Array.isArray(prices) || prices.length === 0) {
       return res.status(400).json({ error: 'prices (Array) erforderlich' });
     }
@@ -45,13 +49,13 @@ pricesRouter.put('/', requireAdmin, async (req, res, next) => {
         );
       }
     }
+    await addLog(req.authUser.email, 'price', { details: { count: prices.length } }, client);
     await client.query('COMMIT');
-    await addLog(req.authUser.email, 'price', { details: { count: prices.length } });
     res.json({ ok: true });
   } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(() => {});
     next(err);
   } finally {
-    client.release();
+    client?.release();
   }
 });

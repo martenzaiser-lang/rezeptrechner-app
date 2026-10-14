@@ -208,24 +208,11 @@ export function getRezeptKenntlichmachung(rezept, customZutaten = []) {
   return KENNTLICHMACHUNG_LABELS.map(([, l]) => l).filter((l) => labels.has(l));
 }
 
-// Zutatenverzeichnis fuer die Verkaufs-Ansicht: Rezept-Zutaten absteigend
-// nach Anteil, Herstellerprodukte aufgeschluesselt, Duplikate entfernt
-// (erste Nennung gewinnt = groesster Anteil).
-export function getRezeptVerkaufsZutaten(rezept) {
-  const liste = [];
-  const gesehen = new Set();
-  const add = (name) => {
-    const key = dedupeKey(name);
-    if (!key || gesehen.has(key)) return;
-    gesehen.add(key);
-    liste.push(name);
-  };
-  for (const z of getRezeptLmivZutaten(rezept)) {
-    if (z.lmiv) {
-      verkaufsKomponenten(z.lmiv).forEach(add);
-    } else {
-      add(z.name);
-    }
-  }
-  return liste;
+// Zusammengesetzte Zutaten bleiben zusammen. Ohne Mengen ihrer Unterzutaten
+// ist eine globale Sortierung oder Zusammenfassung mathematisch nicht möglich.
+export function getRezeptVerkaufsZutaten(rezept, customZutaten = []) {
+  return getRezeptLmivZutaten(rezept, customZutaten).map(z => {
+    const komponenten = z.lmiv?.replace(/<[^>]*>/g, '').replace(/\.\s*$/, '').trim();
+    return komponenten ? `${z.bezeichnung || z.name} (${komponenten})` : z.name;
+  });
 }

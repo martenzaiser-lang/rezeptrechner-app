@@ -12,5 +12,9 @@
     "build": "npm --workspace client run build",
     "deploy:client": "node server/scripts/deploy-client.mjs",
     "test": "npm --workspace server run test && npm --workspace client run test"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

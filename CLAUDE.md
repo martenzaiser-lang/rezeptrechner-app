@@ -24,7 +24,7 @@ npm run deploy:client   # baut lokal mit VITE_API_URL, deployt, verifiziert
 ## Befehle (npm-Workspaces, EIN Lockfile im Root)
 
 ```bash
-npm install                          # immer im Repo-ROOT
+npm ci                               # Node 24, immer im Repo-ROOT
 npm run dev:server                   # Express auf :4001 (braucht server/.env)
 npm run dev:client                   # Vite auf :5174, /api-Proxy auf :4001
 npm test                             # Server- + Client-Tests (Vitest)
@@ -38,23 +38,25 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
   Rate-Limits. Env-Validierung: `server/config.js` (zod, Fail-Fast in Prod).
 - `server/routes/` — auth (JWT, scrypt-Hashes wie Etiketten-App),
   recipes (JSONB pro Rezept, `version`-Zähler → 409, ETag → 304),
-  settings, custom-ingredients, prices, changelog.
+  settings, custom-ingredients, prices, changelog, backup.
   Schreiben ist überall Admin-only (requireAdmin).
 - `client/src/services/api.js` — der EINZIGE fetch-Pfad (Auth-Header,
   401-Redirect, 304-Handling). Keine direkten fetch() in Pages.
 - `client/src/context/DataContext.jsx` — Polling (90 s + visibilitychange/
   online, ETag), localStorage-Cache (Offline!), 20 rotierende Backups.
-- `client/src/lib/calc/` — Berechnungslogik als pure functions, 1:1 aus
-  der alten index.html portiert. Fixture-Tests gegen die Alt-App —
+- `client/src/lib/calc/` — gemeinsame Fachberechnungen für Client und API.
+  Fachtests prüfen Gesamtmehl, Vorstufen, Prozentrezepte und Produktvarianten —
   bei Änderungen IMMER `npm test --workspace client`.
   NEU (Juli 2026): `verkaufsZutaten.js` — Zutatenverzeichnis für lose Ware
   (LMIV-API → Personalplaner-Produkt-Auskunft): Backmittel werden in ihre
-  Komponenten aufgeschlüsselt, dedupliziert und auf das bei unverpackter
-  Ware Nötige reduziert (Zusatzstoff-Klassen ohne Kenntlichmachungspflicht
-  fallen weg, Allergene bleiben IMMER, Farbstoff/Konservierungsstoff/
-  Antioxidationsmittel/Süßungsmittel/Geschmacksverstärker bleiben).
-- `client/src/data/` — statische Datenbanken (Nährwerte, Meistermarken,
-  IREKS, Allergene, Synonyme, BÄKO-Preise), 1:1 aus der alten App.
+  Unterzutaten in ihrer Hersteller-Reihenfolge dargestellt. Ohne bekannte
+  Mengenanteile keine globale Umsortierung der Unterzutaten.
+- `client/src/data/` — Nährwerte mit Quellenbelegen (Hersteller-PDFs,
+  BLS 4.0), Allergene, ausdrücklich zugeordnete Synonyme und BÄKO-Preise.
+- `shared/` — Validierung und vollständiges Sicherungsformat (vier Datengruppen).
+- Render baut vom Repository-Root, weil die API auch `client/src` und
+  `shared` importiert. Installation: `npm ci --workspace server --omit=dev`.
+  Start: `npm run migrate --workspace server && npm run start --workspace server`.
 - Design-System: `client/src/styles/theme.css` + `refresh-v3.css`
   UNVERÄNDERT aus der Etiketten-App übernommen — nicht editieren,
   eigene Styles in eigene Dateien.
@@ -63,8 +65,8 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
 
 1. **A4-Druck-CSS**: niemals Hintergründe/Flächen im Print-CSS — der
    Druck-Spooler rastert sonst die ganze Seite (Erfahrung aus alter App).
-2. **Rundung/Zahlformat**: de-DE mit Komma; Berechnungen müssen die
-   Fixtures der Alt-App EXAKT treffen (nicht "ungefähr").
+2. **Rundung/Zahlformat**: de-DE mit Komma; erst die Anzeige runden.
+   Fachlich korrigierte Ergebnisse haben Vorrang vor alten Vergleichswerten.
 3. **Render Free**: Cold-Start ~50 s — Client muss immer zuerst aus dem
    localStorage-Cache rendern, Sync danach.
 4. **Rollen**: Teigmacher sieht keine Kuchen (außer hardcodierte
@@ -72,6 +74,16 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
    Drucker/Bon/Sauerteig-UI.
 5. **Web Bluetooth** (Bon-Druck) geht nur in Chrome/Edge über HTTPS oder
    localhost; in Playwright nicht testbar → escpos.js unit-testen.
+6. **Fachregeln**: Alle Bäckerprozente beziehen sich auf Gesamtmehl inkl.
+   Vorstufen. Saaten und Altbrot zählen nicht als Mehl. Massen bekommen keine TA.
+   Fehlende Vorstufenanteile niemals mit TA 200 ersetzen. Kochstück nach dem
+   Abkühlen auf Sollgewicht ergänzen; Ausgleichswasser nicht doppelt zählen.
+7. **Nährwerte**: Bezug ist 100 g des gesamten Produkts inkl. Wasser. Nur mit
+   belegtem Backverlust als Endprodukt deklarieren, sonst ungebackene Rezeptur.
+   Fehlende Hersteller-/Rohstoffwerte bleiben unbekannt, nicht automatisch null.
+   Eigene Zutaten haben Vorrang; Referenzübernahme nur als prüfbarer Editorentwurf.
+8. **Produktionsdaten**: Prüfberichte und Neon-Sicherungen liegen außerhalb
+   dieses Repositories. Browserprüfungen laufen mit isolierter Testdatenbank.
 
 ## Konventionen
 

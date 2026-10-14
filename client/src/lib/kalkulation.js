@@ -4,8 +4,7 @@
 // Retoure/Schwund) genau den Materialanteil ausmachen, der nach Abzug
 // der Zielquoten für Personal, Energie, sonstige Gemeinkosten und Gewinn
 // übrig bleibt:  Netto-VK = Rohstoffe×(1+Schwund) ÷ Materialanteil.
-// Defaults = Branchenwerte Bäckerhandwerk 2026 (Betriebsvergleich:
-// Wareneinsatz 27–31 %, Personal >40 %, Energie ~5 %, Rendite ~6–8 %).
+// Vorbelegte Modellannahmen, keine verifizierten Branchenkennzahlen.
 // Alle Quoten sind vom Admin in den Einstellungen anpassbar
 // (settings.kalkulation, DB, geräteübergreifend).
 
@@ -25,6 +24,7 @@ export const rundeAuf5Cent = (v) => Math.ceil(v / 0.05 - 1e-9) * 0.05;
 // Rückgabe null, wenn die Quoten keinen sinnvollen Materialanteil lassen.
 export function kalkuliereVk(rohstoffkosten, params = {}) {
   const p = { ...KALKULATION_DEFAULTS, ...params };
+  if (!Number.isFinite(rohstoffkosten) || Object.keys(KALKULATION_DEFAULTS).some(k => !Number.isFinite(p[k]) || p[k] < 0 || p[k] > 100)) return null;
   const materialPct = 100 - p.personalPct - p.energiePct - p.gemeinkostenPct - p.gewinnPct;
   if (!(rohstoffkosten > 0) || materialPct < 5) return null;
   const rkEff = rohstoffkosten * (1 + p.schwundPct / 100);

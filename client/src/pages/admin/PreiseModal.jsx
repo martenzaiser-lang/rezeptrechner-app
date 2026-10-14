@@ -34,12 +34,15 @@ export default function PreiseModal({ recipes, prices, onSave, onClose }) {
   }
 
   async function speichern() {
+    if (Object.values(dirty).some(p => p.preis_eur_kg !== '' && (!Number.isFinite(Number(String(p.preis_eur_kg).replace(',', '.'))) || Number(String(p.preis_eur_kg).replace(',', '.')) < 0))) {
+      toast.error('Preise müssen Zahlen ab 0 sein. Ein leeres Feld entfernt den eigenen Preis.'); return;
+    }
     const eintraege = Object.entries(dirty)
       .map(([zutat_name, p]) => ({
         zutat_name,
         preis_eur_kg: parseFloat(String(p.preis_eur_kg).replace(',', '.')) || 0,
         lieferant: p.lieferant || null,
-        deleted: !(parseFloat(String(p.preis_eur_kg).replace(',', '.')) > 0),
+        deleted: p.preis_eur_kg === '',
       }));
     if (!eintraege.length) {
       onClose();
@@ -67,7 +70,10 @@ export default function PreiseModal({ recipes, prices, onSave, onClose }) {
         toast.error('CSV-Fehler: ' + err.message);
       }
     };
-    reader.readAsText(file, 'ISO-8859-1');
+    file.arrayBuffer().then(buffer => {
+      let text; try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); } catch { text = new TextDecoder('windows-1252').decode(buffer); }
+      reader.onload({ target: { result: text } });
+    }).catch(err => toast.error('Datei konnte nicht gelesen werden: ' + err.message));
     e.target.value = '';
   }
 
@@ -96,6 +102,7 @@ export default function PreiseModal({ recipes, prices, onSave, onClose }) {
         onChange={(e) => setFilter(e.target.value)}
         style={{ width: '100%', marginBottom: 10 }}
       />
+      <p className="muted" style={{ fontSize: 12 }}>CSV: eindeutiger Zutatenname und €/kg oder Artikelbezeichnung, Preis, PE und Gr. (kg). Preiseinheit wird berücksichtigt. Nur exakte Namenszuordnungen werden übernommen.</p>
       <div style={{ maxHeight: '55vh', overflowY: 'auto' }}>
         {sichtbar.map((name) => {
           const eigener = get(name);
@@ -104,7 +111,7 @@ export default function PreiseModal({ recipes, prices, onSave, onClose }) {
             <div key={name} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
               <span style={{ flex: 1, fontWeight: 600, fontSize: 14 }}>
                 {name}
-                {baeko !== null && !eigener?.preis_eur_kg && (
+                {baeko !== null && (eigener?.preis_eur_kg == null || eigener.preis_eur_kg === '') && (
                   <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}> · BÄKO {baeko.toFixed(2)} €/kg</span>
                 )}
               </span>

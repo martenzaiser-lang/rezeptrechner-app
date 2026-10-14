@@ -1,59 +1,35 @@
-// Excel-Roundtrip: Export → Parse → alle fachlichen Felder identisch.
-// (XLSX.writeFile geht in Node nicht auf Platte-los — wir bauen das
-// Workbook direkt und lesen es wieder ein.)
-
-import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { it, expect } from 'vitest';
 import * as XLSX from 'xlsx';
-import { parseStandardFormat } from './excel.js';
+import { buildExcelWorkbook, parseStandardFormat } from './excel.js';
 import { mkRezept } from './mkRezept.js';
+import { makeBackup, validateBackup } from '../../../shared/backup.js';
+import { zutat, mehl, rezept } from '../../test/fach-fixtures.js';
 
-const dump = JSON.parse(readFileSync('C:/Users/marte/Rezeptrechner/app_daten_dump.json', 'utf8'));
-
-// Export-Logik wie exportExcel, aber als Workbook-Objekt (testbar)
-function buildWorkbook(rezepte) {
-  const wb = XLSX.utils.book_new();
-  const rH = ['ID', 'Name', 'Kategorie', 'Aktiv', 'Fertiggewicht_g', 'Backverlust_pct', 'Min_Stueck', 'Max_Stueck', 'Teigtemp_C', 'Knetzeit_langsam_min', 'Knetzeit_schnell_min', 'Stockgare_min', 'Stueckgare_min', 'Backtemp_Ober_C', 'Backtemp_Unter_C', 'Backzeit_min', 'Bedampfung', 'Bedampf_Hinweis', 'Anmerkungen', 'Erstellt'];
-  const rR = rezepte.map((r) => [r.id, r.name, r.kategorie, r.aktiv ? 'JA' : 'NEIN', r.stueckgewicht_g, r.backverlust_pct, r.min_stueck, r.max_stueck, r.teigtemp_c, r.kz_langsam, r.kz_schnell, r.stockgare, r.stueckgare, r.back_ober, r.back_unter, r.backzeit, r.bedampfung ? 'JA' : 'NEIN', r.bedampf_hinweis, r.anmerkungen, r.erstellt]);
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([rH, ...rR]), 'Rezepte');
-  const zH = ['Rezept_ID', 'Rezept_Name', 'Zutat_Name', 'Menge_kg', 'Ist_Mehl', 'Ist_Wasser', 'Bemerkung', 'Fuer_Produkte'];
-  const zR = [];
-  rezepte.forEach((r) => r.zutaten.forEach((z) => zR.push([r.id, r.name, z.name, z.menge_kg, z.ist_mehl ? 'JA' : 'NEIN', z.ist_wasser ? 'JA' : 'NEIN', z.bemerkung || '', (z.fuer_produkte || []).join(';')])));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([zH, ...zR]), 'Zutaten');
-  return wb;
-}
-
-describe('Excel-Roundtrip (Export → Import)', () => {
-  it('92 echte Rezepte: fachliche Felder bleiben erhalten', async () => {
-    const rezepte = dump.rezepte.map(mkRezept);
-    const wb = buildWorkbook(rezepte);
-    // Ueber Buffer serialisieren (wie echter Datei-Roundtrip)
-    const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
-    const zurueck = await parseStandardFormat(XLSX.read(buf, { type: 'array' }));
-
-    expect(zurueck).toHaveLength(rezepte.length);
-    for (const orig of rezepte) {
-      const re = zurueck.find((r) => r.name === orig.name);
-      expect(re, orig.name).toBeTruthy();
-      expect(re.kategorie).toBe(orig.kategorie);
-      expect(re.aktiv).toBe(orig.aktiv);
-      expect(re.stueckgewicht_g).toBe(orig.stueckgewicht_g);
-      expect(re.teigtemp_c).toBe(orig.teigtemp_c);
-      expect(re.backzeit).toBe(orig.backzeit);
-      expect(re.bedampfung).toBe(orig.bedampfung);
-      // Zutaten: Name/Menge/Flags/Bemerkung/fuer_produkte
-      // (Excel-Format transportiert bewusst NICHT: ist_kommentar, Dosen,
-      //  zusatz_prozent, menge_pro_presse — wie in der alten App)
-      const zOrig = orig.zutaten;
-      expect(re.zutaten).toHaveLength(zOrig.length);
-      zOrig.forEach((z, i) => {
-        expect(re.zutaten[i].name).toBe(z.name);
-        expect(re.zutaten[i].menge_kg).toBeCloseTo(z.menge_kg, 10);
-        expect(re.zutaten[i].ist_mehl).toBe(z.ist_mehl);
-        expect(re.zutaten[i].ist_wasser).toBe(z.ist_wasser);
-        expect(re.zutaten[i].bemerkung).toBe(z.bemerkung || '');
-        expect(re.zutaten[i].fuer_produkte).toEqual(z.fuer_produkte || []);
-      });
-    }
-  });
+it('Echter Excel-Exportkern erhält sämtliche fachlichen Metadaten', async () => {
+  const input=mkRezept(rezept([
+    mehl(1,{ta_rolle:'mehl'}),
+    zutat('Schritt',0,{ist_kommentar:true}),
+    zutat('Kirschen',.72,{einheit:'dose',dosen_gewicht_g:720,nicht_auf_bon:true}),
+    zutat('Zucker',0,{zusatz_prozent:10,prozent_bezug:'mehl',fuer_produkte:['A']}),
+    zutat('Kochstück',3,{ta_anteile:{mehl_kg:1,fluessigkeit_kg:2},ta_rolle:'vorstufe'}),
+  ],{kategorie:'Kuchen',rezeptart:'masse',berechnung:'stueck',blech_breite_cm:40,blech_laenge_cm:60,backverlust_pct:0,kz_langsam:0,kz_schnell:0,bonOptionen:{ta:false},produkte:[{name:'A',gewicht_g:500},{name:'B',gewicht_g:1000}]}));
+  const wb=await buildExcelWorkbook([input]);
+  const bytes=XLSX.write(wb,{type:'array',bookType:'xlsx'});
+  const [output]=await parseStandardFormat(XLSX.read(bytes,{type:'array'}));
+  for(const key of ['id','name','kategorie','rezeptart','berechnung','blech_breite_cm','blech_laenge_cm','backverlust_pct','kz_langsam','kz_schnell','bonOptionen','produkte']) expect(output[key],key).toEqual(input[key]);
+  input.zutaten.forEach((z,i)=>expect(output.zutaten[i]).toMatchObject(z));
+});
+it('Dezimalkomma wird gelesen, unbekannter Backverlust bleibt unbekannt',async()=>{
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{ID:'a',Name:'Brot'}]),'Rezepte');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{Rezept_ID:'a',Zutat_Name:'Mehl',Menge_kg:'1,5'}]),'Zutaten');
+  const [r]=await parseStandardFormat(wb); expect(r.zutaten[0].menge_kg).toBe(1.5); expect(r.backverlust_pct).toBeNull();
+});
+it('Sicherung enthält alle vier Datengruppen ohne Nullwerte zu verlieren',()=>{
+  const data={recipes:[rezept()],settings:{ta:false},prices:[{zutat_name:'Mehl',preis_eur_kg:0}],customIngredients:[{name:'Test',data:{kcal:0}}]};
+  const b=JSON.parse(JSON.stringify(makeBackup(data))); expect(validateBackup(b)).toEqual([]); expect(b.prices[0].preis_eur_kg).toBe(0); expect(b.cfg.ta).toBe(false); expect(b.customIngredients).toEqual(data.customIngredients);
+});
+it('Ungültige oder unvollständige Sicherungen werden abgewiesen',()=>{
+  expect(validateBackup({schemaVersion:2,rezepte:[]})).not.toEqual([]);
+  expect(validateBackup({rezepte:[rezept(),rezept()]})).toContain('Doppelte Rezept-IDs.');
 });

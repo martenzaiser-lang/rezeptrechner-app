@@ -1,3 +1,5 @@
+import { istKeinTaMehl } from './calc/ta.js';
+import { makeBackup } from '../../../shared/backup.js';
 // Excel-/JSON-Export und -Import — 1:1 aus der alten App
 // (exportExcel Z. 4170, parseStandardFormat Z. 4178, parseBakereiFormat
 // Z. 4183, exportJSON Z. 4171, downloadTemplate Z. 4172).
@@ -14,23 +16,31 @@ function getXLSX() {
   return xlsxPromise;
 }
 
-export async function exportExcel(rezepte) {
+export async function buildExcelWorkbook(rezepte) {
   const XLSX = await getXLSX();
   const wb = XLSX.utils.book_new();
   const rH = ['ID', 'Name', 'Kategorie', 'Aktiv', 'Fertiggewicht_g', 'Backverlust_pct', 'Min_Stueck', 'Max_Stueck', 'Teigtemp_C', 'Knetzeit_langsam_min', 'Knetzeit_schnell_min', 'Stockgare_min', 'Stueckgare_min', 'Backtemp_Ober_C', 'Backtemp_Unter_C', 'Backzeit_min', 'Bedampfung', 'Bedampf_Hinweis', 'Anmerkungen', 'Erstellt'];
   const rR = rezepte.map((r) => [r.id, r.name, r.kategorie, r.aktiv ? 'JA' : 'NEIN', r.stueckgewicht_g, r.backverlust_pct, r.min_stueck, r.max_stueck, r.teigtemp_c, r.kz_langsam, r.kz_schnell, r.stockgare, r.stueckgare, r.back_ober, r.back_unter, r.backzeit, r.bedampfung ? 'JA' : 'NEIN', r.bedampf_hinweis, r.anmerkungen, r.erstellt]);
+  rH.push('Berechnung', 'Blech_Breite_cm', 'Blech_Laenge_cm', 'Produkte_JSON', 'BonOptionen_JSON', 'Rezeptart');
+  rR.forEach((row, i) => { const r = rezepte[i]; row.push(r.berechnung, r.blech_breite_cm, r.blech_laenge_cm, JSON.stringify(r.produkte || []), JSON.stringify(r.bonOptionen || null), r.rezeptart || ''); });
   const ws1 = XLSX.utils.aoa_to_sheet([rH, ...rR]);
   XLSX.utils.book_append_sheet(wb, ws1, 'Rezepte');
   const zH = ['Rezept_ID', 'Rezept_Name', 'Zutat_Name', 'Menge_kg', 'Ist_Mehl', 'Ist_Wasser', 'Bemerkung', 'Fuer_Produkte'];
+  zH.push('Ist_Kommentar', 'Einheit', 'Dosen_Gewicht_g', 'Zusatz_Prozent', 'Menge_pro_Presse', 'Nicht_auf_Bon', 'TA_Anteile_JSON', 'Vorstufe_nur_Mehl_Wasser', 'Vorstufe_TA', 'TA_Rolle', 'Prozent_Bezug', 'Presse_Bezug');
   const zR = [];
   rezepte.forEach((r) =>
     r.zutaten.forEach((z) =>
-      zR.push([r.id, r.name, z.name, z.menge_kg, z.ist_mehl ? 'JA' : 'NEIN', z.ist_wasser ? 'JA' : 'NEIN', z.bemerkung || '', (z.fuer_produkte || []).join(';')])
+      zR.push([r.id, r.name, z.name, z.menge_kg, z.ist_mehl ? 'JA' : 'NEIN', z.ist_wasser ? 'JA' : 'NEIN', z.bemerkung || '', (z.fuer_produkte || []).join(';'), z.ist_kommentar ? 'JA' : 'NEIN', z.einheit || '', z.dosen_gewicht_g || 0, z.zusatz_prozent || 0, z.menge_pro_presse || 0, z.nicht_auf_bon ? 'JA' : 'NEIN', JSON.stringify(z.ta_anteile || null), z.vorstufe_nur_mehl_wasser ? 'JA' : 'NEIN', z.vorstufe_ta ?? '', z.ta_rolle || '', z.prozent_bezug || '', z.presse_bezug || ''])
     )
   );
   const ws2 = XLSX.utils.aoa_to_sheet([zH, ...zR]);
   XLSX.utils.book_append_sheet(wb, ws2, 'Zutaten');
-  XLSX.writeFile(wb, `Rezepte_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  return wb;
+}
+
+export async function exportExcel(rezepte) {
+  const XLSX = await getXLSX();
+  XLSX.writeFile(await buildExcelWorkbook(rezepte), `Rezepte_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
 export async function downloadTemplate() {
@@ -51,13 +61,14 @@ export async function downloadTemplate() {
   XLSX.writeFile(wb, 'Rezeptrechner_Vorlage.xlsx');
 }
 
-export function exportJSON(rezepte, cfg) {
-  const data = { rezepte, cfg, exportiert: new Date().toISOString() };
+export function exportJSON(rezepte, cfg, prices = [], customIngredients = []) {
+  const data = makeBackup({ recipes: rezepte, settings: cfg, prices, customIngredients });
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `Sicherung_${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 export async function parseStandardFormat(wb) {
@@ -78,6 +89,13 @@ export async function parseStandardFormat(wb) {
     return undefined;
   };
 
+  const num = (v, fallback = 0) => {
+    if (v == null || v === '') return fallback;
+    const n = Number(String(v).replace(',', '.'));
+    if (!Number.isFinite(n)) throw new Error('Ungültige Zahl im Excel-Import: ' + v);
+    return n;
+  };
+  const json = (v, fallback) => v == null || v === '' ? fallback : JSON.parse(String(v));
   const parsed = [];
   rowsR.forEach((row) => {
     const name = fc(row, 'name', 'rezeptname');
@@ -87,33 +105,53 @@ export async function parseStandardFormat(wb) {
       name: String(name).trim(),
       kategorie: fc(row, 'kategorie') || 'Brot',
       aktiv: String(fc(row, 'aktiv') || 'JA').toUpperCase() !== 'NEIN',
-      stueckgewicht_g: parseFloat(fc(row, 'fertiggewicht_g', 'fertiggewicht', 'stueckgewicht_g')) || 500,
-      backverlust_pct: parseFloat(fc(row, 'backverlust_pct', 'backverlust')) || 10,
-      min_stueck: parseInt(fc(row, 'min_stueck', 'min')) || 1,
-      max_stueck: parseInt(fc(row, 'max_stueck', 'max')) || 999,
-      teigtemp_c: parseFloat(fc(row, 'teigtemp_c', 'teigtemp')) || 26,
-      kz_langsam: parseInt(fc(row, 'knetzeit_langsam_min', 'kzlangsam')) || 5,
-      kz_schnell: parseInt(fc(row, 'knetzeit_schnell_min', 'kzschnell')) || 8,
-      stockgare: parseInt(fc(row, 'stockgare_min', 'stockgare')) || 30,
-      stueckgare: parseInt(fc(row, 'stueckgare_min', 'stueckgare')) || 45,
-      back_ober: parseInt(fc(row, 'backtemp_ober_c', 'backober')) || 230,
-      back_unter: parseInt(fc(row, 'backtemp_unter_c', 'backunter')) || 230,
-      backzeit: parseInt(fc(row, 'backzeit_min', 'backzeit')) || 35,
+      stueckgewicht_g: num(fc(row, 'fertiggewicht_g', 'fertiggewicht', 'stueckgewicht_g'), 500),
+      backverlust_pct: num(fc(row, 'backverlust_pct', 'backverlust'), null),
+      min_stueck: Math.trunc(num(fc(row, 'min_stueck', 'min'), 1)),
+      max_stueck: Math.trunc(num(fc(row, 'max_stueck', 'max'), 999)),
+      teigtemp_c: num(fc(row, 'teigtemp_c', 'teigtemp'), 26),
+      kz_langsam: Math.trunc(num(fc(row, 'knetzeit_langsam_min', 'kzlangsam'), 5)),
+      kz_schnell: Math.trunc(num(fc(row, 'knetzeit_schnell_min', 'kzschnell'), 8)),
+      stockgare: Math.trunc(num(fc(row, 'stockgare_min', 'stockgare'), 30)),
+      stueckgare: Math.trunc(num(fc(row, 'stueckgare_min', 'stueckgare'), 45)),
+      back_ober: Math.trunc(num(fc(row, 'backtemp_ober_c', 'backober'), 230)),
+      back_unter: Math.trunc(num(fc(row, 'backtemp_unter_c', 'backunter'), 230)),
+      backzeit: Math.trunc(num(fc(row, 'backzeit_min', 'backzeit'), 35)),
       bedampfung: String(fc(row, 'bedampfung') || '').toUpperCase() === 'JA',
       bedampf_hinweis: String(fc(row, 'bedampf_hinweis') || ''),
       anmerkungen: String(fc(row, 'anmerkungen') || ''),
+      berechnung: fc(row, 'berechnung') || undefined,
+      blech_breite_cm: num(fc(row, 'blech_breite_cm')),
+      blech_laenge_cm: num(fc(row, 'blech_laenge_cm')),
+      produkte: json(fc(row, 'produkte_json'), []),
+      bonOptionen: json(fc(row, 'bonoptionen_json'), null),
+      rezeptart: fc(row, 'rezeptart') || undefined,
+      erstellt: fc(row, 'erstellt') || undefined,
       zutaten: [],
     };
     rowsZ.forEach((z) => {
       const zn = fc(z, 'rezept_name', 'rezeptname', 'rezept');
-      if (!zn || String(zn).trim() !== r.name) return;
+      const zid = fc(z, 'rezept_id');
+      if (zid && r.id ? String(zid) !== String(r.id) : !zn || String(zn).trim() !== r.name) return;
       const n = fc(z, 'zutat_name', 'zutat', 'name');
       if (!n || String(n).trim() === '') return;
       const fp = String(fc(z, 'fuer_produkte', 'fuerprodukte') || '').trim();
       r.zutaten.push({
         name: String(n).trim(),
-        menge_kg: parseFloat(fc(z, 'menge_kg', 'menge')) || 0,
+        menge_kg: num(fc(z, 'menge_kg', 'menge'), 0),
         ist_mehl: String(fc(z, 'ist_mehl', 'mehl') || '').toUpperCase() === 'JA',
+        ist_kommentar: String(fc(z, 'ist_kommentar')).toUpperCase() === 'JA',
+        einheit: fc(z, 'einheit') || '',
+        dosen_gewicht_g: num(fc(z, 'dosen_gewicht_g')),
+        zusatz_prozent: num(fc(z, 'zusatz_prozent')),
+        menge_pro_presse: num(fc(z, 'menge_pro_presse')),
+        nicht_auf_bon: String(fc(z, 'nicht_auf_bon')).toUpperCase() === 'JA',
+        ta_rolle: fc(z, 'ta_rolle') || '',
+        prozent_bezug: fc(z, 'prozent_bezug') || '',
+        presse_bezug: fc(z, 'presse_bezug') || '',
+        ta_anteile: json(fc(z, 'ta_anteile_json'), null),
+        vorstufe_nur_mehl_wasser: String(fc(z, 'vorstufe_nur_mehl_wasser')).toUpperCase() === 'JA',
+        vorstufe_ta: fc(z, 'vorstufe_ta') ? num(fc(z, 'vorstufe_ta')) : undefined,
         ist_wasser: String(fc(z, 'ist_wasser', 'wasser') || '').toUpperCase() === 'JA',
         bemerkung: String(fc(z, 'bemerkung') || ''),
         fuer_produkte: fp ? fp.split(';').map((s) => s.trim()).filter((s) => s) : [],
@@ -132,7 +170,7 @@ export async function parseBakereiFormat(wb) {
   const SECTION = ['quellstück', 'kochstück', 'hefestück', 'hauptteig', 'einweichen', 'sauerteig', 'vorteig', 'brühstück', 'poolish', 'biga'];
   const MEHL = ['mehl', 'grieß', 'griess', 'schrot', 'dunst'];
   const isNum = (v) => v !== null && v !== undefined && v !== '' && !isNaN(parseFloat(v));
-  const isMehl = (n) => MEHL.some((k) => n.toLowerCase().includes(k));
+  const isMehl = (n) => !istKeinTaMehl({ name: n }) && MEHL.some((k) => n.toLowerCase().includes(k));
   const isWasser = (n) => n.toLowerCase() === 'wasser' || n.toLowerCase() === 'water';
   const isSection = (n) => SECTION.some((k) => n.toLowerCase().trim().includes(k));
   const isStop = (n) => STOP.some((k) => n.toLowerCase().trim().startsWith(k));
@@ -252,7 +290,7 @@ export async function parseBakereiFormat(wb) {
       if (!colB) continue;
       if (isStop(colB)) break;
       if (colB.toLowerCase() === 'zurück') continue;
-      if (isSection(colB)) {
+      if (isSection(colB) && !(isNum(colA) && parseFloat(colA) > 0)) {
         currentSection = colB.charAt(0).toUpperCase() + colB.slice(1).toLowerCase();
         continue;
       }

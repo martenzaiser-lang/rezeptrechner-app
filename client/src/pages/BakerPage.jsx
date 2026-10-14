@@ -11,10 +11,12 @@ import { useData } from '../context/DataContext.jsx';
 import { auth } from '../services/api.js';
 import { sichtbareRezepte } from '../lib/rezeptFilter.js';
 import { loadEingaben, saveEingabe, getHeuteDatum } from '../lib/eingaben.js';
+import KochstueckKontrolle from './baker/KochstueckKontrolle.jsx';
+import { produktionsRezept } from '../lib/calc/produktion.js';
 import { berechneBaker, teigZusammenfassung } from '../lib/calc/bakerBerechnung.js';
 import { schuettTemperatur, schuettHinweis } from '../lib/calc/schuettwasser.js';
 import { calcNutrition, getRezeptAllergene, formatAllergene } from '../lib/calc/naehrwerteLookup.js';
-import { calcRezeptKosten } from '../lib/preise.js';
+import { calcRezeptKosten, fehlendePreise } from '../lib/preise.js';
 import { getAnzeige } from '../lib/anzeige.js';
 import MengenSteuerung from './baker/MengenSteuerung.jsx';
 import ZutatenListe from './baker/ZutatenListe.jsx';
@@ -47,7 +49,7 @@ function defaultEingabe(r, gespeichert) {
     rezeptId: r.id,
     rezeptName: r.name,
     multi: Boolean(r.produkte && r.produkte.length > 1),
-    stueck: gespeichert?.stueck > 0 ? gespeichert.stueck : (r.min_stueck || 1),
+    stueck: gespeichert?.stueck >= 0 ? gespeichert.stueck : (r.min_stueck || 1),
     produktStueck: gespeichert?.multi ? { ...(gespeichert.produktStueck || {}) } : {},
     faktor: gespeichert?.faktor || 1,
     blechN: gespeichert?.blechN > 0 ? gespeichert.blechN : 1,
@@ -96,9 +98,9 @@ export default function BakerPage() {
 
   // Erstes Rezept vorauswaehlen, sobald Daten da sind
   useEffect(() => {
-    if (!selectedId && sichtbar.length) selectRezept(sichtbar[0].id);
+    if (!sichtbar.some(r => r.id === selectedId) && sichtbar.length) selectRezept(sichtbar[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sichtbar.length]);
+  }, [sichtbar, selectedId]);
 
   function selectRezept(id) {
     const r = sichtbar.find((x) => x.id === id);
@@ -232,7 +234,7 @@ export default function BakerPage() {
             <button className="btn" onClick={openSauerteigzettel} title="Sauerteig-Zettel">🥖</button>
             {isBluetoothSupported() && (
               <>
-                <button className="btn" onClick={printBon} disabled={!ergebnis} title="Bon drucken">
+                <button className="btn" onClick={printBon} disabled={!ergebnis || !!ergebnis.fehler} title="Bon drucken">
                   🧾 Bon
                 </button>
                 <button
@@ -247,13 +249,13 @@ export default function BakerPage() {
             )}
           </>
         )}
-        <button className="btn" onClick={() => window.print()} disabled={!ergebnis} title="A4-Rezeptblatt drucken (Strg+P)">
+        <button className="btn" onClick={() => window.print()} disabled={!ergebnis || !!ergebnis.fehler} title="A4-Rezeptblatt drucken (Strg+P)">
           🖨 PDF
         </button>
         <button
           className="btn btn-primary"
           onClick={() => setAbwiegen(true)}
-          disabled={!ergebnis}
+          disabled={!ergebnis || !!ergebnis.fehler}
           title="Abwiegen (Vollbild)"
         >
           <Scale size={18} /> Abwiegen
@@ -264,6 +266,8 @@ export default function BakerPage() {
         <div className="card">
           <h2 style={{ margin: '0 0 10px' }}>{rezept.name}</h2>
           <MengenSteuerung rezept={rezept} eingabe={eingabe} onChange={updateEingabe} ergebnis={ergebnis} />
+          {ergebnis?.fehler && <p role="alert">Berechnung nicht möglich: {ergebnis.fehler}</p>}
+          <KochstueckKontrolle rezept={rezept} sk={ergebnis?.sk} />
           <QuickInfo rezept={rezept} sk={ergebnis?.sk} anzeige={anzeige} customZutaten={customFlach} />
           {zusammenfassung && (
             <div className="teig-zusammenfassung">
@@ -288,24 +292,27 @@ export default function BakerPage() {
           )}
           {ergebnis && (() => {
             const nw = anzeige.naehrwerte ? calcNutrition(rezept, ergebnis.sk, customMap) : { vollstaendig: false, fehlend: [] };
-            const allergene = anzeige.allergene ? getRezeptAllergene(rezept, customFlach) : [];
+            const allergene = anzeige.allergene ? getRezeptAllergene(produktionsRezept(rezept, ergebnis.sk), customFlach) : [];
             const eigenePreise = {};
             prices.forEach((p) => { eigenePreise[p.zutat_name] = { preis_kg: Number(p.preis_eur_kg) }; });
             const kosten = anzeige.kosten ? calcRezeptKosten(rezept, ergebnis.sk, eigenePreise) : 0;
-            const stueckzahl = rezept.produkte?.length > 1
-              ? Object.values(eingabe.produktStueck || {}).reduce((a, b) => a + b, 0)
-              : (eingabe.stueck || 1);
-            if (!nw.vollstaendig && !allergene.length && !(kosten > 0)) return null;
+            const preisLuecken = anzeige.kosten ? fehlendePreise(rezept, ergebnis.sk, eigenePreise) : [];
+            const stueckzahl = ergebnis.isBlech ? ergebnis.blechAnzahl
+              : ergebnis.faktor * (rezept.produkte?.length > 1
+                ? rezept.produkte.reduce((sum, p) => sum + (eingabe.produktStueck?.[p.name] || 0) * (p.stueck_pro_presse > 0 ? p.stueck_pro_presse : 1), 0)
+                : (eingabe.stueck || 0));
+            if (!nw.vollstaendig && !allergene.length && !(kosten > 0) && !preisLuecken.length) return null;
             return (
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12, fontSize: 13 }}>
-                {kosten > 0 && (
-                  <div className="quick-chip">
-                    💰 <span className="chip-val">{kosten.toFixed(2).replace('.', ',')} €</span>
-                    {stueckzahl > 0 && <span className="muted">({(kosten / stueckzahl).toFixed(2).replace('.', ',')} €/St.)</span>}
+                {(kosten > 0 || preisLuecken.length > 0) && (
+                  <div className="quick-chip" title={preisLuecken.length ? `Preise fehlen: ${preisLuecken.join(', ')}` : 'Rohstoffkosten'}>
+                    💰 <span className="chip-val">{preisLuecken.length ? 'Teilbetrag: ' : ''}{kosten.toFixed(2).replace('.', ',')} €</span>
+                    {preisLuecken.length > 0 && <span> · {preisLuecken.length} Preise fehlen</span>}
+                    {stueckzahl > 0 && <span className="muted">({(kosten / stueckzahl).toFixed(2).replace('.', ',')} €/{ergebnis.isBlech ? 'Blech' : 'St.'})</span>}
                   </div>
                 )}
                 {nw.vollstaendig && nw.gesamt > 0 && (
-                  <div className="quick-chip" title="pro 100 g">
+                  <div className="quick-chip" title="pro 100 g ungebackene Rezeptur">
                     🔥 {Math.round(nw.kcal / (nw.gesamt / 100))} kcal · E {(nw.protein / (nw.gesamt / 100)).toFixed(1)} g · KH {(nw.carbs / (nw.gesamt / 100)).toFixed(1)} g · F {(nw.fat / (nw.gesamt / 100)).toFixed(1)} g
                   </div>
                 )}

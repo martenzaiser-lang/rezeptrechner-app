@@ -10,6 +10,7 @@
 // - 20 rotierende lokale Backups (wie alte App) bei jedem neuen Datenstand.
 
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { makeBackup } from '../../../shared/backup.js';
 import { api, auth } from '../services/api.js';
 
 const POLL_INTERVAL_MS = 90_000;
@@ -22,7 +23,8 @@ const DataContext = createContext(null);
 
 function loadCache() {
   try {
-    return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    return c && Array.isArray(c.recipes) && Array.isArray(c.prices) && Array.isArray(c.customIngredients) && c.settings && typeof c.settings === 'object' && !Array.isArray(c.settings) ? c : null;
   } catch {
     return null;
   }
@@ -38,11 +40,11 @@ function saveCache(cache) {
 
 // Rotierendes Backup der Rezepte (Wiederherstellung im Notfall,
 // Muster der alten App: max 20, aeltestes fliegt raus).
-function addBackup(recipes) {
+function addBackup(data) {
   try {
     const idx = JSON.parse(localStorage.getItem(BACKUP_IDX_KEY) || '[]');
     const key = BACKUP_PREFIX + Date.now();
-    localStorage.setItem(key, JSON.stringify(recipes));
+    localStorage.setItem(key, JSON.stringify(makeBackup(data)));
     idx.push(key);
     while (idx.length > MAX_BACKUPS) {
       localStorage.removeItem(idx.shift());
@@ -59,7 +61,7 @@ function addBackup(recipes) {
 }
 
 export function DataProvider({ children }) {
-  const cached = loadCache();
+  const [cached] = useState(loadCache);
   const [recipes, setRecipes] = useState(cached?.recipes || []);
   const [settings, setSettings] = useState(cached?.settings || {});
   const [prices, setPrices] = useState(cached?.prices || []);
@@ -90,59 +92,60 @@ export function DataProvider({ children }) {
   const stateRef = useRef({ recipes, settings, prices, customIngredients });
   stateRef.current = { recipes, settings, prices, customIngredients };
 
-  const refresh = useCallback(async ({ full = false } = {}) => {
-    if (!auth.isLoggedIn()) return;
-    if (!navigator.onLine) {
-      setCloudStatus('offline');
-      return;
-    }
-    setCloudStatus('sync');
-    try {
-      const res = await api.getRecipes(etagRef.current);
-      let next = { ...stateRef.current };
-      let changed = false;
-
-      if (!res.notModified && res.status !== 304) {
-        const body = await res.json();
-        const etag = res.headers.get('ETag');
-        next.recipes = body.recipes || [];
-        etagRef.current = etag;
-        changed = true;
-        addBackup(next.recipes);
+  const queueRef = useRef(Promise.resolve());
+  const pendingRef = useRef(null);
+  const generationRef = useRef(0);
+  const refresh = useCallback(({ force = false, throwOnError = false } = {}) => {
+    if (pendingRef.current && !force) return pendingRef.current;
+    const run = async () => {
+      if (!auth.isLoggedIn()) return false;
+      if (!navigator.onLine) {
+        setCloudStatus('offline');
+        if (throwOnError) throw new Error('Offline: aktuellen Serverstand erneut laden.');
+        return false;
       }
-
-      // Nebendaten seltener bzw. beim ersten Laden / expliziten full-Refresh
-      if (full || !initialLoadDone) {
-        const [settingsData, pricesData, customData] = await Promise.all([
-          api.getSettings(),
-          api.getPrices(),
-          api.getCustomIngredients(),
+      const generation = generationRef.current;
+      const identity = auth.getEmail();
+      setCloudStatus('sync');
+      try {
+        const [res, nextSettings, priceData, customData] = await Promise.all([
+          api.getRecipes(etagRef.current), api.getSettings(), api.getPrices(), api.getCustomIngredients(),
         ]);
-        next.settings = settingsData || {};
-        next.prices = pricesData?.prices || [];
-        next.customIngredients = customData?.ingredients || [];
-        changed = true;
+        const next = { ...stateRef.current, settings: nextSettings, prices: priceData.prices, customIngredients: customData.ingredients };
+        let nextEtag = etagRef.current;
+        if (!res.notModified) {
+          const body = await res.json();
+          if (!Array.isArray(body.recipes)) throw new Error('Rezeptantwort ist unvollständig.');
+          next.recipes = body.recipes;
+          nextEtag = res.headers.get('ETag');
+        }
+        if (!Array.isArray(next.prices) || !Array.isArray(next.customIngredients)) throw new Error('Nebendaten sind unvollständig.');
+        // Eine inzwischen abgeschlossene Schreiboperation darf niemals von einer
+        // älteren Leseantwort überschrieben werden.
+        if (generation !== generationRef.current || !auth.isLoggedIn() || auth.getEmail() !== identity) return false;
+        const changed = JSON.stringify(next) !== JSON.stringify(stateRef.current);
+        stateRef.current = next;
+        etagRef.current = nextEtag;
+        setRecipes(next.recipes); setSettings(next.settings); setPrices(next.prices); setCustomIngredients(next.customIngredients);
+        const ts = Date.now();
+        saveCache({ ...next, etag: nextEtag, ts });
+        if (changed) addBackup(next);
+        setCloudStatus('online'); setInitialLoadDone(true); setLetzterSync(ts); beendeWarten();
+        return true;
+      } catch (err) {
+        if (generation === generationRef.current) setCloudStatus(navigator.onLine ? 'fehler' : 'offline');
+        beendeWarten();
+        if (throwOnError) throw err;
+        return false;
       }
-
-      if (changed) {
-        setRecipes(next.recipes);
-        setSettings(next.settings);
-        setPrices(next.prices);
-        setCustomIngredients(next.customIngredients);
-        saveCache({ ...next, etag: etagRef.current, ts: Date.now() });
-      }
-      setCloudStatus('online');
-      setInitialLoadDone(true);
-      setLetzterSync(Date.now());
-      beendeWarten();
-    } catch (err) {
-      // 401 wird im api-Client behandelt (Redirect). Alles andere: Status rot,
-      // App arbeitet mit dem Cache weiter.
-      console.warn('[sync] Refresh fehlgeschlagen:', err.message);
-      setCloudStatus(navigator.onLine ? 'fehler' : 'offline');
-      beendeWarten();
-    }
-  }, [initialLoadDone, beendeWarten]);
+    };
+    const task = queueRef.current.catch(() => {}).then(run);
+    queueRef.current = task;
+    pendingRef.current = task;
+    const clear = () => { if (pendingRef.current === task) pendingRef.current = null; };
+    task.then(clear, clear);
+    return task;
+  }, [beendeWarten]);
 
   useEffect(() => {
     if (!auth.isLoggedIn()) return;
@@ -153,9 +156,9 @@ export function DataProvider({ children }) {
     // kann laenger dauern — dann lieber Cache + Daten-Stand-Banner zeigen).
     const wartenTimeout = setTimeout(beendeWarten, 10_000);
 
-    const interval = setInterval(() => refresh(), POLL_INTERVAL_MS);
+    const interval = setInterval(() => refresh({ full: true }), POLL_INTERVAL_MS);
     const onVisible = () => {
-      if (document.visibilityState === 'visible') refresh();
+      if (document.visibilityState === 'visible') refresh({ full: true });
     };
     const onOnline = () => refresh({ full: true });
     const onOffline = () => setCloudStatus('offline');
@@ -176,8 +179,23 @@ export function DataProvider({ children }) {
   // Nach Admin-Mutationen: sofort neu laden, damit alle Komponenten
   // (und der Cache) den Serverstand inkl. neuer _version haben.
   const mutateAndRefresh = useCallback(async (fn) => {
-    const result = await fn(api);
-    await refresh({ full: true });
+    generationRef.current++;
+    let result;
+    try { result = await fn(api); }
+    catch (err) { generationRef.current++; setCloudStatus(navigator.onLine ? 'fehler' : 'offline'); throw err; }
+    generationRef.current++;
+    etagRef.current = null;
+    // Neue Rezeptversion sofort übernehmen: ein fehlgeschlagener anschließender
+    // Lesezugriff darf beim nächsten Speichern keinen eigenen Konflikt erzeugen.
+    if (result?.recipe) {
+      const old = stateRef.current.recipes;
+      const nextRecipes = old.some(r => r.id === result.recipe.id)
+        ? old.map(r => r.id === result.recipe.id ? result.recipe : r) : [...old, result.recipe];
+      stateRef.current = { ...stateRef.current, recipes: nextRecipes };
+      setRecipes(nextRecipes);
+    }
+    try { await refresh({ force: true, throwOnError: true }); }
+    catch { throw new Error('Änderung gespeichert, aber der aktuelle Gesamtstand konnte nicht geladen werden. Bitte aktualisieren.'); }
     return result;
   }, [refresh]);
 

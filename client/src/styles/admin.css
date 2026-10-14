@@ -8,7 +8,9 @@
   align-items: start;
 }
 
-.admin-liste {
+.admin-layout > .card { scroll-margin-top: 80px; }
+
+.admin-layout > .admin-liste {
   position: sticky;
   top: 80px;
 }
@@ -36,8 +38,9 @@
   .admin-layout {
     grid-template-columns: 1fr;
   }
-  .admin-liste {
+  .admin-layout > .admin-liste {
     position: static;
+    top: auto;
   }
   .admin-liste-scroll {
     max-height: 38vh;

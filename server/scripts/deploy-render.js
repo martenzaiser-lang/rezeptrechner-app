@@ -15,7 +15,7 @@ if (!KEY) {
 const API = 'https://api.render.com/v1';
 const HEADERS = { Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' };
 
-const NETLIFY_URL = 'https://teigmaster-neu.netlify.app';
+const NETLIFY_URL = 'https://teigmaster.netlify.app';
 const SERVICE_NAME = 'rezeptrechner-api';
 
 async function api(method, path, body) {
@@ -56,22 +56,23 @@ if (service) {
     repo: 'https://github.com/martenzaiser-lang/rezeptrechner-app',
     branch: 'main',
     autoDeploy: 'yes',
-    rootDir: 'server',
+    rootDir: '.',
     serviceDetails: {
       runtime: 'node',
       region: 'frankfurt',
       plan: 'free',
       healthCheckPath: '/api/health',
       envSpecificDetails: {
-        buildCommand: 'npm install',
-        startCommand: 'npm run migrate && npm run start',
+        buildCommand: 'npm ci --workspace server --omit=dev',
+        startCommand: 'npm run migrate --workspace server && npm run start --workspace server',
       },
     },
     envVars: [
+      { key: 'NODE_VERSION', value: '24' },
       { key: 'NODE_ENV', value: 'production' },
       { key: 'DATABASE_URL', value: process.env.DATABASE_URL },
       { key: 'JWT_SECRET', value: jwtSecret },
-      { key: 'JWT_EXPIRES_IN', value: '7d' },
+      { key: 'JWT_EXPIRES_IN', value: '30d' },
       { key: 'CORS_ORIGIN', value: NETLIFY_URL },
     ],
   };

@@ -8,12 +8,13 @@ export function findZutatPreis(zutatName) {
   if (!zutatName) return null;
   const name = zutatName.toLowerCase().trim();
   if (ZUTAT_PREISE[name] !== undefined) return ZUTAT_PREISE[name];
-  for (const key in ZUTAT_PREISE) {
-    if (name.includes(key) || key.includes(name)) {
-      return ZUTAT_PREISE[key];
-    }
-  }
   return null;
+}
+
+export function fehlendePreise(r, sk, eigenePreise = {}) {
+  return r.zutaten.filter((z, i) => !z.ist_kommentar && sk?.[i] > 0 &&
+    !/^(wasser|schüttwasser|leitungswasser|trinkwasser)$/i.test(z.name.trim()) &&
+    eigenePreise[z.name]?.preis_kg == null && findZutatPreis(z.name) == null).map(z => z.name);
 }
 
 // eigenePreise: { zutatName: { preis_kg } } (aus DB-prices abgeleitet)
@@ -23,7 +24,7 @@ export function calcRezeptKosten(r, sk, eigenePreise = {}) {
   r.zutaten.forEach((z, idx) => {
     const kg = sk[idx] || 0;
     const p = eigenePreise[z.name];
-    if (p && p.preis_kg) {
+    if (p?.preis_kg != null && Number.isFinite(Number(p.preis_kg))) {
       kosten += kg * p.preis_kg;
     } else {
       const baekoPreis = findZutatPreis(z.name);
@@ -40,7 +41,10 @@ export function calcRezeptKosten(r, sk, eigenePreise = {}) {
 // eigenePreise: { zutatName: { preis_kg } } (aus DB-prices abgeleitet)
 export function berechneRohstoffkosten(rezept, eigenePreise = {}) {
   const istBlech = rezept.berechnung === 'blech';
-  const sk = istBlech ? skaliereBlech(rezept, 1) : skaliere(rezept, 1);
+  let sk;
+  try { sk = istBlech ? skaliereBlech(rezept, 1) : skaliere(rezept, 1); }
+  catch(err) { return { summe:0, zeilen:[], ohnePreis:[err.message], istBlech, fehler:err.message }; }
+
   const zeilen = [];
   const ohnePreis = [];
   let summe = 0;
@@ -50,7 +54,7 @@ export function berechneRohstoffkosten(rezept, eigenePreise = {}) {
     if (kg <= 0) return;
     const eigen = eigenePreise[z.name];
     const preisKg = eigen?.preis_kg ?? findZutatPreis(z.name);
-    const istWasser = z.name.toLowerCase().includes('wasser');
+    const istWasser = /^(wasser|schüttwasser|leitungswasser|trinkwasser)$/i.test(z.name.trim());
     const kosten = preisKg != null ? kg * preisKg : 0;
     summe += kosten;
     if (preisKg == null && !istWasser) ohnePreis.push(z.name);
@@ -65,27 +69,37 @@ export function berechneRohstoffkosten(rezept, eigenePreise = {}) {
   return { summe, zeilen, ohnePreis, istBlech };
 }
 
-// BAEKO-CSV-Parser: CSV (ISO-8859-1, Semikolon) → [{zutat_name, preis_eur_kg, lieferant}]
-// mit Fuzzy-Match gegen die bekannten Zutaten der Rezepte.
+// Preis und Preiseinheit nur anhand eindeutiger Spaltenüberschriften lesen.
+// Die Vorschau wird erst durch den Speichern-Klick übernommen.
 export function parseBaekoCSV(text, bekannteZutaten) {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim());
-  const treffer = [];
-  for (const line of lines) {
-    const cols = line.split(';').map((c) => c.trim().replace(/^"|"$/g, ''));
-    if (cols.length < 2) continue;
-    // Heuristik: erste Text-Spalte = Artikelname, erste Zahlen-Spalte mit Komma = Preis
-    const name = cols.find((c) => c && isNaN(parseFloat(c.replace(',', '.'))));
-    const preisRaw = cols.find((c) => /^\d+[.,]\d+$/.test(c));
-    if (!name || !preisRaw) continue;
-    const preis = parseFloat(preisRaw.replace(',', '.'));
-    if (!Number.isFinite(preis) || preis <= 0) continue;
-    const nameLower = name.toLowerCase();
-    const zutat = bekannteZutaten.find(
-      (z) => z.toLowerCase() === nameLower || nameLower.includes(z.toLowerCase()) || z.toLowerCase().includes(nameLower)
-    );
-    if (zutat) {
-      treffer.push({ zutat_name: zutat, preis_eur_kg: preis, lieferant: 'BÄKO', artikel: name });
-    }
+  const rows=[]; let row=[], field='', quoted=false;
+  for(let i=0;i<text.length;i++) {
+    const c=text[i];
+    if(c==='"') { if(quoted && text[i+1]==='"') { field+='"';i++; } else quoted=!quoted; }
+    else if(c===';' && !quoted) { row.push(field.trim());field=''; }
+    else if((c==='\n' || c==='\r') && !quoted) { if(c==='\r' && text[i+1]==='\n') i++;row.push(field.trim());if(row.some(Boolean)) rows.push(row);row=[];field=''; }
+    else field+=c;
   }
-  return treffer;
+  if(quoted) throw new Error('Nicht geschlossenes Anführungszeichen in der CSV.');
+  row.push(field.trim());if(row.some(Boolean)) rows.push(row);
+  const norm=s=>String(s||'').replace(/^\uFEFF/,'').toLowerCase().replace(/\s+/g,' ').trim();
+  const header=(rows.shift()||[]).map(norm);
+  const idx=(...names)=>header.findIndex(h=>names.includes(h));
+  const ni=idx('artikelbezeichnung','artikel','bezeichnung','zutat','name'), pi=idx('preis','preis €/kg','eur/kg','€/kg','preis_eur_kg'), pei=idx('pe','preiseinheit'), ui=idx('gr.','einheit','mengeneinheit');
+  if(ni<0 || pi<0) throw new Error('Spalten Artikelbezeichnung/Name und Preis bzw. €/kg fehlen.');
+  const perKg=['preis €/kg','eur/kg','€/kg','preis_eur_kg'].includes(header[pi]);
+  if(!perKg && ui<0) throw new Error('Preiseinheit fehlt. Für Kilopreise die Spalte €/kg verwenden.');
+  const num=s=>Number(String(s||'').trim().replace(/\.(?=\d{3}(?:[.,]|$))/g,'').replace(',','.'));
+  const matches=new Map();
+  for(const [i,r] of rows.entries()) {
+    const article=r[ni], hit=bekannteZutaten.find(z=>norm(z)===norm(article));
+    if(!hit) continue;
+    if(!perKg && norm(r[ui])!=='kg') throw new Error(`Zeile ${i+2}: ${article} ist kein Kilopreis. Gebindegewicht prüfen.`);
+    const pe=perKg ? 1 : pei<0 ? 1 : num(r[pei]);
+    const price=num(r[pi]);
+    if(!r[pi] || !Number.isFinite(price) || price<0 || !Number.isFinite(pe) || pe<=0) throw new Error(`Zeile ${i+2}: ungültiger Preis oder Preiseinheit.`);
+    if(matches.has(hit)) throw new Error(`Mehrere Artikel für ${hit}. Zuordnung vor dem Import klären.`);
+    matches.set(hit,{zutat_name:hit,preis_eur_kg:price/pe,lieferant:'BÄKO',artikel:article});
+  }
+  return [...matches.values()];
 }

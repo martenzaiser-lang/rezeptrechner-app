@@ -3,21 +3,27 @@
 // alles, was Anzeige und Druck brauchen. Logik 1:1 aus calcBaker der
 // alten App (index.html Z. 2782-2842).
 
-import { skaliere, skaliereBlech, blechFaktor, getEinzelGewicht } from './skalierung.js';
+import { skaliere, skaliereBlech, blechFaktor, schluesselzahl as einzelSchluesselzahl } from './skalierung.js';
 import { skaliereMultiProdukt, multiSchluesselzahl } from './multiprodukt.js';
 
 // eingabe: { stueck, blechN, blechB, blechL, produktStueck, faktor }
 export function berechneBaker(r, eingabe) {
+  try { return berechne(r, eingabe); }
+  catch (err) { return { fehler: err.message, sk: [], teigGesamtKg: 0, schluesselzahl: 0, faktor: 1 }; }
+}
+
+function berechne(r, eingabe) {
   const isBlech = r.berechnung === 'blech';
-  const hasMulti = r.produkte && r.produkte.length > 1;
-  const faktor = eingabe.faktor || 1;
+  const hasMulti = !isBlech && r.produkte && r.produkte.length > 1;
+  const faktor = eingabe.faktor ?? 1;
+  if (!Number.isFinite(faktor) || faktor < 0) throw new Error('Ungültiger Teiler.');
 
   let sk = [];
   let schluesselzahl = 1;
   let blechAnzahl = 0;
 
   if (isBlech) {
-    blechAnzahl = Math.max(1, parseInt(eingabe.blechN) || 1);
+    blechAnzahl = Math.max(0, Number(eingabe.blechN ?? 1));
     sk = skaliereBlech(r, eingabe.blechN, eingabe.blechB, eingabe.blechL);
     schluesselzahl = blechFaktor(r, eingabe.blechN, eingabe.blechB, eingabe.blechL);
   } else if (hasMulti) {
@@ -29,10 +35,7 @@ export function berechneBaker(r, eingabe) {
   } else {
     const n = Math.max(0, eingabe.stueck || 0);
     if (n <= 0) return null;
-    const cleanZutaten = r.zutaten.filter((z) => z.name.toLowerCase() !== 'gesamt' && z.menge_kg > 0);
-    const basisTeig = cleanZutaten.reduce((s, z) => s + z.menge_kg, 0) * 1000;
-    if (basisTeig <= 0) return null;
-    schluesselzahl = (n * getEinzelGewicht(r)) / basisTeig;
+    schluesselzahl = einzelSchluesselzahl(r, n);
     sk = skaliere(r, n);
   }
 
@@ -40,15 +43,18 @@ export function berechneBaker(r, eingabe) {
 
   // Teiler anwenden (nicht im Blech-Modus — wie Original)
   if (!isBlech && faktor !== 1) {
-    sk = sk.map((v) => +(v * faktor).toFixed(3));
+    sk = sk.map((v) => v * faktor);
+    schluesselzahl *= faktor;
   }
 
   const teigGesamtKg = sk.reduce((a, b) => a + b, 0);
+  const stueckzahl = isBlech ? 0 : faktor * (hasMulti ? r.produkte.reduce((s, p) => s + (eingabe.produktStueck?.[p.name] || 0) * (p.stueck_pro_presse || 1), 0) : (eingabe.stueck || 0));
 
   return {
     sk,
     schluesselzahl,
     teigGesamtKg,
+    stueckzahl,
     blechAnzahl,
     proBlechKg: blechAnzahl > 1 ? teigGesamtKg / blechAnzahl : null,
     faktor,
@@ -62,7 +68,7 @@ export function berechneBaker(r, eingabe) {
 export function teigZusammenfassung(r, sk, teigGesamtKg) {
   const pz = {};
   r.zutaten.forEach((z, i) => {
-    if (!(z.zusatz_prozent > 0 && !(z.menge_kg > 0))) return;
+    if (!(!z.ist_kommentar && z.zusatz_prozent > 0 && !(z.menge_kg > 0))) return;
     const w = sk[i] || 0;
     if (!w) return;
     const sn = z.bemerkung ? z.bemerkung.split('–')[0].trim() : z.name;

@@ -7,8 +7,8 @@
 // - API-Requests werden NIE gecached — Offline-Datenstand liegt im
 //   localStorage (DataContext), nicht im SW-Cache.
 
-const CACHE = 'rezeptrechner-shell-v2';
-const SHELL = ['/', '/index.html', '/manifest.json', '/icon.png', '/logo.jpg'];
+const CACHE = 'rezeptrechner-shell-__BUILD_VERSION__';
+const SHELL = ['/', '/index.html', '/manifest.json', '/icon.png', '/logo.jpg', /* BUILD_ASSETS */];
 const OFFLINE_FALLBACK = new Response('', { status: 503, statusText: 'Offline' });
 
 self.addEventListener('install', (e) => {
@@ -18,11 +18,12 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    )
+    caches.keys().then((keys) => {
+      // Vorherigen Stand für noch geöffnete Tabs behalten.
+      const alt = keys.filter(k => k.startsWith('rezeptrechner-shell-') && k !== CACHE);
+      return Promise.all(alt.slice(0, -1).map(k => caches.delete(k)));
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
@@ -41,6 +42,9 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(e.request)
         .then((res) => {
+          if (!res.ok || !res.headers.get('Content-Type')?.includes('text/html')) {
+            return caches.match('/index.html').then(cached => cached || res);
+          }
           // frisches index.html in den Cache legen (Offline-Kaltstart)
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put('/index.html', copy)).catch(() => {});

@@ -4,16 +4,19 @@ services:
     env: node
     region: frankfurt
     plan: free
-    rootDir: server
-    buildCommand: npm install
+    # LMIV verwendet client/src und shared; deshalb gesamtes Repository.
+    rootDir: .
+    buildCommand: npm ci --workspace server --omit=dev
     # preDeployCommand ist nur auf bezahlten Render-Plänen verfügbar —
     # daher hängt die Migration am Start. Der Migration-Runner ist idempotent
     # (schema_migrations-Tabelle). Schlägt eine Migration fehl, startet der
     # Server nicht — gewünscht, sonst läuft die App auf falschem Schema.
-    startCommand: npm run migrate && npm run start
+    startCommand: npm run migrate --workspace server && npm run start --workspace server
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
+      - key: NODE_VERSION
+        value: '24'
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
@@ -21,6 +24,6 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN
-        value: 7d
+        value: 30d
       - key: CORS_ORIGIN
         sync: false

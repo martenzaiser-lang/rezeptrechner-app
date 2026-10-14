@@ -9,7 +9,9 @@ import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, ListPlus, Settings, History, 
 import { useData } from '../context/DataContext.jsx';
 import { getSorted } from '../lib/rezeptFilter.js';
 import { getZutatVorschlaege } from '../lib/batchParser.js';
-import { ta } from '../lib/calc/ta.js';
+import { taLabel, taBilanz } from '../lib/calc/ta.js';
+import { produktRezept } from '../lib/calc/produktion.js';
+import { skaliereByFactor } from '../lib/calc/skalierung.js';
 import { useToast } from '../components/Toast.jsx';
 import { useConfirm } from '../components/ConfirmDialog.jsx';
 import { SkeletonCardList } from '../components/Skeleton.jsx';
@@ -42,33 +44,37 @@ export default function AdminPage() {
     ? sorted.filter((r) => r.name.toLowerCase().includes(suche.toLowerCase()))
     : sorted;
   const rezept = recipes.find((r) => r.id === selectedId) || null;
+  const [produktAuswahl, setProduktAuswahl] = useState('');
+  const produktName = rezept?.produkte?.some(p => p.name === produktAuswahl) ? produktAuswahl : rezept?.produkte?.[0]?.name;
+  const kennzahlenRezept = rezept ? produktRezept(rezept, produktName) : null;
+  const baeckerProzente = useMemo(() => {
+    if (!rezept || rezept.produkte?.length > 1) return [];
+    try { const sk = skaliereByFactor(rezept, 1); const b = taBilanz(rezept, sk); return b.mehl > 0 && !b.fehler.length ? sk.map(kg => kg / b.mehl * 100) : []; }
+    catch { return []; }
+  }, [rezept]);
   const vorschlaege = useMemo(() => getZutatVorschlaege(recipes), [recipes]);
   const eigenePreiseMap = useMemo(
     () => Object.fromEntries(prices.map((p) => [p.zutat_name, { preis_kg: Number(p.preis_eur_kg) }])),
     [prices]
   );
 
-  // Optimistisches Verschieben: Reihenfolge sofort anzeigen, Speichern
-  // entprellt (600 ms nach dem letzten Klick EIN Request statt vieler).
-  const [reihenfolgeDraft, setReihenfolgeDraft] = useState(null);
-  const saveTimer = useRef(null);
-  const zutatenAktuell = reihenfolgeDraft || rezept?.zutaten || [];
-  useEffect(() => {
-    setReihenfolgeDraft(null);
-    clearTimeout(saveTimer.current);
-  }, [selectedId]);
+  // Pro Rezept nur eine laufende Änderung; kein verlorener Timer bei Rezeptwechsel.
+  const saving = useRef(false);
+  const zutatenAktuell = rezept?.zutaten || [];
 
   // Gestapeltes Layout (Handy): nach Rezeptwahl zum Detail scrollen,
   // sonst bleibt der Nutzer in der langen Liste haengen.
   const detailRef = useRef(null);
   useEffect(() => {
     if (selectedId && window.innerWidth <= 900) {
-      detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      detailRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
     }
   }, [selectedId]);
 
   // Speichern mit 409-Behandlung: bei Konflikt Serverstand anbieten.
   async function speichereRezept(neu, { istNeu = false } = {}) {
+    if (saving.current) { toast.error('Speichern läuft noch.'); return false; }
+    saving.current = true;
     try {
       if (istNeu) {
         await mutateAndRefresh((a) => a.createRecipe(neu));
@@ -79,6 +85,7 @@ export default function AdminPage() {
         toast.success('Gespeichert');
       }
       setModal(null);
+      return true;
     } catch (err) {
       if (err.status === 409 && err.body?.current) {
         const ok = await confirm({
@@ -94,25 +101,22 @@ export default function AdminPage() {
       } else {
         toast.error('Speichern fehlgeschlagen: ' + err.message);
       }
-    }
+      return false;
+    } finally { saving.current = false; }
   }
 
   // Zutaten-Mutationen laufen ueber ein komplettes Rezept-Update
   async function speichereZutaten(zutatenNeu) {
-    await speichereRezept({ ...rezept, zutaten: zutatenNeu });
+    return await speichereRezept({ ...rezept, zutaten: zutatenNeu });
   }
 
-  function moveZutat(idx, delta) {
+  async function moveZutat(idx, delta) {
+    if (saving.current) return;
     const z = [...zutatenAktuell];
     const j = idx + delta;
     if (j < 0 || j >= z.length) return;
     [z[idx], z[j]] = [z[j], z[idx]];
-    setReihenfolgeDraft(z);
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
-      await speichereZutaten(z);
-      setReihenfolgeDraft(null);
-    }, 600);
+    await speichereZutaten(z);
   }
 
   async function loescheRezept(r) {
@@ -124,7 +128,7 @@ export default function AdminPage() {
     });
     if (!ok) return;
     try {
-      await mutateAndRefresh((a) => a.deleteRecipe(r.id));
+      await mutateAndRefresh((a) => a.deleteRecipe(r.id, r._version));
       if (selectedId === r.id) setSelectedId(null);
       toast.success('Rezept gelöscht');
     } catch (err) {
@@ -137,8 +141,10 @@ export default function AdminPage() {
       await mutateAndRefresh((a) => a.putSettings(neu));
       toast.success('Einstellungen gespeichert');
       setModal(null);
+      return true;
     } catch (err) {
       toast.error('Fehler: ' + err.message);
+      return false;
     }
   }
 
@@ -211,7 +217,7 @@ export default function AdminPage() {
             <h2 style={{ margin: 0 }}>
               {rezept.name}{' '}
               <span className="muted" style={{ fontSize: 13, fontWeight: 500 }}>
-                {rezept.kategorie} · TA {ta(rezept)}
+                {rezept.kategorie}{taLabel(kennzahlenRezept) ? ` · ${taLabel(kennzahlenRezept)}` : ''}{rezept.produkte?.length > 1 ? ` (${produktName})` : ''}
                 {!rezept.aktiv && ' · INAKTIV'}
               </span>
             </h2>
@@ -274,6 +280,7 @@ export default function AdminPage() {
                           : z.menge_pro_presse > 0
                             ? `${z.menge_pro_presse} kg/Presse`
                             : '—'}
+                    {z.menge_kg > 0 && baeckerProzente[idx] != null && <small className="muted" style={{ display: 'block' }}>{baeckerProzente[idx].toLocaleString('de-DE', { maximumFractionDigits: 2 })} % vom Mehl</small>}
                   </span>
                 )}
                 {z.ist_mehl && <span title="Mehl (TA)">🌾</span>}
@@ -304,14 +311,21 @@ export default function AdminPage() {
             ))}
           </div>
 
-          <KostenBlock rezept={rezept} eigenePreise={eigenePreiseMap} />
+          {rezept.produkte?.length > 1 && <label style={{ display: 'block', marginTop: 16 }}>Produkt für Kosten, TA und Nährwerte
+            <select aria-label="Produkt für Nährwerte" value={produktName} onChange={e => setProduktAuswahl(e.target.value)} style={{ width: '100%' }}>
+              {rezept.produkte.map(p => <option key={p.name}>{p.name}</option>)}
+            </select>
+            <span>{taLabel(kennzahlenRezept)}</span>
+          </label>}
+          {kennzahlenRezept.berechnungsfehler && <p role="alert">{kennzahlenRezept.berechnungsfehler}</p>}
+          <KostenBlock rezept={kennzahlenRezept} eigenePreise={eigenePreiseMap} />
           <KalkulationBlock
-            rezept={rezept}
+            rezept={kennzahlenRezept}
             eigenePreise={eigenePreiseMap}
             kalkulation={settings?.kalkulation}
             onSave={(k) => speichereSettings({ ...settings, kalkulation: k })}
           />
-          <LmivBlock rezept={rezept} customZutaten={customIngredients.map((c) => ({ name: c.name, ...c.data }))} />
+          <LmivBlock rezept={kennzahlenRezept} customZutaten={customIngredients.map((c) => ({ name: c.name, ...c.data }))} />
         </div>
       ) : (
         <div className="card">
@@ -332,12 +346,11 @@ export default function AdminPage() {
           rezept={rezept}
           vorschlaege={vorschlaege}
           onClose={() => setModal(null)}
-          onSave={(z) => {
+          onSave={async (z) => {
             const zutaten = [...zutatenAktuell];
             if (modal.idx != null) zutaten[modal.idx] = { ...zutaten[modal.idx], ...z };
             else zutaten.push(z);
-            speichereZutaten(zutaten);
-            setModal(null);
+            await speichereZutaten(zutaten);
           }}
         />
       )}
@@ -345,10 +358,8 @@ export default function AdminPage() {
         <BatchZutatenModal
           vorschlaege={vorschlaege}
           onClose={() => setModal(null)}
-          onSave={(neue) => {
-            speichereZutaten([...zutatenAktuell, ...neue]);
-            setModal(null);
-            toast.success(`${neue.length} Zutaten hinzugefügt`);
+          onSave={async (neue) => {
+            if (await speichereZutaten([...zutatenAktuell, ...neue])) toast.success(`${neue.length} Zutaten hinzugefügt`);
           }}
         />
       )}
@@ -376,7 +387,7 @@ export default function AdminPage() {
               toast.success(`Import: ${result.inserted} neu, ${result.updated} aktualisiert`);
               setModal(null);
             } catch (err) {
-              toast.error('Import fehlgeschlagen: ' + err.message);
+              throw err;
             }
           }}
         />
@@ -407,7 +418,7 @@ export default function AdminPage() {
               await mutateAndRefresh((a) => a.putCustomIngredient(name, data));
               toast.success(`„${name}" gespeichert`);
             } catch (err) {
-              toast.error('Fehler: ' + err.message);
+              throw err;
             }
           }}
           onDelete={async (name) => {
@@ -415,7 +426,7 @@ export default function AdminPage() {
               await mutateAndRefresh((a) => a.deleteCustomIngredient(name));
               toast.success(`„${name}" gelöscht`);
             } catch (err) {
-              toast.error('Fehler: ' + err.message);
+              throw err;
             }
           }}
         />

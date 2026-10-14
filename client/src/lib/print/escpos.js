@@ -1,3 +1,4 @@
+import { produktionsRezept } from '../calc/produktion.js';
 // ESC/POS-Bon-Erzeugung (58mm Thermodrucker, 32 Zeichen NORMAL /
 // 16 Zeichen DOUBLE_SIZE) — 1:1 portiert aus der alten App
 // (index.html Z. 6598-6672, 6984-7248, 7336-7452).
@@ -271,17 +272,17 @@ export function generateBonBytes(rezept, skalierteZutaten, produktInfo, teilerIn
   }
   if (cfg.ta && rezept) {
     try {
-      const taWert = ta(rezept);
+      const taWert = ta(rezept, skalierteZutaten);
       if (taWert && taWert > 0) {
         bytes.push(...ESCPOS.DOUBLE_HEIGHT);
-        bytes.push(...textToBytes('TA: ' + Math.round(taWert) + '%\n'));
+        bytes.push(...textToBytes('TA: ' + String(taWert).replace('.', ',') + '\n'));
         bytes.push(...ESCPOS.NORMAL);
       }
     } catch {}
   }
   if (cfg.allergene && rezept) {
     try {
-      const allergene = getRezeptAllergene(rezept, customZutaten);
+      const allergene = getRezeptAllergene(produktionsRezept(rezept, skalierteZutaten), customZutaten);
       if (allergene && allergene.length > 0) {
         const allergenStr = allergene.map((a) => ALLERGEN_NAMEN[a] || a).join(', ');
         bytes.push(...ESCPOS.DOUBLE_HEIGHT);
@@ -292,10 +293,10 @@ export function generateBonBytes(rezept, skalierteZutaten, produktInfo, teilerIn
   }
   if (cfg.naehrwerte && rezept) {
     try {
-      const nw = berechneNaehrwerte(rezept, customZutaten);
+      const nw = berechneNaehrwerte(produktionsRezept(rezept, skalierteZutaten), customZutaten);
       if (nw && nw.fehlend.length === 0) {
         bytes.push(...ESCPOS.DOUBLE_HEIGHT);
-        bytes.push(...textToBytes('\nNaehrwerte/100g:\n'));
+        bytes.push(...textToBytes('\nNaehrwerte/100g Teig:\n'));
         bytes.push(...textToBytes(Math.round(nw.kcal) + ' kcal\n'));
         bytes.push(...textToBytes('Eiweiss: ' + formatNumber(nw.eiweiss, 1) + 'g\n'));
         bytes.push(...textToBytes('Kohlenh.: ' + formatNumber(nw.kh, 1) + 'g\n'));

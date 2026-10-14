@@ -7,39 +7,27 @@ import { useState } from 'react';
 import { ClipboardCopy, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   getRezeptAllergene, getRezeptSpuren, getRezeptLmivZutaten,
-  formatAllergene, berechneNaehrwerte,
+  formatAllergene,
 } from '../../lib/calc/naehrwerteLookup.js';
 import { useToast } from '../../components/Toast.jsx';
+import { produktRezept } from '../../lib/calc/produktion.js';
+import { produktNaehrwerte } from '../../lib/calc/produktNaehrwerte.js';
+import NaehrwertDruck from './NaehrwertDruck.jsx';
 
-export default function LmivBlock({ rezept, customZutaten }) {
+export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
   const [offen, setOffen] = useState(false);
+  const [auswahl, setAuswahl] = useState('');
+  const produktName = grundrezept.produkte?.some(p => p.name === auswahl) ? auswahl : grundrezept.produkte?.[0]?.name;
+  const rezept = produktRezept(grundrezept, produktName);
   const toast = useToast();
 
   const allergene = getRezeptAllergene(rezept, customZutaten);
-  const spuren = getRezeptSpuren(rezept).filter((s) => !allergene.includes(s));
-  const lmivZutaten = getRezeptLmivZutaten(rezept);
-  const nwTeig = berechneNaehrwerte(rezept, customZutaten);
+  const spuren = getRezeptSpuren(rezept, customZutaten).filter((s) => !allergene.includes(s));
+  const lmivZutaten = getRezeptLmivZutaten(rezept, customZutaten);
 
-  // LMIV: Deklaration bezieht sich auf 100 g des VERKAUFSFERTIGEN Produkts.
-  // Beim Backen verdunstet Wasser → Naehrstoffdichte steigt um den Faktor
-  // 100/(100 − Backverlust%). Ohne gepflegten Backverlust zeigen wir die
-  // Teig-Werte und weisen deutlich darauf hin.
-  const bv = rezept.backverlust_pct || 0;
-  const faktor = bv > 0 && bv < 100 ? 100 / (100 - bv) : 1;
-  const nw = nwTeig
-    ? {
-        ...nwTeig,
-        kcal: nwTeig.kcal * faktor,
-        eiweiss: nwTeig.eiweiss * faktor,
-        fett: nwTeig.fett * faktor,
-        gfs: nwTeig.gfs * faktor,
-        kh: nwTeig.kh * faktor,
-        zucker: nwTeig.zucker * faktor,
-        ballaststoffe: nwTeig.ballaststoffe * faktor,
-        salz: nwTeig.salz * faktor,
-      }
-    : null;
-  const bezug = bv > 0 ? `pro 100 g gebacken (Backverlust ${bv}%)` : 'pro 100 g Teig';
+  const profil = produktNaehrwerte(rezept, customZutaten);
+  const nw = profil.werte ? { ...profil.werte, fehlend: profil.fehlend } : null;
+  const bezug = profil.bezug;
 
   function kopieren() {
     let text = `${rezept.name}\n\nZutaten:\n`;
@@ -50,8 +38,8 @@ export default function LmivBlock({ rezept, customZutaten }) {
     });
     if (allergene.length) text += `\nEnthaltene Allergene: ${formatAllergene(allergene, true)}\n`;
     if (spuren.length) text += `Kann Spuren enthalten von: ${formatAllergene(spuren, true)}\n`;
-    if (nw) {
-      text += `\nNährwerte ${bezug}:\nEnergie ${Math.round(nw.kcal)} kcal · Fett ${nw.fett.toFixed(1)} g (davon ges. FS ${nw.gfs.toFixed(1)} g) · Kohlenhydrate ${nw.kh.toFixed(1)} g (davon Zucker ${nw.zucker.toFixed(1)} g) · Ballaststoffe ${nw.ballaststoffe.toFixed(1)} g · Eiweiß ${nw.eiweiss.toFixed(1)} g · Salz ${nw.salz.toFixed(2)} g\n`;
+    if (nw && nw.fehlend.length === 0) {
+      text += `\nNährwerte ${bezug}:\nEnergie ${Math.round(nw.kj)} kJ / ${Math.round(nw.kcal)} kcal · Fett ${nw.fett.toFixed(1)} g (davon ges. FS ${nw.gfs.toFixed(1)} g) · Kohlenhydrate ${nw.kh.toFixed(1)} g (davon Zucker ${nw.zucker.toFixed(1)} g) · Ballaststoffe ${nw.ballaststoffe.toFixed(1)} g · Eiweiß ${nw.eiweiss.toFixed(1)} g · Salz ${nw.salz.toFixed(2)} g\n`;
     }
     navigator.clipboard.writeText(text).then(
       () => toast.success('Volldeklaration kopiert'),
@@ -71,6 +59,13 @@ export default function LmivBlock({ rezept, customZutaten }) {
       </button>
       {offen && (
         <div style={{ padding: '0 14px 14px' }}>
+          {grundrezept.produkte?.length > 1 && <label style={{ display: 'block', marginBottom: 12 }}>
+            Produkt für Nährwerte und Deklaration
+            <select aria-label="Produkt für Nährwerte" value={produktName} onChange={e => setAuswahl(e.target.value)} style={{ width: '100%' }}>
+              {grundrezept.produkte.map(p => <option key={p.name}>{p.name}</option>)}
+            </select>
+          </label>}
+          <NaehrwertDruck rezept={rezept} customZutaten={customZutaten} />
           <div style={{ marginBottom: 10 }}>
             <strong style={{ fontSize: 13, color: 'var(--error)' }}>⚠️ Enthaltene Allergene (Pflicht-Kennzeichnung)</strong>
             <div style={{ fontSize: 14 }}>
@@ -93,7 +88,7 @@ export default function LmivBlock({ rezept, customZutaten }) {
                   <div
                     className="muted"
                     style={{ fontSize: 12, marginTop: 2 }}
-                    dangerouslySetInnerHTML={{ __html: `${z.bezeichnung}: ${z.lmiv}` }}
+                    children={`${z.bezeichnung || z.name}: ${z.lmiv.replace(/<[^>]*>/g, '')}`}
                   />
                 )}
               </div>
@@ -102,19 +97,19 @@ export default function LmivBlock({ rezept, customZutaten }) {
           {nw && (
             <div style={{ marginBottom: 10, fontSize: 13 }}>
               <strong>Nährwerte {bezug}</strong>
-              {bv === 0 && (
+              {rezept.backverlust_pct == null && (
                 <span style={{ color: 'var(--warning)' }}>
-                  {' '}— Backverlust nicht gepflegt! Für die LMIV-Deklaration in den Stammdaten eintragen (Brot typ. 10–13%).
+                  {' '}— Gemessenen Backverlust in den Stammdaten eintragen, um Werte für das fertige Produkt zu erhalten.
                 </span>
               )}
               {nw.fehlend.length > 0 && (
                 <span style={{ color: 'var(--error)' }}> (unvollständig — fehlend: {nw.fehlend.join(', ')})</span>
               )}
-              <div className="muted">
-                Energie {Math.round(nw.kcal)} kcal · Fett {nw.fett.toFixed(1)} g (ges. FS {nw.gfs.toFixed(1)} g) ·
+              {profil.vollstaendig && <div className="muted">
+                Energie {Math.round(nw.kj)} kJ / {Math.round(nw.kcal)} kcal · Fett {nw.fett.toFixed(1)} g (ges. FS {nw.gfs.toFixed(1)} g) ·
                 KH {nw.kh.toFixed(1)} g (Zucker {nw.zucker.toFixed(1)} g) · Ballaststoffe {nw.ballaststoffe.toFixed(1)} g ·
                 Eiweiß {nw.eiweiss.toFixed(1)} g · Salz {nw.salz.toFixed(2)} g
-              </div>
+              </div>}
             </div>
           )}
           <button className="btn" onClick={kopieren}>

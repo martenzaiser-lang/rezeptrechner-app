@@ -14,6 +14,7 @@ import { customIngredientsRouter } from './routes/custom-ingredients.js';
 import { pricesRouter } from './routes/prices.js';
 import { changelogRouter } from './routes/changelog.js';
 import { lmivRouter } from './routes/lmiv.js';
+import { backupRouter } from './routes/backup.js';
 
 export const app = express();
 
@@ -26,6 +27,7 @@ app.use(
   cors({
     // Mehrere Origins erlaubt (Test-Site + spaeter teigmaster), kommasepariert.
     origin: config.CORS_ORIGIN.split(',').map((s) => s.trim()),
+    exposedHeaders: ['ETag'],
   })
 );
 app.use(express.json({ limit: '5mb' }));
@@ -41,9 +43,9 @@ if (config.NODE_ENV !== 'test') {
 app.get('/api/health', async (_req, res) => {
   try {
     await pool.query('SELECT 1');
-    res.json({ ok: true, db: true });
+    res.json({ ok: true, db: true, version: process.env.RENDER_GIT_COMMIT || 'lokal' });
   } catch (err) {
-    res.status(503).json({ ok: false, db: false, error: err.message });
+    res.status(503).json({ ok: false, db: false });
   }
 });
 
@@ -54,9 +56,11 @@ app.use('/api/custom-ingredients', customIngredientsRouter);
 app.use('/api/prices', pricesRouter);
 app.use('/api/changelog', changelogRouter);
 app.use('/api/lmiv', lmivRouter);
+app.use('/api/backup', backupRouter);
 
 // Zentraler Error-Handler
 app.use((err, _req, res, _next) => {
   console.error('[error]', err.message);
-  res.status(err.status || 500).json({ error: err.message || 'Interner Fehler' });
+  const status = err.status || 500;
+  res.status(status).json({ error: status >= 500 ? 'Serverfehler. Bitte erneut versuchen.' : err.message, ...(status < 500 ? err.details : {}) });
 });

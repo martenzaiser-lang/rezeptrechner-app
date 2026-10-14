@@ -1,3 +1,4 @@
+import { istKeinTaMehl } from './calc/ta.js';
 // Batch-Zutaten-Parser — 1:1 aus der alten App (index.html Z. 4067-4075).
 // Format: "1000 Weizenmehl 550" oder "1.5kg Roggenmehl" oder "1000g Wasser"
 
@@ -6,7 +7,10 @@ export function parseBatchLine(line) {
   if (!line) return null;
   const match = line.match(/^([\d.,]+)\s*(kg|g)?\s+(.+)$/i);
   if (!match) return null;
-  let menge = parseFloat(match[1].replace(',', '.'));
+  const raw = match[1];
+  const normalized = /^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(raw) ? raw.replace(/\./g, '').replace(',', '.') : raw.replace(',', '.');
+  let menge = Number(normalized);
+  if (!Number.isFinite(menge)) return null;
   const einheit = (match[2] || 'g').toLowerCase();
   const name = match[3].trim();
   if (einheit === 'kg') menge *= 1000;
@@ -19,8 +23,8 @@ export function erkenneFlags(name, vorschlaege = []) {
   const lower = name.toLowerCase();
   const found = vorschlaege.find((v) => v.name.toLowerCase() === lower);
   return {
-    ist_mehl: found?.ist_mehl || lower.includes('mehl') || lower.includes('schrot'),
-    ist_wasser: found?.ist_wasser || lower === 'wasser',
+    ist_mehl: !istKeinTaMehl({ name }) && (found?.ist_mehl ?? (lower.includes('mehl') || lower.includes('schrot'))),
+    ist_wasser: found?.ist_wasser ?? (lower === 'wasser'),
   };
 }
 

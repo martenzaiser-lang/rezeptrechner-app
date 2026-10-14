@@ -1,65 +1,100 @@
-// Teigausbeute (TA) — 1:1 portiert aus der alten App (index.html Z. 2260-2316).
-//
-// Formel: TA = (Gesamtmehl + Schüttwasser) / Gesamtmehl × 100
-// Regeln:
-// - Mehl: ALLES Mehl zaehlt (inkl. Kochstueck, Quellstueck, Vorteig)
-// - Wasser: nur FREIES Wasser (Schuettwasser); gebundenes Wasser in
-//   Quell-/Koch-/Bruehstueck zaehlt NICHT
-// - Sauerteig: wird nach seiner TA aufgeteilt ("... TA 180" im Namen,
-//   Default TA 200 = Salzsauerteig: 50% Mehl / 50% Wasser)
-// - Fluessigkeiten (Milch, Ei, ...) zaehlen wie Wasser
-
-export const FLUESSIGKEITEN = ['milch', 'buttermilch', 'sahne', 'joghurt', 'kefir', 'ei', 'eier', 'vollei', 'eigelb', 'eiweiß', 'bier', 'saft', 'orangensaft', 'apfelsaft', 'wein'];
+// Fachbilanz über die gesamte Rezeptur, einschließlich aller Vorstufen.
+// ta_anteile beschreibt die Komponenten der angegebenen Grundmenge menge_kg.
+// Fertige Vorstufen dürfen nur einmal vorkommen: entweder Komponenten ODER
+// zusammengesetzte Zutat mit ta_anteile. Keine automatische TA-200-Annahme.
+const name = z => String(z?.name || '').trim().toLowerCase();
+export const istGewicht = z => !z.ist_kommentar && name(z) !== 'gesamt';
+export const istKeinTaMehl = z => /altbrot|ausschussbrot|restbrot|paniermehl|semmelbrösel|brotbrösel|sonnenblumenkern|kürbiskern|leinsaat|leinsamen|sesam|mandel|kokosmehl|nuss|nüsse|mohn|chia|saaten/.test(name(z));
+export const FLUESSIGKEITEN = ['wasser', 'milch', 'vollmilch', 'buttermilch', 'sahne', 'joghurt', 'kefir', 'ei', 'eier', 'vollei', 'eigelb', 'eiweiß', 'bier', 'saft', 'orangensaft', 'apfelsaft', 'wein', 'rum'];
 export const GEBUNDEN_KEYS = ['quell', 'koch', 'brüh'];
+export const isSauerteig = z => name(z).includes('sauerteig');
+export const istGebunden = z => GEBUNDEN_KEYS.some(k => String(z.bemerkung || '').toLowerCase().includes(k));
+export const isFluessigkeit = z => z.ta_rolle ? z.ta_rolle === 'fluessigkeit' : !/pulver|granulat|eiszeit/.test(name(z)) && (z.ist_wasser === true || FLUESSIGKEITEN.includes(name(z)));
+const istVorstufe = z => /sauerteig|vorteig|poolish|biga|kochstück|brühstück|quellstück|hefestück/.test(name(z)) || ['brotmischung', 'mischung', 'urstückteig', 'streusel'].includes(name(z));
+const kg = x => typeof x === 'number' && Number.isFinite(x) && x >= 0;
 
-export const isSauerteig = (z) => z.name.toLowerCase().includes('sauerteig');
-export const isFluessigkeit = (z) => z.ist_wasser || FLUESSIGKEITEN.some((f) => z.name.toLowerCase().includes(f));
-export const istGebunden = (z) => Boolean(z.bemerkung && GEBUNDEN_KEYS.some((k) => z.bemerkung.toLowerCase().includes(k)));
+export function rezeptart(r) {
+  if (['masse', 'teig', 'unbekannt'].includes(r.rezeptart)) return r.rezeptart;
+  if (/rührmasse|rührteig|biskuit|wiener\s*masse|brandmasse|brandteig|mürb(e|eteig)|sand(torten)?masse/.test(name(r))) return 'masse';
+  // Kuchen kann einen Hefeteig enthalten. Deshalb keine Gleichsetzung mit Masse.
+  return ['Brot', 'Brötchen', 'Feingebäck', 'Plunder', 'Berliner / Krapfen'].includes(r.kategorie) ? 'teig' : 'unbekannt';
+}
 
-// Sauerteig-TA aus Name extrahieren: "Roggensauerteig TA 180" → 180
-export const getSauerteigTA = (z) => {
-  const match = z.name.match(/ta\s*(\d+)/i);
-  return match ? parseInt(match[1]) : 200;
+export function getSauerteigTA(z) {
+  const match = name(z).match(/\bta\s*(\d+(?:[.,]\d+)?)/);
+  const value = z.vorstufe_ta ?? (match ? Number(match[1].replace(',', '.')) : null);
+  return typeof value === 'number' && Number.isFinite(value) && value >= 100 ? value : null;
+}
+
+export function taBilanz(r, sk) {
+  let mehl = 0, fluessigkeit = 0, gebunden = 0;
+  const fehler = [];
+  for (const [i, z] of (r.zutaten || []).entries()) {
+    if (!istGewicht(z)) continue;
+    const menge = sk ? sk[i] : z.menge_kg;
+    if (!kg(menge)) { fehler.push(`${z.name}: ungültige Menge`); continue; }
+    if (menge === 0) {
+      if (!sk && (z.zusatz_prozent > 0 || z.menge_pro_presse > 0)) fehler.push(`${z.name}: erst Produktionsmenge berechnen`);
+      continue;
+    }
+    let m = 0, w = 0;
+    if (z.ta_anteile) {
+      const a = z.ta_anteile;
+      if (!kg(a.mehl_kg) || !kg(a.fluessigkeit_kg) || !kg(z.menge_kg) || z.menge_kg <= 0 || a.mehl_kg + a.fluessigkeit_kg > z.menge_kg + 1e-9) {
+        fehler.push(`${z.name}: unplausible Vorstufenanteile`); continue;
+      }
+      const f = menge / z.menge_kg;
+      m = a.mehl_kg * f; w = a.fluessigkeit_kg * f;
+    } else if (z.ta_rolle === 'sonstiges') {
+      // Explizit als weder Mehl noch Flüssigkeit gepflegt.
+    } else if (istVorstufe(z) || z.ta_rolle === 'vorstufe') {
+      const t = getSauerteigTA(z);
+      if (z.vorstufe_nur_mehl_wasser !== true || t == null) {
+        fehler.push(`${z.name}: Mehl-/Flüssigkeitsanteile fehlen`); continue;
+      }
+      m = menge * 100 / t; w = menge - m;
+    } else if (istKeinTaMehl(z)) {
+      // Eigengewicht von Saaten und Altbrot gehört nicht zur Mehlbasis.
+    } else if ((z.ist_mehl || z.ta_rolle === 'mehl') && (FLUESSIGKEITEN.includes(name(z)) || /^(classic[- ]baguette|gluten|weizengluten|kleber)$/.test(name(z)))) {
+      fehler.push(`${z.name}: keine reine Mehlzutat; TA-Zuordnung bzw. Mehlanteile prüfen`); continue;
+    } else if (z.ist_mehl && z.ist_wasser) {
+      fehler.push(`${z.name}: widersprüchliche Mehl-/Wasserkennzeichnung`); continue;
+    } else if (z.ta_rolle === 'mehl' || (z.ist_mehl && !z.ta_rolle)) m = menge;
+    else if (isFluessigkeit(z)) w = menge;
+    mehl += m; fluessigkeit += w;
+    if (istGebunden(z) || /kochstück|quellstück|brühstück/.test(name(z))) gebunden += w;
+  }
+  return { mehl, fluessigkeit, gebunden, fehler };
+}
+
+export function taErgebnis(r, sk) {
+  const art = rezeptart(r);
+  if (art === 'masse') return { status: 'ignoriert', kategorie: 'Masse', ta: null };
+  if (art === 'unbekannt') return { status: 'unvollständig', ta: null, fehler: ['Rezeptart prüfen'] };
+  const b = taBilanz(r, sk);
+  if (b.fehler.length || b.mehl <= 0) return { ...b, status: 'unvollständig', ta: null };
+  return { ...b, status: 'korrekt', ta: +((b.mehl + b.fluessigkeit) / b.mehl * 100).toFixed(1) };
+}
+export const ta = (r, sk) => taErgebnis(r, sk).ta;
+export const taLabel = (r, sk) => {
+  const b = taErgebnis(r, sk);
+  return b.status === 'ignoriert' ? '' : b.ta == null ? 'TA nicht bestimmbar' : `TA ${b.ta}`;
+};
+export const mehlkg = r => { const b = taBilanz(r); return b.fehler.length ? null : b.mehl; };
+export const wasserkg = r => { const b = taBilanz(r); return b.fehler.length ? null : b.fluessigkeit; };
+export const gesamt = r => r.zutaten.filter(istGewicht).reduce((s,z) => s + (kg(z.menge_kg) ? z.menge_kg : 0), 0);
+// Bäckerprozente gelten auch für Massen; die TA wird hier NICHT aufgerufen.
+export const bp = (r,z) => { const m = mehlkg(r); return m > 0 && istGewicht(z) ? +(z.menge_kg / m * 100).toFixed(1) : null; };
+export const rohgew = r => {
+  const bv = r.backverlust_pct ?? 0, fg = r.stueckgewicht_g ?? 500;
+  return kg(bv) && bv < 100 && kg(fg) ? Math.round(fg * 100 / (100 - bv)) : null;
 };
 
-export const mehlkg = (r) => {
-  let m = r.zutaten.filter((z) => z.ist_mehl).reduce((s, z) => s + z.menge_kg, 0);
-  r.zutaten.filter((z) => isSauerteig(z)).forEach((z) => {
-    const taVal = getSauerteigTA(z);
-    m += z.menge_kg * (100 / taVal);
-  });
-  return m;
-};
-
-export const wasserkg = (r) => {
-  let w = r.zutaten.filter((z) => z.ist_wasser && !istGebunden(z)).reduce((s, z) => s + z.menge_kg, 0);
-  r.zutaten
-    .filter((z) => !z.ist_wasser && !z.ist_mehl && isFluessigkeit(z) && !istGebunden(z))
-    .forEach((z) => { w += z.menge_kg; });
-  r.zutaten.filter((z) => isSauerteig(z) && !istGebunden(z)).forEach((z) => {
-    const taVal = getSauerteigTA(z);
-    w += z.menge_kg * ((taVal - 100) / taVal);
-  });
-  return w;
-};
-
-export const gesamt = (r) => r.zutaten.reduce((s, z) => s + z.menge_kg, 0);
-
-export const ta = (r) => {
-  const m = mehlkg(r);
-  const w = wasserkg(r);
-  return m > 0 ? +(((m + w) / m) * 100).toFixed(1) : 0;
-};
-
-// Baeckerprozent einer Zutat (bezogen auf Gesamtmehl)
-export const bp = (r, z) => {
-  const m = mehlkg(r);
-  return m > 0 ? +((z.menge_kg / m) * 100).toFixed(1) : 0;
-};
-
-// Rohteiggewicht aus Fertiggewicht + Backverlust
-export const rohgew = (r) => {
-  const fg = r.stueckgewicht_g || 500;
-  const bv = r.backverlust_pct || 10;
-  return Math.round((fg * 100) / (100 - bv));
-};
+// Physisch nach dem Abkühlen wiegen: Soll - Ist ist das nachzufüllende Wasser.
+// Nur die Sollmenge in der Rezeptbilanz führen: Ausgleich NICHT doppelt addieren.
+// Funktion allein ersetzt noch keine Waage-/Eingabe-/Chargen-Dokumentation.
+export function kochstueckAusgleich(sollKg, abgekuehltKg) {
+  if (!kg(sollKg) || !kg(abgekuehltKg)) return { status: 'unvollständig', wasserNachfuellenKg: null };
+  if (abgekuehltKg > sollKg) return { status: 'prüfen', wasserNachfuellenKg: null };
+  return { status: 'korrekt', wasserNachfuellenKg: sollKg - abgekuehltKg };
+}

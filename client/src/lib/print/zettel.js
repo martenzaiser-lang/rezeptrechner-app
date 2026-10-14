@@ -1,35 +1,29 @@
+import { berechneBaker } from '../calc/bakerBerechnung.js';
 // Kochstueck-/Sauerteig-Zettel: aggregiert die heute gespeicherten
 // Baker-Eingaben (mind. 5 Stueck) — 1:1 aus der alten App
 // (showKochzettel Z. 3218, showSauerteigzettel Z. 3334,
 // printZettelBon Z. 3436).
 
-import { skaliere } from '../calc/skalierung.js';
-import { skaliereMultiProdukt } from '../calc/multiprodukt.js';
+import { istGewicht, isFluessigkeit } from '../calc/ta.js';
 import { ESCPOS, textToBytes, padBonLine16 } from './escpos.js';
 
-const MIN_STUECK = 5;
-
-function skaliereEingabe(r, eingabe) {
-  let sk;
-  if (eingabe.multi && r.produkte && r.produkte.length > 1) {
-    sk = skaliereMultiProdukt(r, eingabe.produktStueck || {});
-  } else {
-    sk = skaliere(r, eingabe.stueck || 1);
-  }
-  const faktor = eingabe.faktor || 1;
-  if (faktor !== 1) sk = sk.map((v) => +(v * faktor).toFixed(3));
-  return sk;
+function skaliereEingabe(r, eingabe, fehler) {
+  const result = berechneBaker(r, eingabe);
+  if (result?.fehler) fehler.push(`${r.name}: ${result.fehler}`);
+  return result?.sk || r.zutaten.map(() => 0);
 }
 
 function heutigeRezepte(rezepte, eingaben, heute, hatRelevanteZutat) {
   return Object.entries(eingaben)
     .filter(([id, e]) => {
       if (e.datum !== heute) return false;
-      const stueckzahl = e.multi
-        ? Object.values(e.produktStueck || {}).reduce((a, b) => a + b, 0)
-        : (e.stueck || 0);
-      if (stueckzahl < MIN_STUECK) return false;
       const r = rezepte.find((x) => x.id === id);
+      if (!r) return false;
+      const stueckzahl = r.produkte?.length > 1 && r.berechnung !== 'blech'
+        ? (r.produkte || []).reduce((sum, p) => sum + (e.produktStueck?.[p.name] || 0) * (p.stueck_pro_presse > 0 ? p.stueck_pro_presse : 1), 0)
+        : (e.stueck || 0);
+      if (r.berechnung !== 'blech' && !(stueckzahl * (e.faktor ?? 1) > 0)) return false;
+      if (r.berechnung === 'blech' && !(e.blechN > 0)) return false;
       return r ? hatRelevanteZutat(r) : false;
     })
     .map(([id]) => rezepte.find((r) => r.id === id))
@@ -40,20 +34,22 @@ function heutigeRezepte(rezepte, eingaben, heute, hatRelevanteZutat) {
 export function berechneKochzettel(rezepte, eingaben, heute) {
   const KEYS = ['kochstück', 'koch'];
   const markiert = heutigeRezepte(rezepte, eingaben, heute, (r) =>
-    r.zutaten.some((z) => z.bemerkung && KEYS.some((k) => z.bemerkung.toLowerCase().includes(k)))
+    r.zutaten.some(z => istGewicht(z) && KEYS.some(k => `${z.bemerkung || ''} ${z.name}`.toLowerCase().includes(k)))
   );
   if (!markiert.length) return null;
 
   const rezeptDaten = [];
+  const fehler = [];
   let gesamtKg = 0;
   markiert.forEach((r) => {
-    const sk = skaliereEingabe(r, eingaben[r.id]);
+    const sk = skaliereEingabe(r, eingaben[r.id], fehler);
     const zutaten = [];
     let wasserKg = 0;
     r.zutaten.forEach((z, idx) => {
-      if (!z.bemerkung || !KEYS.some((k) => z.bemerkung.toLowerCase().includes(k))) return;
+      if (!istGewicht(z) || !KEYS.some(k => `${z.bemerkung || ''} ${z.name}`.toLowerCase().includes(k))) return;
       const kg = sk[idx] || 0;
-      if (z.ist_wasser) wasserKg += kg;
+      if (kg <= 0) return;
+      if (isFluessigkeit(z)) wasserKg += kg;
       else zutaten.push({ name: z.name, kg });
       gesamtKg += kg;
     });
@@ -61,7 +57,7 @@ export function berechneKochzettel(rezepte, eingaben, heute) {
       rezeptDaten.push({ name: r.name, zutaten, wasser: wasserKg });
     }
   });
-  return { typ: 'koerner', data: rezeptDaten, gesamt: gesamtKg };
+  return rezeptDaten.length || fehler.length ? { typ: 'koerner', data: rezeptDaten, gesamt: gesamtKg, fehler } : null;
 }
 
 // Sauerteig-Zettel: Rezepte die Sauerteig VERWENDEN (Zutat-NAME enthaelt
@@ -73,9 +69,10 @@ export function berechneSauerteigzettel(rezepte, eingaben, heute) {
   if (!markiert.length) return null;
 
   const rezeptDaten = [];
+  const fehler = [];
   let gesamtKg = 0;
   markiert.forEach((r) => {
-    const sk = skaliereEingabe(r, eingaben[r.id]);
+    const sk = skaliereEingabe(r, eingaben[r.id], fehler);
     let sauerKg = 0;
     r.zutaten.forEach((z, idx) => {
       if (!z.name.toLowerCase().includes('sauerteig')) return;
@@ -86,7 +83,7 @@ export function berechneSauerteigzettel(rezepte, eingaben, heute) {
       gesamtKg += sauerKg;
     }
   });
-  return { typ: 'sauerteig', data: rezeptDaten, gesamt: gesamtKg };
+  return rezeptDaten.length || fehler.length ? { typ: 'sauerteig', data: rezeptDaten, gesamt: gesamtKg, fehler } : null;
 }
 
 // bonZutatBlock-Kopie (nicht exportiert in escpos.js — hier gleiche Logik)
@@ -145,6 +142,7 @@ export function generateZettelBonBytes(zettel, heute) {
       bytes.push(...textToBytes(padBonLine16('GESAMT', Math.round(zettel.gesamt * 1000) + ' g') + '\n'));
       bytes.push(...ESCPOS.NORMAL, ...ESCPOS.BOLD_OFF);
     }
+    bytes.push(...textToBytes('\nNach Abkuehlen netto wiegen.\nWasser bis Sollgewicht ergaenzen.\nAusgleich nicht doppelt rechnen.\n'));
   } else if (zettel.typ === 'sauerteig') {
     bytes.push(...ESCPOS.ALIGN_CENTER, ...ESCPOS.BOLD_ON, ...ESCPOS.DOUBLE_SIZE);
     bytes.push(...textToBytes('SAUERTEIG\n'));

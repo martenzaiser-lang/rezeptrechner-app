@@ -3,7 +3,8 @@
 // App (Z. 2908-2930). Sichtbarkeit pro Chip global steuerbar
 // (Admin-Einstellungen → anzeige-Prop, lib/anzeige.js).
 
-import { ta } from '../../lib/calc/ta.js';
+import { produktionsRezept } from '../../lib/calc/produktion.js';
+import { taLabel } from '../../lib/calc/ta.js';
 import { calcNutrition, getRezeptAllergene, formatAllergene } from '../../lib/calc/naehrwerteLookup.js';
 import { ANZEIGE_DEFAULTS } from '../../lib/anzeige.js';
 
@@ -14,12 +15,12 @@ export default function QuickInfo({ rezept, sk, anzeige = ANZEIGE_DEFAULTS, cust
   // rohe DB-Zeilen { name, data })
   const customMap = Object.fromEntries(customZutaten.map((c) => [c.name.toLowerCase(), c.data ?? c]));
   const nw = anzeige.naehrwerte && sk ? calcNutrition(r, sk, customMap) : null;
-  const allergene = anzeige.allergene ? getRezeptAllergene(r, customZutaten) : [];
+  const allergene = anzeige.allergene ? getRezeptAllergene(produktionsRezept(r, sk), customZutaten) : [];
 
   return (
     <div className="baker-quick-info">
-      {anzeige.ta && (
-        <span className="quick-chip highlight"><span className="chip-val">TA {ta(r)}</span></span>
+      {anzeige.ta && sk?.some(kg => kg > 0) && taLabel(r, sk) && (
+        <span className="quick-chip highlight"><span className="chip-val">{taLabel(r, sk)}</span></span>
       )}
       {anzeige.knetzeiten && (r.kz_langsam || r.kz_schnell) ? (
         <span className="quick-chip">🥣 <span className="chip-val">{r.kz_langsam || 0}/{r.kz_schnell || 0} min</span></span>
@@ -44,7 +45,7 @@ export default function QuickInfo({ rezept, sk, anzeige = ANZEIGE_DEFAULTS, cust
       ) : null}
       {nw?.vollstaendig && nw.gesamt > 0 && (
         <span className="quick-chip highlight">
-          🔥 <span className="chip-val">{Math.round(nw.kcal / (nw.gesamt / 100))}</span> kcal/100g
+          🔥 <span className="chip-val">{Math.round(nw.kcal / (nw.gesamt / 100))}</span> kcal/100 g ungebacken
         </span>
       )}
       {nw && !nw.vollstaendig && nw.fehlend.length > 0 && (

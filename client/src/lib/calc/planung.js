@@ -3,24 +3,31 @@
 //
 // planungData = { rezeptId: stueckzahl }
 
-import { skaliere } from './skalierung.js';
+import { berechneBaker } from './bakerBerechnung.js';
+import { taBilanz, istGewicht, isFluessigkeit, istKeinTaMehl } from './ta.js';
 
 export function berechnePlanung(rezepte, planungData) {
-  const results = { zutaten: {}, koerner: {}, sauerteig: {}, teige: [] };
+  const results = { zutaten: Object.create(null), koerner: Object.create(null), sauerteig: Object.create(null), teige: [], fehler: [], gesamtMehl: 0 };
   let totalTeig = 0;
 
-  Object.entries(planungData).forEach(([id, stueck]) => {
-    if (stueck <= 0) return;
+  Object.entries(planungData).forEach(([id, menge]) => {
     const r = rezepte.find((x) => x.id === id);
     if (!r) return;
-    const sk = skaliere(r, stueck);
-    const gt = sk.reduce((a, b) => a + b, 0);
+    const e = typeof menge === 'number' ? { stueck: menge, blechN: menge } : menge;
+    const berechnet = berechneBaker(r, e);
+    if (berechnet?.fehler) { results.fehler.push(`${r.name}: ${berechnet.fehler}`); return; }
+    if (!berechnet || berechnet.teigGesamtKg <= 0) return;
+    const { sk, teigGesamtKg: gt } = berechnet;
+    const bilanz = taBilanz(r,sk);
+    if (bilanz.fehler.length) results.gesamtMehl = null;
+    else if (results.gesamtMehl != null) results.gesamtMehl += bilanz.mehl;
     totalTeig += gt;
-    results.teige.push({ name: r.name, stueck, gewicht: gt });
+    results.teige.push({ id: r.id, name: r.name, stueck: berechnet.stueckzahl, mengeText: berechnet.isBlech ? `${berechnet.blechAnzahl} Blech` : `${berechnet.stueckzahl} Stück`, gewicht: gt });
     r.zutaten.forEach((z, idx) => {
       const menge = sk[idx] || 0;
+      if (!istGewicht(z) || menge <= 0) return;
       if (!results.zutaten[z.name]) {
-        results.zutaten[z.name] = { menge: 0, ist_mehl: z.ist_mehl, ist_wasser: z.ist_wasser };
+        results.zutaten[z.name] = { menge: 0, ist_mehl: !istKeinTaMehl(z) && (z.ta_rolle === 'mehl' || (!z.ta_rolle && z.ist_mehl)), ist_wasser: isFluessigkeit(z) };
       }
       results.zutaten[z.name].menge += menge;
       const bem = (z.bemerkung || '').toLowerCase();

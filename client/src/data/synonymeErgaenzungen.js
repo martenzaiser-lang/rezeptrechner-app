@@ -15,6 +15,12 @@
 //   von Marten bestätigt 2026-07-22.
 
 export const SYNONYME_ERGAENZUNGEN = {
+  'erdbeere-sahnessa': 'sahnessa erdbeer',
+  'himbeere-sahnessa': 'sahnessa himbeer',
+  'zitrone-sahnessa': 'sahnessa zitrone',
+  'neutral-sahnessa': 'sahnessa neutral',
+  'sahnessen käse-sahne': 'sahnessa käse-sahne',
+  'variopan (meistermarken)': 'variopan',
   'easy rühr': 'rühr & easy',
   'käsekuchenpulver': 'käsekuchen-basis',
   'neutral': 'sahnessa neutral',

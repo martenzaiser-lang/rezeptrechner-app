@@ -28,6 +28,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       // Bei jedem Page-Load und alle 30 min nach Update fragen
       reg.update().catch(() => {});
       setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
 
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;

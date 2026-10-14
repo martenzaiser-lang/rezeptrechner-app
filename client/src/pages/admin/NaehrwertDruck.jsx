@@ -1,0 +1,38 @@
+import { createPortal } from 'react-dom';
+import { useEffect } from 'react';
+import { Printer } from 'lucide-react';
+import { produktNaehrwerte } from '../../lib/calc/produktNaehrwerte.js';
+import '../../styles/print.css';
+
+const fmt = (n, stellen = 1) => n.toLocaleString('de-DE', { minimumFractionDigits: stellen, maximumFractionDigits: stellen });
+export default function NaehrwertDruck({ rezept, customZutaten }) {
+  useEffect(() => () => { delete document.body.dataset.printMode; }, []);
+  const { werte: nw, vollstaendig, fehlend, bezug } = produktNaehrwerte(rezept, customZutaten);
+  function drucken() {
+    if (!vollstaendig) return;
+    document.body.dataset.printMode = 'nutrition';
+    const cleanup = () => { delete document.body.dataset.printMode; };
+    window.addEventListener('afterprint', cleanup, { once: true });
+    window.print();
+  }
+  return <>
+    <button className="btn" onClick={drucken} disabled={!vollstaendig} title={vollstaendig ? bezug : `Nährwerte fehlen: ${fehlend.join(', ') || 'keine Zutatenmenge'}`}>
+      <Printer size={15} /> Nur Nährwerte drucken
+    </button>
+    {createPortal(<section id="nutrition-print-sheet" aria-hidden="true">
+      {vollstaendig && <>
+        <h1>{rezept.name}</h1>
+        <h2>Durchschnittliche Nährwerte</h2>
+        <p>{bezug}</p>
+        <table><tbody>
+          <tr><th scope="row">Energie</th><td>{fmt(nw.kj, 0)} kJ / {fmt(nw.kcal, 0)} kcal</td></tr>
+          {[
+            ['Fett', 'fett'], ['davon gesättigte Fettsäuren', 'gfs'],
+            ['Kohlenhydrate', 'kh'], ['davon Zucker', 'zucker'],
+            ['Ballaststoffe', 'ballaststoffe'], ['Eiweiß', 'eiweiss'], ['Salz', 'salz'],
+          ].map(([label, key]) => <tr key={key}><th scope="row">{label}</th><td>{fmt(nw[key], key === 'salz' ? 2 : 1)} g</td></tr>)}
+        </tbody></table>
+      </>}
+    </section>, document.body)}
+  </>;
+}

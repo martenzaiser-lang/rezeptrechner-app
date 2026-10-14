@@ -5,6 +5,7 @@ const ConfirmContext = createContext(null);
 export function ConfirmProvider({ children }) {
   const [state, setState] = useState(null);
   const confirmBtnRef = useRef(null);
+  const cancelBtnRef = useRef(null);
 
   const confirm = useCallback((opts = {}) => {
     return new Promise((resolve) => {
@@ -28,13 +29,15 @@ export function ConfirmProvider({ children }) {
 
   useEffect(() => {
     if (!state) return undefined;
+    const previous = document.activeElement;
     const onKey = (e) => {
-      if (e.key === 'Escape') close(false);
-      else if (e.key === 'Enter') close(true);
+      if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); close(false); }
+      if (e.key === 'Tab') { e.preventDefault(); (document.activeElement === cancelBtnRef.current ? confirmBtnRef : cancelBtnRef).current?.focus(); }
+      // Enter aktiviert den fokussierten Button über dessen natives Klickverhalten.
     };
-    window.addEventListener('keydown', onKey);
-    confirmBtnRef.current?.focus();
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
+    (state.danger ? cancelBtnRef : confirmBtnRef).current?.focus();
+    return () => { window.removeEventListener('keydown', onKey, true); previous?.focus(); };
   }, [state, close]);
 
   return (
@@ -52,7 +55,7 @@ export function ConfirmProvider({ children }) {
             <h2 id="confirm-title">{state.title}</h2>
             {state.message && <p className="confirm-message">{state.message}</p>}
             <div className="confirm-actions">
-              <button type="button" className="btn btn-ghost" onClick={() => close(false)}>
+              <button ref={cancelBtnRef} type="button" className="btn btn-ghost" onClick={() => close(false)}>
                 {state.cancelText}
               </button>
               <button

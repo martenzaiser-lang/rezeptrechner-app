@@ -1,18 +1,6 @@
-// Naehrwert-/Allergen-Lookup — portiert aus der alten App.
-//
-// Es gibt ZWEI Naehrwert-Systeme (wie im Original):
-// 1. getNaehrwert/calcNutrition (NAEHRWERTE_DEFAULT: kcal/protein/carbs/fat
-//    + a: Allergen-Hauptcodes) — fuer die Baker-Quick-Chips (Z. 2702-2756)
-// 2. findNaehrwerte/berechneNaehrwerte (ZUTAT_NAEHRWERTE: 8-Feld LMIV)
-//    — fuer den LMIV-Block im Admin (Z. 5737 ff.)
-//
-// Lookup-Prioritaet (Original): custom > Meistermarken/IREKS > default > fuzzy.
-// NEU gegenueber alt: IREKS_DATEN (11 Produkte aus den Qualitaetszertifikaten)
-// und HERSTELLER_ERGAENZUNGEN werden gleichrangig mit den Meistermarken
-// behandelt.
-//
-// Custom-Zutaten kommen jetzt aus der DB (custom_ingredients) statt
-// localStorage: als Objekt { nameLowerCase: data }.
+// Gemeinsame Nährwertquelle für Anzeige, Druck und Server.
+// Eigene Angaben > exakt zugeordnete Herstellerdaten > belegte Rohstoffreferenz.
+// Fehlende Werte und ungeprüfte Quellen sind keine Nullwerte.
 
 import { EU_ALLERGENE, ZUTAT_ALLERGENE, ALLERGEN_NAMEN } from '../../data/allergene.js';
 import { MEISTERMARKEN_DATEN } from '../../data/meistermarken.js';
@@ -21,11 +9,22 @@ import { IREKS_DATEN, IREKS_SYNONYME } from '../../data/ireks.js';
 import { SYNONYME_ERGAENZUNGEN } from '../../data/synonymeErgaenzungen.js';
 import { HERSTELLER_ERGAENZUNGEN } from '../../data/herstellerErgaenzungen.js';
 import { ZUTAT_NAEHRWERTE } from '../../data/naehrwerte.js';
-import { NAEHRWERTE_DEFAULT } from '../../data/naehrwerteDefault.js';
+import { istGewicht } from './ta.js';
+import { ROHSTOFF_ERGAENZUNGEN } from '../../data/rohstoffErgaenzungen.js';
+import { ROHSTOFF_SYNONYME } from '../../data/rohstoffSynonyme.js';
+
+const NWF = ['kj', 'kcal', 'eiweiss', 'fett', 'gfs', 'kh', 'zucker', 'ballaststoffe', 'salz'];
+const gueltig = n => typeof n === 'number' && Number.isFinite(n) && n >= 0;
+function normalisiereNw(n) {
+  if (!n) return null;
+  const d = n.data || n;
+  return { ...d, eiweiss: d.eiweiss ?? d.protein, fett: d.fett ?? d.fat,
+    kh: d.kh ?? d.carbs, zucker: d.zucker ?? d.sugar, ballaststoffe: d.ballaststoffe ?? d.fiber };
+}
 
 // Hersteller-Datenblaetter zusammenfuehren (CSM/Meistermarken + IREKS
 // + nachtraegliche Ergaenzungen wie Dawn)
-const HERSTELLER_DATEN = { ...MEISTERMARKEN_DATEN, ...IREKS_DATEN, ...HERSTELLER_ERGAENZUNGEN };
+const HERSTELLER_DATEN = Object.fromEntries(Object.entries({ ...MEISTERMARKEN_DATEN, ...IREKS_DATEN, ...HERSTELLER_ERGAENZUNGEN }).map(([k,v]) => [k.toLowerCase().trim(), v]));
 // SYNONYME_ERGAENZUNGEN: neue CSM-Synonyme aus den echten Rezeptnamen
 // (synonyme.js selbst ist verbatim-verifiziert und darf nicht wachsen).
 const HERSTELLER_SYNONYME = { ...MEISTERMARKEN_SYNONYME, ...IREKS_SYNONYME, ...SYNONYME_ERGAENZUNGEN };
@@ -35,45 +34,40 @@ export function findHersteller(zutatName) {
   if (!zutatName) return null;
   const name = zutatName.toLowerCase().trim();
   if (HERSTELLER_DATEN[name]) return HERSTELLER_DATEN[name];
-  if (HERSTELLER_SYNONYME[name]) return HERSTELLER_DATEN[HERSTELLER_SYNONYME[name]];
-  for (const key of Object.keys(HERSTELLER_DATEN)) {
-    if (name.includes(key)) return HERSTELLER_DATEN[key];
+  if (HERSTELLER_SYNONYME[name]) {
+    const d = HERSTELLER_DATEN[HERSTELLER_SYNONYME[name].toLowerCase()];
+    // Altbestand widerspricht sich zwischen Preisimport und Nährwertzuordnung.
+    // Beide vorhandenen Kandidaten nennen dieselben Allergene/Spuren.
+    if (['baguette-backmittel', 'baguette backmittel'].includes(name)) return {
+      ...d, datenstatus: 'ungeprueft', zutaten_lmiv: null,
+      bezeichnung: 'Baguette-Backmittel (Produktzuordnung offen)',
+      quelle: 'Weizenback 1856 oder Classic Baguette: verwendeten Artikel bestätigen.',
+    };
+    return d;
   }
-  for (const syn of Object.keys(HERSTELLER_SYNONYME)) {
-    if (name.includes(syn)) return HERSTELLER_DATEN[HERSTELLER_SYNONYME[syn]];
-  }
+  // Keine Teilwortsuche: „Dinkelbackmittel“ darf nicht „Backmittel/Eiszeit“ treffen.
   return null;
 }
 
 // Adapter (Original Z. 5184/5191)
-function herstellerToNw1(m) {
-  if (!m) return null;
-  const hauptAllergene = [...new Set((m.allergene || []).map((c) => c.charAt(0)))];
-  return { kcal: m.kcal, protein: m.eiweiss, carbs: m.kh, fat: m.fett, fiber: m.ballaststoffe, sugar: m.zucker, a: hauptAllergene };
-}
 function herstellerToNw2(m) {
   if (!m) return null;
-  return { kcal: m.kcal, eiweiss: m.eiweiss, fett: m.fett, gfs: m.gfs, kh: m.kh, zucker: m.zucker, ballaststoffe: m.ballaststoffe, salz: m.salz };
+  return { ...m };
 }
 
 // getNaehrwert (Original Z. 2702) — customNaehrwerte: { nameLower: {kcal,protein,carbs,fat,a[]} }
 export function getNaehrwert(zutatName, customNaehrwerte = {}) {
-  const name = zutatName.toLowerCase().trim();
-  if (customNaehrwerte[name]) return customNaehrwerte[name];
-  const m = findHersteller(name);
-  if (m) return herstellerToNw1(m);
-  if (NAEHRWERTE_DEFAULT[name]) return NAEHRWERTE_DEFAULT[name];
-  const key = Object.keys(NAEHRWERTE_DEFAULT).find((k) => name.includes(k) || k.includes(name));
-  if (key) return NAEHRWERTE_DEFAULT[key];
-  if (name.includes('mehl')) return NAEHRWERTE_DEFAULT['weizenmehl 550'];
-  if (name.includes('sauer')) return NAEHRWERTE_DEFAULT['roggensauerteig'];
-  return null;
+  const custom = Object.entries(customNaehrwerte).map(([name, data]) => ({ name, ...data }));
+  const nw = findNaehrwerte(zutatName, custom);
+  if (!nw || ['ungeprueft', 'widerspruechlich'].includes(nw.datenstatus) || !NWF.every(k => gueltig(nw[k]))) return null;
+  return { ...nw, protein: nw.eiweiss, carbs: nw.kh, fat: nw.fett, a: nw.a || nw.allergene || [] };
 }
 
 // calcNutrition (Original Z. 2739) — Anzeige nur bei >= 99% erfasster Menge
 export function calcNutrition(r, skaliert, customNaehrwerte = {}) {
   const tot = { kcal: 0, protein: 0, carbs: 0, fat: 0, erfasst: 0, gesamt: 0, fehlend: [] };
   r.zutaten.forEach((z, i) => {
+    if (!istGewicht(z)) return;
     const g = (skaliert[i] || 0) * 1000;
     if (g <= 0) return;
     tot.gesamt += g;
@@ -89,7 +83,7 @@ export function calcNutrition(r, skaliert, customNaehrwerte = {}) {
       tot.fehlend.push(z.name);
     }
   });
-  tot.vollstaendig = tot.gesamt > 0 && tot.erfasst >= tot.gesamt * 0.99;
+  tot.vollstaendig = tot.gesamt > 0 && tot.fehlend.length === 0;
   return tot;
 }
 
@@ -119,9 +113,10 @@ export function getRezeptAllergene(rezept, customZutaten = []) {
   const allergenFrei = ['wasser', 'salz', 'zucker', 'honig', 'rübensirup', 'sonnenblumenkerne', 'kürbiskerne', 'leinsamen', 'chiasamen', 'mohn', 'sonnenblumenöl', 'rapsöl', 'olivenöl', 'hefe', 'frischhefe', 'trockenhefe', 'backpulver', 'kümmel', 'koriander', 'fenchel', 'anis', 'zimt', 'pfeffer', 'brotgewürz', 'kürbis', 'karotten', 'rote bete', 'süßkartoffel', 'kartoffel', 'rosinen', 'sultaninen', 'orangensaft', 'buchweizenmehl', 'maismehl', 'reismehl', 'hopfenmehl'];
 
   rezept.zutaten.forEach((z) => {
+    if (!istGewicht(z)) return;
     const name = z.name.toLowerCase().trim();
     const isPflanzlich = excludeFromDairy.test(name);
-    const isAllergenFrei = allergenFrei.some((af) => name.includes(af));
+    const isAllergenFrei = allergenFrei.includes(name);
 
     // 0a. Eigene Zutat-Daten (DB) — von Marten gepflegt, schlagen alles
     if (customMap[name]) {
@@ -141,19 +136,6 @@ export function getRezeptAllergene(rezept, customZutaten = []) {
     if (direkt !== undefined) {
       direkt.forEach((a) => allergene.add(a));
       return;
-    }
-
-    // 2. Teilstring-Match
-    for (const [key, codes] of Object.entries(ZUTAT_ALLERGENE)) {
-      if (name.includes(key) || key.includes(name)) {
-        if (codes.length > 0) {
-          codes.forEach((c) => {
-            if (c === 'G' && isPflanzlich) return;
-            allergene.add(c);
-          });
-        }
-        return;
-      }
     }
 
     // 3. Bekannt allergenfrei
@@ -186,13 +168,7 @@ export function getRezeptAllergene(rezept, customZutaten = []) {
       }
     }
 
-    // 5. Mehl-Flag ohne erkanntes Gluten → Default Weizen
-    if (z.ist_mehl) {
-      const hasGluten = ['Aa', 'Ab', 'Ac', 'Ad', 'Ae', 'Af', 'Ag', 'Ah'].some((c) => allergene.has(c));
-      if (!hasGluten && (name.includes('mehl') || /\b(405|550|812|1050|1600)\b/.test(name))) {
-        allergene.add('Aa');
-      }
-    }
+    // Eine Mehl-Markierung belegt keine Getreideart und damit auch kein Weizenallergen.
   });
 
   return [...allergene].sort();
@@ -214,9 +190,13 @@ export function formatAllergene(allergenCodes, asString = false) {
 }
 
 // getRezeptSpuren (Original Z. 5703)
-export function getRezeptSpuren(rezept) {
+export function getRezeptSpuren(rezept, customZutaten = []) {
   const spuren = new Set();
   rezept.zutaten.forEach((z) => {
+    if (!istGewicht(z)) return;
+    const c = customZutaten.find(c => c.name?.toLowerCase().trim() === z.name.toLowerCase().trim());
+    const eigen = c?.data?.spuren ?? c?.spuren;
+    if (Array.isArray(eigen)) { eigen.forEach(s => spuren.add(s)); return; }
     const m = findHersteller(z.name);
     if (m && m.spuren) m.spuren.forEach((s) => spuren.add(s));
   });
@@ -225,13 +205,15 @@ export function getRezeptSpuren(rezept) {
 
 // getRezeptLmivZutaten (Original Z. 5716): Zutatenverzeichnis absteigend
 // nach Anteil, mit Unterzutaten aus Hersteller-Datenblaettern.
-export function getRezeptLmivZutaten(rezept) {
-  const gesamtKg = rezept.zutaten.reduce((s, z) => s + (z.menge_kg || 0), 0);
+export function getRezeptLmivZutaten(rezept, customZutaten = []) {
+  const gesamtKg = rezept.zutaten.filter(z => !z.ist_kommentar && z.name.toLowerCase() !== 'gesamt').reduce((s, z) => s + (z.menge_kg || 0), 0);
   if (gesamtKg <= 0) return [];
   return rezept.zutaten
     .filter((z) => (z.menge_kg || 0) > 0 && !z.ist_kommentar && z.name.toLowerCase() !== 'gesamt')
     .map((z) => {
-      const m = findHersteller(z.name);
+      const c = customZutaten.find(c => c.name?.toLowerCase().trim() === z.name.toLowerCase().trim());
+      const eigen = c?.data || c;
+      const m = eigen?.zutaten_lmiv != null ? eigen : findHersteller(z.name);
       return {
         name: z.name,
         anteil: ((z.menge_kg || 0) / gesamtKg) * 100,
@@ -246,11 +228,13 @@ export function getRezeptLmivZutaten(rezept) {
 // findNaehrwerte 8-Feld (Original Z. 5737) — customZutaten: Array [{name, ...8-Feld}]
 export function findNaehrwerte(zutatName, customZutaten = []) {
   const name = zutatName.toLowerCase().trim();
+  const custom = customZutaten.find((z) => z.name.toLowerCase() === name);
+  if (custom) return normalisiereNw(custom);
 
   const m = findHersteller(name);
   if (m) return herstellerToNw2(m);
 
-  const direkt = direktEintrag(ZUTAT_NAEHRWERTE, name);
+  const direkt = direktEintrag({ ...ZUTAT_NAEHRWERTE, ...ROHSTOFF_ERGAENZUNGEN }, ROHSTOFF_SYNONYME[name] || name);
   if (direkt !== undefined) return direkt;
 
   // BEWUSSTE Abweichung vom Original (Bugfix 2026-07): das Original liess
@@ -258,57 +242,30 @@ export function findNaehrwerte(zutatName, customZutaten = []) {
   // Zucker fuer ALLE Custom-Zutaten als 0 summiert (LMIV: Werte zu niedrig
   // ausgewiesen). Die DB-Eintraege (ZutatDatenModal + Seed) fuehren beide
   // Felder, sie werden jetzt mit durchgereicht.
-  const custom = customZutaten.find((z) => z.name.toLowerCase() === name);
-  if (custom) return { kcal: custom.kcal, eiweiss: custom.eiweiss, fett: custom.fett, gfs: custom.gfs, kh: custom.kh, zucker: custom.zucker, ballaststoffe: custom.ballaststoffe, salz: custom.salz };
 
-  for (const [key, nw] of Object.entries(ZUTAT_NAEHRWERTE)) {
-    if (name.includes(key) || key.includes(name)) return nw;
-  }
 
-  const mehlMatch = name.match(/(weizen|roggen|dinkel)(voll)?korn?(mehl)?\s*(\d+)?/);
-  if (mehlMatch) {
-    const typ = mehlMatch[1];
-    const vollkorn = mehlMatch[2];
-    const nummer = mehlMatch[4];
-    if (vollkorn) {
-      const key = typ + 'vollkornmehl';
-      if (ZUTAT_NAEHRWERTE[key]) return ZUTAT_NAEHRWERTE[key];
-    }
-    if (nummer) {
-      const key = typ + 'mehl ' + nummer;
-      if (ZUTAT_NAEHRWERTE[key]) return ZUTAT_NAEHRWERTE[key];
-    }
-    if (typ === 'weizen') return ZUTAT_NAEHRWERTE['weizenmehl 550'] || null;
-    if (typ === 'roggen') return ZUTAT_NAEHRWERTE['roggenmehl 1150'] || null;
-    if (typ === 'dinkel') return ZUTAT_NAEHRWERTE['dinkelmehl 630'] || null;
-  }
+  // Rohstoffe nur eindeutig zuordnen; Produktzusätze dürfen die Identität nicht ändern.
 
-  if (name.includes('mehl') || name.includes('schrot')) return ZUTAT_NAEHRWERTE['weizenmehl 550'];
-  if (name.includes('wasser')) return ZUTAT_NAEHRWERTE['wasser'];
-  if (name.includes('salz')) return ZUTAT_NAEHRWERTE['salz'];
-  if (name.includes('hefe')) return ZUTAT_NAEHRWERTE['hefe'];
-  if (name.includes('zucker')) return ZUTAT_NAEHRWERTE['zucker'];
-  if (name.includes('butter')) return ZUTAT_NAEHRWERTE['butter'];
-  if (name.includes('öl')) return ZUTAT_NAEHRWERTE['rapsöl'];
 
   return null;
 }
 
 // berechneNaehrwerte 8-Feld pro 100g Teig (Original Z. 5791)
 export function berechneNaehrwerte(rezept, customZutaten = []) {
-  const gesamtKg = rezept.zutaten.reduce((s, z) => s + (z.menge_kg || 0), 0);
+  const gesamtKg = rezept.zutaten.filter(z => !z.ist_kommentar && z.name.toLowerCase() !== 'gesamt').reduce((s, z) => s + (z.menge_kg || 0), 0);
   if (gesamtKg === 0) return null;
 
-  const summe = { kcal: 0, eiweiss: 0, fett: 0, gfs: 0, kh: 0, zucker: 0, ballaststoffe: 0, salz: 0 };
+  const summe = { kj: 0, kcal: 0, eiweiss: 0, fett: 0, gfs: 0, kh: 0, zucker: 0, ballaststoffe: 0, salz: 0 };
   let gefunden = 0;
   const fehlend = [];
 
   rezept.zutaten.forEach((z) => {
-    if (z.ist_kommentar || !(z.menge_kg > 0)) return;
+    if (z.ist_kommentar || z.name.toLowerCase() === 'gesamt' || !(z.menge_kg > 0)) return;
     const nw = findNaehrwerte(z.name, customZutaten);
-    if (nw) {
+    if (nw && !['ungeprueft', 'widerspruechlich'].includes(nw.datenstatus) && NWF.every(k => gueltig(nw[k]))) {
       gefunden++;
       const anteil = z.menge_kg / gesamtKg;
+      summe.kj += nw.kj * anteil;
       summe.kcal += (nw.kcal || 0) * anteil;
       summe.eiweiss += (nw.eiweiss || 0) * anteil;
       summe.fett += (nw.fett || 0) * anteil;

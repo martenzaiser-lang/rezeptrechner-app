@@ -8,7 +8,10 @@ export const getEingabenKey = (role) =>
 
 export function loadEingaben(role) {
   try {
-    return JSON.parse(localStorage.getItem(getEingabenKey(role)) || '{}');
+    const parsed = JSON.parse(localStorage.getItem(getEingabenKey(role)) || '{}');
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    for (const e of Object.values(parsed)) if (e && e.faktor === 0.333) e.faktor = 1 / 3;
+    return parsed;
   } catch {
     return {};
   }

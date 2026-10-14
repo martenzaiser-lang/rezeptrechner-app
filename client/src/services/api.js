@@ -27,14 +27,21 @@ async function request(method, path, body, opts = {}) {
 
   trackActivity(1);
   let res;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 90_000);
   try {
     res = await fetch(BASE + path, {
       method,
       headers,
+      signal: controller.signal,
       cache: 'no-store',
       body: body == null ? undefined : JSON.stringify(body),
     });
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error(method === 'GET' ? 'Server antwortet nicht rechtzeitig. Bitte erneut laden.' : 'Antwort ausgeblieben. Speicherstatus vor einem erneuten Versuch prüfen.');
+    throw err;
   } finally {
+    clearTimeout(timeout);
     trackActivity(-1);
   }
 
@@ -44,12 +51,9 @@ async function request(method, path, body, opts = {}) {
   if (!res.ok) {
     let detail = '';
     let resBody = null;
-    try {
-      resBody = await res.json();
-      detail = resBody.error || JSON.stringify(resBody);
-    } catch {
-      detail = await res.text();
-    }
+    const raw = await res.text();
+    try { resBody = JSON.parse(raw); detail = resBody.error || 'Anfrage fehlgeschlagen'; }
+    catch { detail = 'Server hat keine gültige Datenantwort geliefert'; }
     // Bei 401: Token ungueltig oder abgelaufen → ausloggen.
     // Ausnahme: Offline-Betrieb wird im DataContext behandelt (skipAuthRedirect).
     if (res.status === 401 && !opts.skipAuthRedirect) {
@@ -57,7 +61,6 @@ async function request(method, path, body, opts = {}) {
       localStorage.removeItem('auth_email');
       localStorage.removeItem('auth_role');
       window.location.href = '/login';
-      return;
     }
     const err = new Error(`${method} ${path} → ${res.status}: ${detail}`);
     err.status = res.status;
@@ -71,6 +74,8 @@ async function request(method, path, body, opts = {}) {
 }
 
 export const api = {
+  getBackup: () => request('GET', '/api/backup'),
+  restoreBackup: (backup, expectedRevision) => request('POST', '/api/backup/restore', { backup, expectedRevision }),
   // Health (auch fuer Cloud-Status-Indicator)
   health: () => request('GET', '/api/health', null, { skipAuthRedirect: true }),
 
@@ -84,7 +89,7 @@ export const api = {
     }),
   createRecipe: (recipe) => request('POST', '/api/recipes', recipe),
   updateRecipe: (id, recipe) => request('PUT', `/api/recipes/${encodeURIComponent(id)}`, recipe),
-  deleteRecipe: (id) => request('DELETE', `/api/recipes/${encodeURIComponent(id)}`),
+  deleteRecipe: (id, version) => request('DELETE', `/api/recipes/${encodeURIComponent(id)}`, { _version: version }),
   bulkUpsertRecipes: (recipes, mode) => request('POST', '/api/recipes/bulk', { recipes, mode }),
 
   // Einstellungen
@@ -108,13 +113,7 @@ export const api = {
 
 export const auth = {
   async login(email, password) {
-    const res = await fetch(BASE + '/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Login fehlgeschlagen');
+    const data = await request('POST', '/api/auth/login', { email, password }, { skipAuthRedirect: true });
     localStorage.setItem('auth_token', data.token);
     localStorage.setItem('auth_email', data.email);
     localStorage.setItem('auth_role', data.role);

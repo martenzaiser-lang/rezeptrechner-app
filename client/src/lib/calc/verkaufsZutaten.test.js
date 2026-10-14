@@ -89,26 +89,13 @@ describe('getRezeptVerkaufsZutaten — Aufschluesselung ohne Duplikate', () => {
     ],
   };
 
-  it('loest das Backmittel auf und entfernt Duplikate', () => {
+  it('hält unbekannte Unterzutatenmengen innerhalb ihrer zusammengesetzten Zutat', () => {
     const liste = getRezeptVerkaufsZutaten(rezept);
-
-    // Markenname verschwindet, Komponenten erscheinen
-    expect(liste).not.toContain('Classic Baguette');
-    expect(liste).toContain('getrockneter WEIZENvorteig');
-    expect(liste).toContain('WEIZENkleber');
-
-    // Rezept-Zutat gewinnt, Backmittel-Doppelung faellt weg
-    expect(liste).toContain('Weizenmehl 550');
-    expect(liste).not.toContain('WEIZENmehl');
-    expect(liste.filter((z) => dedupeKey(z) === 'salz')).toEqual(['Salz']);
-
-    // Reihenfolge: nach Rezept-Anteil absteigend (Backmittel 0,3 kg liegt
-    // vor Salz 0,2 kg, seine Komponenten erscheinen an seiner Position)
-    expect(liste.slice(0, 2)).toEqual(['Weizenmehl 550', 'Wasser']);
-
-    // keine kompletten Duplikate
-    const keys = liste.map(dedupeKey);
-    expect(new Set(keys).size).toBe(keys.length);
+    expect(liste.slice(0,2)).toEqual(['Weizenmehl 550','Wasser']);
+    expect(liste[2]).toContain('WEIZENmehl');
+    expect(liste[2]).toContain('Stabilisator');
+    expect(liste[3]).toBe('Salz');
+    expect(liste).toHaveLength(4);
   });
 
   it('Kenntlichmachung (LMIDV Anlage 4) aus Backmittel-Datenblaettern', () => {

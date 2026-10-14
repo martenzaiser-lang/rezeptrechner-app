@@ -42,6 +42,10 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
   const [fuerProdukte, setFuerProdukte] = useState(z.fuer_produkte || []);
   const [zusatzProzent, setZusatzProzent] = useState(z.zusatz_prozent ? String(z.zusatz_prozent).replace('.', ',') : '');
   const [zeigeVorschlaege, setZeigeVorschlaege] = useState(false);
+  const [taRolle, setTaRolle] = useState(z.ta_rolle || (z.ta_anteile || z.vorstufe_nur_mehl_wasser ? 'vorstufe' : ''));
+  const [mehlAnteil, setMehlAnteil] = useState(z.ta_anteile ? String(z.ta_anteile.mehl_kg * 1000).replace('.', ',') : '');
+  const [wasserAnteil, setWasserAnteil] = useState(z.ta_anteile ? String(z.ta_anteile.fluessigkeit_kg * 1000).replace('.', ',') : '');
+  const [fehler, setFehler] = useState('');
 
   const hatProdukte = rezept.produkte && rezept.produkte.length > 1;
   const passende = zeigeVorschlaege && name.length >= 2
@@ -51,6 +55,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
   function speichern() {
     if (!name.trim()) return;
     const neu = {
+      ...z,
       name: name.trim(),
       ist_kommentar: istKommentar,
       ist_mehl: istKommentar ? false : istMehl,
@@ -63,14 +68,29 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
       einheit: dosenModus ? 'dose' : '',
       dosen_gewicht_g: dosenModus ? dezimal(dosenGewicht) : 0,
       menge_kg: 0,
+      ta_rolle: istKommentar ? 'sonstiges' : taRolle,
+      prozent_bezug: 'mehl',
+      presse_bezug: 'endprodukt',
     };
     if (!istKommentar) {
+      if (taRolle) { neu.ist_mehl = taRolle === 'mehl'; neu.ist_wasser = taRolle === 'fluessigkeit'; }
       if (dosenModus) {
         neu.menge_kg = +((dezimal(dosenAnzahl) * dezimal(dosenGewicht)) / 1000).toFixed(6);
       } else {
         neu.menge_kg = +(dezimal(mengeG) / 1000).toFixed(6);
       }
     }
+    if (istKommentar || taRolle !== 'vorstufe') {
+      delete neu.ta_anteile; delete neu.vorstufe_nur_mehl_wasser; delete neu.vorstufe_ta;
+    } else {
+      if (mehlAnteil === '' || wasserAnteil === '' || !(neu.menge_kg > 0) || (dezimal(mehlAnteil) + dezimal(wasserAnteil)) / 1000 > neu.menge_kg + 1e-9) {
+        setFehler('Beide Vorstufenanteile eintragen (0 ist erlaubt). Ihre Summe darf das Vorstufengewicht nicht überschreiten.'); return;
+      }
+      neu.ta_anteile = { mehl_kg: dezimal(mehlAnteil) / 1000, fluessigkeit_kg: dezimal(wasserAnteil) / 1000 };
+      neu.ist_mehl = false; neu.ist_wasser = false;
+      delete neu.vorstufe_nur_mehl_wasser; delete neu.vorstufe_ta;
+    }
+    if (neu.ist_mehl && neu.ist_wasser) { setFehler('Eine Zutat kann nicht vollständig Mehl und gleichzeitig vollständig Wasser sein. Für Mischungen Vorstufenanteile erfassen.'); return; }
     onSave(neu);
   }
 
@@ -88,6 +108,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
         </>
       }
     >
+      {fehler && <p role="alert" style={{ color: 'var(--error)' }}>{fehler}</p>}
       <label className="chk-row" style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
         <input type="checkbox" checked={istKommentar} onChange={(e) => setIstKommentar(e.target.checked)} />
         <span>📝 Hinweis / Arbeitsschritt (kein Zutaten-Eintrag)</span>
@@ -210,8 +231,25 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
             </div>
           </div>
 
+          <label style={{ display: 'block', marginBottom: 10 }}>Zuordnung für die Mehl-/Flüssigkeitsbilanz
+            <select aria-label="TA-Zuordnung" value={taRolle} onChange={e => setTaRolle(e.target.value)} style={{ width: '100%' }}>
+              <option value="">Vorhandene Kennzeichnung verwenden</option>
+              <option value="mehl">Getreidemehl / Mahlerzeugnis</option>
+              <option value="fluessigkeit">Schüttflüssigkeit</option>
+              <option value="sonstiges">Sonstige Zutat (z. B. Saaten / Altbrot)</option>
+              <option value="vorstufe">Fertige Vorstufe – Anteile erfassen</option>
+            </select>
+          </label>
+          {taRolle === 'vorstufe' && <fieldset style={{ marginBottom: 12 }}>
+            <legend>Anteile in der oben angegebenen Vorstufenmenge</legend>
+            <label>Getreidemehl (g)<input aria-label="Vorstufenmehl (g)" inputMode="decimal" value={mehlAnteil} onChange={e => { if (dezimalOk(e.target.value)) setMehlAnteil(e.target.value); }} /></label>
+            <label>Enthaltene Flüssigkeit (g)<input aria-label="Vorstufenflüssigkeit (g)" inputMode="decimal" value={wasserAnteil} onChange={e => { if (dezimalOk(e.target.value)) setWasserAnteil(e.target.value); }} /></label>
+            <p className="muted">Saaten und Altbrot zählen nicht zum Mehl. Nur die fertige Vorstufe oder ihre Einzelzutaten erfassen, niemals beides. Beim Kochstück die nach dem Abkühlen auf Sollgewicht ausgeglichene Menge verwenden.</p>
+          </fieldset>}
+
           <div style={{ marginBottom: 10, padding: 12, background: 'var(--bg-subtle)', borderRadius: 10 }}>
             <label>Menge pro Presse (kg) – optional</label>
+
             <input type="text" inputMode="decimal" value={prosPresse} onChange={(e) => { if (dezimalOk(e.target.value)) setProsPresse(e.target.value); }} style={{ width: '100%' }} placeholder="leer = normale Skalierung" />
             <p style={{ fontSize: 11, color: 'var(--muted)', margin: '6px 0 0' }}>💡 Bei 1 kg und 3 Pressen → 3 kg</p>
           </div>
@@ -239,7 +277,8 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
           )}
 
           <div style={{ marginBottom: 10 }}>
-            <label>Zusatz: % vom Teig (optional, statt fester Menge)</label>
+            <label>Bäckerprozent (optional, statt fester Menge)</label>
+            <p className="muted">Bäckerprozent: Gesamtmehl einschließlich Vorstufen = 100 %.</p>
             <input type="text" inputMode="decimal" value={zusatzProzent} onChange={(e) => { if (dezimalOk(e.target.value)) setZusatzProzent(e.target.value); }} style={{ width: '100%' }} placeholder="z.B. 20 für 20% Rosinen" />
             <p style={{ fontSize: 11, color: 'var(--muted)', margin: '6px 0 0' }}>
               💡 Nur wirksam, wenn keine feste Menge (g) gesetzt ist.

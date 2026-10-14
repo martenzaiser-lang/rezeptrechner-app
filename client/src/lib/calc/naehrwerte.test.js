@@ -1,156 +1,45 @@
-// Vergleichstests Naehrwerte/Allergene: portierte Lookups vs. Original-
-// Funktionen der Alt-App, ueber alle 92 echten Rezepte.
-//
-// WICHTIG: Abweichungen sind NUR dort erlaubt, wo ein Rezept eine Zutat
-// enthaelt, die jetzt ueber ein Hersteller-Datenblatt aufgeloest wird,
-// das die Alt-App nicht kannte (neu, gewuenscht):
-//   - IREKS-Datenblaetter (ireks.js)
-//   - CSM-Synonym-Ergaenzungen (synonymeErgaenzungen.js, 2026-07):
-//     'Easy Ruehr'/'Kaesekuchenpulver'/'Neutral' und Substring-Treffer
-//     wie 'Sahnestand Neutral' loesen jetzt auf das Datenblatt auf
-//     (vorher z.T. falscher Fuzzy-Treffer, z.B. 'Sahnestand Neutral'
-//     -> Schlagsahne-Naehrwerte).
-// Solche Rezepte werden gegen die Hersteller-Erwartung geprueft, alle
-// anderen muessen das Original EXAKT treffen.
-
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import {
-  getNaehrwert, calcNutrition, getRezeptAllergene, formatAllergene,
-  getRezeptSpuren, findNaehrwerte, berechneNaehrwerte, findHersteller,
-} from './naehrwerteLookup.js';
+import { getNaehrwert, calcNutrition, getRezeptAllergene, formatAllergene, getRezeptSpuren, findNaehrwerte, berechneNaehrwerte, findHersteller } from './naehrwerteLookup.js';
 import { IREKS_DATEN, IREKS_SYNONYME } from '../../data/ireks.js';
-import { skaliere } from './skalierung.js';
-
-const INDEX_HTML = 'C:/Users/marte/Rezeptrechner/index.html';
-const html = readFileSync(INDEX_HTML, 'utf8');
-const dump = JSON.parse(readFileSync('C:/Users/marte/Rezeptrechner/app_daten_dump.json', 'utf8'));
-
-// Original-Funktionen der Alt-App laden (Slice + eval, wie gen-fixtures.mjs)
-function slice(startMarker, endMarker) {
-  const s = html.indexOf(startMarker);
-  const e = html.indexOf(endMarker, s);
-  if (s === -1 || e === -1) throw new Error(`Marker nicht gefunden: ${startMarker}`);
-  return html.slice(s, e);
-}
-
-const originalCode = [
-  slice('const NAEHRWERTE_DEFAULT={', 'let customNaehrwerte={};'),
-  'let customNaehrwerte = {}; let customZutaten = [];',
-  slice('function getNaehrwert(zutatName){', '// Allergene für ein Rezept ermitteln'),
-  slice('function calcNutrition(r,skaliert){', 'const getSorted='),
-  slice('const EU_ALLERGENE', '// Allergen-Mapping für Zutaten'),
-  slice('const ZUTAT_ALLERGENE', 'const MEISTERMARKEN_DATEN'),
-  slice('const MEISTERMARKEN_DATEN', '// Lookup-Helper: findet Meistermarken-Eintrag').replace(/\/\/ Synonym-Map.*$/s, ''),
-  slice('const MEISTERMARKEN_SYNONYME', '// Lookup-Helper'),
-  slice('function findMeistermarke(zutatName){', '// Nährwerte pro 100g'),
-  slice('const ZUTAT_NAEHRWERTE', '// ═══ ZUTAT PREISE'),
-  slice('function getRezeptAllergene(rezept) {', '// LMIV-Helper: liefert pro Rezept-Zutat'),
-  slice('function findNaehrwerte(zutatName) {', '// Funktion: Nährwerte für ein Rezept berechnen'),
-].join('\n');
-
-const original = new Function(`
-  ${originalCode}
-  return { getNaehrwert, calcNutrition, getRezeptAllergene, formatAllergene, getRezeptSpuren, findNaehrwerte, findMeistermarke };
-`)();
-
-// Hat das Rezept eine Zutat, die NEU ueber Herstellerdaten aufgeloest
-// wird (IREKS-Datenblatt oder CSM-Synonym-Ergaenzung — die Alt-App
-// kannte den Treffer nicht)?
-function hatNeueHerstellerZutat(r) {
-  return r.zutaten.some((z) => {
-    const alt = original.findMeistermarke(z.name);
-    const neu = findHersteller(z.name);
-    return !alt && neu;
-  });
-}
-
-const mitIreks = dump.rezepte.filter(hatNeueHerstellerZutat);
-const ohneIreks = dump.rezepte.filter((r) => !hatNeueHerstellerZutat(r));
-
-// BEWUSSTE Abweichungen von der Alt-App (dokumentierte Bugfixes):
-// Singular/Plural-Normalisierung — "Rosine" traf in der Alt-App per
-// Substring faelschlich den Eintrag "rosinen geschwefelt" (Sulfit L),
-// waehrend "Rosinen" korrekt als ungeschwefelt/frei galt. Jetzt werden
-// beide Schreibweisen gleich behandelt (Direkt-Eintrag "rosinen").
-const ERWARTETE_FIXES = {
-  'Dinkel - Porridge': { entfernt: ['L'], grund: 'Zutat "Rosine" traf faelschlich "rosinen geschwefelt"' },
-};
-
-describe('Allergene: exakt wie Alt-App (Rezepte ohne IREKS-Zutaten)', () => {
-  for (const r of ohneIreks) {
-    it(r.name, () => {
-      const alt = original.getRezeptAllergene(r);
-      const fix = ERWARTETE_FIXES[r.name];
-      const erwartet = fix ? alt.filter((c) => !fix.entfernt.includes(c)) : alt;
-      expect(getRezeptAllergene(r)).toEqual(erwartet);
-    });
-  }
+import { produktNaehrwerte } from './produktNaehrwerte.js';
+import { produktRezept } from './produktion.js';
+import { zutat, mehl, wasser, rezept } from '../../../test/fach-fixtures.js';
+const custom = [{name:'Weizenmehl 550',kj:523,kcal:123,eiweiss:10,fett:2,gfs:.4,kh:60,zucker:2,ballaststoffe:3,salz:.02,allergene:['Aa']}];
+it('Eigene Werte gelten in beiden Ausgabepfaden',()=>{
+  expect(findNaehrwerte('Weizenmehl 550',custom).kcal).toBe(123);
+  expect(getNaehrwert('Weizenmehl 550',{'weizenmehl 550':custom[0]}).kcal).toBe(123);
 });
-
-describe('Allergene: Rezepte mit neuen Hersteller-Zutaten (IREKS/CSM-Synonyme)', () => {
-  it(`es gibt solche Rezepte im Bestand (gefunden: ${mitIreks.length})`, () => {
-    expect(mitIreks.length).toBeGreaterThan(0);
-  });
-  for (const r of mitIreks) {
-    it(`${r.name}: Original-Allergene bleiben enthalten oder werden präzisiert`, () => {
-      const neu = new Set(getRezeptAllergene(r));
-      // Die neuen Datenblaetter duerfen Allergene PRAEZISIEREN, aber ein in
-      // der Alt-App erkanntes Haupt-Allergen darf nicht verschwinden
-      // (z.B. Aa bleibt Aa; Pattern-Treffer 'Ac' fuer Malz kann durch das
-      // Datenblatt entfallen, wenn das Produkt laut Hersteller keine Gerste
-      // ENTHAELT — dann muss sie aber als Spur erscheinen).
-      const spuren = new Set(getRezeptSpuren(r));
-      const fix = ERWARTETE_FIXES[r.name];
-      const originalCodes = original.getRezeptAllergene(r)
-        .filter((c) => !fix?.entfernt.includes(c));
-      for (const code of originalCodes) {
-        const haupt = code.charAt(0);
-        const abgedeckt =
-          neu.has(code) ||
-          [...neu].some((c) => c.charAt(0) === haupt) ||
-          spuren.has(code) ||
-          [...spuren].some((c) => c.charAt(0) === haupt);
-        expect(abgedeckt, `${code} weder enthalten noch als Spur`).toBe(true);
-      }
-    });
-  }
+it('Unvollständiger Datensatz wird nicht als 0 ergänzt',()=>{
+  expect(berechneNaehrwerte(rezept([mehl(1)]),[{name:'Weizenmehl 550',kcal:123}]).fehlend).toEqual(['Weizenmehl 550']);
 });
-
-describe('calcNutrition (Baker-Chips): exakt wie Alt-App (ohne IREKS)', () => {
-  for (const r of ohneIreks) {
-    it(r.name, () => {
-      const sk = skaliere(r, 10);
-      const neu = calcNutrition(r, sk);
-      const alt = original.calcNutrition(r, sk);
-      expect(neu.vollstaendig).toBe(alt.vollstaendig);
-      expect(neu.fehlend).toEqual(alt.fehlend);
-      expect(neu.kcal).toBeCloseTo(alt.kcal, 6);
-      expect(neu.protein).toBeCloseTo(alt.protein, 6);
-      expect(neu.carbs).toBeCloseTo(alt.carbs, 6);
-      expect(neu.fat).toBeCloseTo(alt.fat, 6);
-    });
-  }
+it('99 % Abdeckung ist nicht vollständig',()=>{
+  const r=rezept([mehl(.99),zutat('Unbekannte Testzutat',.01)]);
+  expect(calcNutrition(r,[.99,.01]).vollstaendig).toBe(false);
+  expect(produktNaehrwerte(r).vollstaendig).toBe(false);
 });
-
-describe('findNaehrwerte (LMIV 8-Feld): exakt wie Alt-App (ohne IREKS)', () => {
-  it('alle Zutaten-Namen aus Nicht-IREKS-Rezepten', () => {
-    const namen = new Set();
-    ohneIreks.forEach((r) => r.zutaten.forEach((z) => !z.ist_kommentar && namen.add(z.name)));
-    for (const name of namen) {
-      expect(findNaehrwerte(name), name).toEqual(original.findNaehrwerte(name));
-    }
-  });
+it('Kommentar verändert weder Nährwerte noch Allergene',()=>{
+  const r=rezept([mehl(1),zutat('Milch',1,{ist_kommentar:true})]);
+  expect(berechneNaehrwerte(r,custom).kcal).toBe(123);
+  expect(getRezeptAllergene(r,custom)).not.toContain('G');
 });
-
-describe('formatAllergene', () => {
-  it('löst Sub-Codes auf wie Original', () => {
-    for (const codes of [['Aa'], ['Aa', 'C', 'G'], ['Ha', 'Hb'], ['Ab', 'Ac', 'Ad', 'J'], []]) {
-      expect(formatAllergene(codes, true)).toBe(original.formatAllergene(codes, true));
-    }
-  });
+it.each([0,10,20])('Backverlust %s wird nur auf fertige Nährwerte angewendet',bv=>{
+  const r=rezept([mehl(1)],{backverlust_pct:bv});
+  const result=produktNaehrwerte(r,custom);
+  expect(result.werte.kcal).toBeCloseTo(123*100/(100-bv),10); expect(result.bezug).toContain('fertiges Produkt');
 });
-
+it('Ohne gemessenen Backverlust lautet der Bezug ungebackene Rezeptur',()=>{
+  expect(produktNaehrwerte(rezept([mehl(1)]),custom).bezug).toContain('ungebackene');
+});
+it('Nur gewählte Variante trägt ihre Allergene bei',()=>{
+  const r=rezept([mehl(1),wasser(1),zutat('Sesam',.1,{fuer_produkte:['Sesam']})],{produkte:[{name:'Natur',gewicht_g:100},{name:'Sesam',gewicht_g:100}]});
+  expect(getRezeptAllergene(produktRezept(r,'Natur'))).not.toContain('K');
+  expect(getRezeptAllergene(produktRezept(r,'Sesam'))).toContain('K');
+});
+it('Eigene Spuren und ausdrücklich leere Allergene schlagen Herstellerwerte',()=>{
+  expect(getRezeptAllergene(rezept([mehl(1)]),[{name:'Weizenmehl 550',allergene:[]}])).toEqual([]);
+  expect(getRezeptSpuren(rezept([mehl(1)]),[{name:'Weizenmehl 550',spuren:['K']}])).toEqual(['K']);
+});
+it('Unbekanntes Saatenmehl wird nicht als Weizen deklariert',()=>expect(findNaehrwerte('Fantasiemehl')).toBeNull());
 describe('IREKS-Integration', () => {
   it(`alle ${Object.keys(IREKS_DATEN).length} IREKS-Produkte werden per Name gefunden`, () => {
     for (const key of Object.keys(IREKS_DATEN)) {

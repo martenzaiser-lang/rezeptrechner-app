@@ -4,7 +4,7 @@
 // + TEIG GESAMT. Bewusst KEINE Backparameter/Allergene/Naehrwerte.
 
 import { gruppiereZutaten, fmtSektionsSumme } from '../../lib/calc/sektionen.js';
-import { ta } from '../../lib/calc/ta.js';
+import { taLabel } from '../../lib/calc/ta.js';
 import '../../styles/print.css';
 
 export default function PrintSheet({ rezept, sk, teigGesamtKg, mengeInfo }) {
@@ -22,7 +22,7 @@ export default function PrintSheet({ rezept, sk, teigGesamtKg, mengeInfo }) {
         <h1>{rezept.name}</h1>
         <div className="print-meta">
           <span>{mengeInfo}</span>
-          <span>TA {ta(rezept)}</span>
+          {taLabel(rezept, sk) && <span>{taLabel(rezept, sk)}</span>}
           <span>{new Date().toLocaleDateString('de-DE')}</span>
         </div>
       </div>

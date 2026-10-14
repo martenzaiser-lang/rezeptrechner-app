@@ -16,7 +16,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.21.1",
+    "express": "^4.22.3",
     "express-rate-limit": "^8.4.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
@@ -24,8 +24,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.9",
     "supertest": "^7.0.0",
-    "vitest": "^3.2.4"
+    "vitest": "^5.0.4"
   },
   "engines": {
     "node": ">=20"

@@ -1,9 +1,9 @@
 // Client-Deploy auf die Produktions-Site teigmaster.netlify.app.
 //
 // WARUM DIESES SKRIPT: Die Netlify-Site "teigmaster" (bb11dabb…) ist
-// NICHT mit diesem Repo verbunden — ein git push deployt NICHTS.
-// Am 17.07.2026 führte das zu einem veralteten Live-Stand, obwohl alles
-// committet war. Deshalb kapselt dieses Skript den kompletten Weg:
+// seit 18.07.2026 mit diesem Repo verbunden. Push auf main deployt
+// automatisch. Dieses Skript ist nur der manuelle Ersatzweg bei einer
+// gestörten Git-Anbindung und kapselt dann den kompletten Weg:
 //
 //   1. Client-Build MIT VITE_API_URL (ohne die Variable würde der Build
 //      relative /api-Pfade nutzen → auf Netlify kaputt)
