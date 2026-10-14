@@ -79,7 +79,7 @@ export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
           <div style={{ marginBottom: 10 }}>
             <strong style={{ fontSize: 13, color: 'var(--error)' }}>⚠️ Enthaltene Allergene (Pflicht-Kennzeichnung)</strong>
             <div style={{ fontSize: 14 }}>
-              {allergene.length ? formatAllergene(allergene, true) : allergenStatus.vollstaendig ? 'Keine kennzeichnungspflichtigen Allergene enthalten' : 'Keine bestätigte vollständige Angabe vorhanden'}
+              {allergene.length ? formatAllergene(allergene, true) : allergenStatus.vollstaendig && zutatenStatus.vollstaendig ? 'Keine kennzeichnungspflichtigen Allergene enthalten' : 'Keine bestätigte vollständige Angabe vorhanden'}
             </div>
           </div>
           {spuren.length > 0 && (

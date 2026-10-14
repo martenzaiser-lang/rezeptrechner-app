@@ -424,6 +424,8 @@ describe('LMIV je Produktvariante', () => {
     const res = await request(app).get('/api/lmiv').set('X-Api-Key',process.env.LMIV_API_KEY);
     expect(res.status).toBe(200);
     expect(res.body.produkte[0].deklarationVollstaendig).toBe(false);
+    expect(res.body.produkte[0].allergeneVollstaendig).toBe(false);
+    expect(res.body.produkte[0].allergeneText).toContain('unvollständig');
     expect(res.body.produkte[0].naehrwerte).toBeNull();
     expect(res.body.produkte[0].deklarationsFehler.join(' ')).toContain('Testmischung');
     if (luecke === 'zusammensetzung') expect(res.body.produkte[0].zutatenverzeichnis).toEqual([]);

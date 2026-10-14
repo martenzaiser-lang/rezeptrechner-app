@@ -64,7 +64,8 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
         const allergene = getRezeptAllergene(r, customZutaten);
         const allergenStatus = getRezeptAllergenStatus(r, customZutaten);
         const zutatenStatus = getRezeptZutatenStatus(r, customZutaten);
-        const allergeneText = allergenStatus.vollstaendig ? formatAllergene(allergene,true)
+        const allergeneVollstaendig = allergenStatus.vollstaendig && zutatenStatus.vollstaendig;
+        const allergeneText = allergeneVollstaendig ? formatAllergene(allergene,true)
           : 'Allergenangaben unvollständig – Rezeptdaten prüfen.' + (allergene.length ? ' Bekannte Allergene: ' + formatAllergene(allergene,true) : '');
         const spuren = getRezeptSpuren(r, customZutaten).filter(s => !allergene.includes(s));
         const profil = produktNaehrwerte(r, customZutaten);
@@ -76,7 +77,7 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
           zucker_g: +nw.zucker.toFixed(1), ballaststoffe_g: nw.ballaststoffe == null ? null : +nw.ballaststoffe.toFixed(1), salz_g: +nw.salz.toFixed(2),
         } : null;
         return { name:r.name, kategorie:r.kategorie || '', allergene, allergeneText,
-          allergeneVollstaendig:allergenStatus.vollstaendig,
+          allergeneVollstaendig,
           zutatenVollstaendig:zutatenStatus.vollstaendig,
           deklarationVollstaendig:profil.deklarationVollstaendig,
           deklarationsFehler:profil.deklarationsFehler,
