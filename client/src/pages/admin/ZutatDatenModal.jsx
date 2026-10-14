@@ -4,23 +4,14 @@
 
 import { useMemo, useState } from 'react';
 import Modal from '../../components/Modal.jsx';
-import { findNaehrwerte, getRezeptAllergene } from '../../lib/calc/naehrwerteLookup.js';
+import { findNaehrwerte, getRezeptAllergene, getRezeptAllergenStatus } from '../../lib/calc/naehrwerteLookup.js';
+import { NAEHRWERT_LABEL, naehrwertStatus, formatNaehrwert } from '../../lib/calc/naehrwertFelder.js';
 import { EU_ALLERGENE } from '../../data/allergene.js';
 import { validateCustomIngredient } from '../../../../shared/validation.js';
 
-const NW_FELDER = [
-  ['kj', 'kJ'],
-  ['kcal', 'kcal'],
-  ['eiweiss', 'Eiweiß g'],
-  ['fett', 'Fett g'],
-  ['gfs', 'ges. FS g'],
-  ['kh', 'KH g'],
-  ['zucker', 'Zucker g'],
-  ['ballaststoffe', 'Ballastst. g'],
-  ['salz', 'Salz g'],
-];
+const NW_FELDER = Object.entries(NAEHRWERT_LABEL);
 
-export default function ZutatDatenModal({ recipes, customIngredients, onSave, onDelete, onClose }) {
+export default function ZutatDatenModal({ recipes, customIngredients, calculationIngredients = customIngredients, onSave, onDelete, onClose }) {
   const [filter, setFilter] = useState('');
   const [nurFehlende, setNurFehlende] = useState(true);
   const [bearbeite, setBearbeite] = useState(null); // { name, ...felder, allergene[] }
@@ -29,31 +20,34 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
 
   const customMap = useMemo(() => {
     const m = {};
-    customIngredients.forEach((c) => { m[c.name.toLowerCase()] = c.data; });
+    customIngredients.forEach((c) => { m[c.name.toLowerCase().trim()] = c.data || c; });
     return m;
   }, [customIngredients]);
 
   const alleZutaten = useMemo(() => {
     const set = new Set();
-    recipes.forEach((r) => r.zutaten?.forEach((z) => !z.ist_kommentar && z.name && set.add(z.name)));
+    recipes.forEach((r) => r.zutaten?.forEach((z) => !z.ist_kommentar && z.name && z.name.trim().toLowerCase() !== 'gesamt' && set.add(z.name)));
     return [...set].sort((a, b) => a.localeCompare(b, 'de'));
   }, [recipes]);
 
   const liste = alleZutaten
     .map((name) => ({
       name,
-      hatDaten: (() => { const d = findNaehrwerte(name, customIngredients); return d && !['ungeprueft','widerspruechlich'].includes(d.datenstatus) && NW_FELDER.every(([k]) => typeof d[k] === 'number'); })(),
+      hatDaten: naehrwertStatus(findNaehrwerte(name, calculationIngredients)).vollstaendig,
       istCustom: !!customMap[name.toLowerCase()],
     }))
     .filter((z) => !filter || z.name.toLowerCase().includes(filter.toLowerCase()))
-    .filter((z) => !nurFehlende || !z.hatDaten || z.istCustom);
+    .filter((z) => !nurFehlende || !z.hatDaten);
 
   function bearbeiten(name, referenz = false) {
-    const data = findNaehrwerte(name, referenz ? [] : customIngredients) || {};
+    const berechnet = findNaehrwerte(name, calculationIngredients);
+    const data = berechnet?.rezept_name ? berechnet : findNaehrwerte(name, referenz ? [] : customIngredients) || {};
     setFehler('');
     setBearbeite({
       ...data,
       name,
+      allergene_geprueft: getRezeptAllergenStatus({ zutaten: [{ name, menge_kg: 1 }] }, customIngredients).vollstaendig,
+      quelle_geprueft: !['ungeprueft', 'widerspruechlich'].includes(data.datenstatus),
       quelle: data.quelle || (data.quelle_pdf ? `${data.quelle_pdf}, Seite ${data.quelle_seite}` : ''),
       kj: data.kj ?? '',
       kcal: data.kcal ?? '',
@@ -71,8 +65,8 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
   async function speichern() {
     const b = bearbeite;
     if (busy) return;
-    if (NW_FELDER.some(([k]) => String(b[k]).trim() === '' || !Number.isFinite(Number(String(b[k]).replace(',', '.'))))) { setFehler('Alle Nährwerte einschließlich kJ und kcal eintragen. Bekannte Nullwerte bitte ausdrücklich als 0 erfassen.'); return; }
-    const num = (v) => parseFloat(String(v).replace(',', '.')) || 0;
+    if (NW_FELDER.some(([k]) => String(b[k]).trim() !== '' && !Number.isFinite(Number(String(b[k]).replace(',', '.'))))) { setFehler('Bitte gültige Zahlen eintragen oder unbekannte Werte leer lassen.'); return; }
+    const num = (v) => String(v).trim() === '' ? null : Number(String(v).replace(',', '.'));
     // Beide Formate speichern: 8-Feld (LMIV) + kcal/protein/carbs/fat/a (Chips)
     const data = {
       ...customMap[b.name.toLowerCase()],
@@ -82,6 +76,7 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
       quelle_sha256: b.quelle_sha256,
       bls_code: b.bls_code,
       rohstoff: b.rohstoff,
+      datenhinweise: b.datenhinweise,
       kj: num(b.kj),
       kcal: num(b.kcal),
       eiweiss: num(b.eiweiss),
@@ -96,8 +91,9 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
       fat: num(b.fett),
       a: b.allergene,
       allergene: b.allergene,
+      allergene_geprueft: b.allergene_geprueft,
       quelle: b.quelle || '',
-      datenstatus: 'eigene_angabe',
+      datenstatus: b.quelle_geprueft ? 'eigene_angabe' : 'ungeprueft',
     };
     const errors = validateCustomIngredient(data);
     if (errors.length) { setFehler(errors.join(' ')); return; }
@@ -107,12 +103,19 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
     finally { setBusy(false); }
   }
 
+  if (bearbeite?.rezept_name) return <Modal title={`Eigene Mischung: ${bearbeite.name}`} onClose={() => setBearbeite(null)}>
+    <p>Diese Zutat wird aus dem aktuellen Rezept „{bearbeite.rezept_name}“ berechnet. Mengen und Zutaten bitte im Quellrezept bearbeiten.</p>
+    <p className="muted">{bearbeite.quelle}</p>
+    {bearbeite.datenhinweise?.zutaten && <p>Fehlende Nährwertdaten: {bearbeite.datenhinweise.zutaten}</p>}
+    <button className="btn" onClick={() => setBearbeite(null)}>Zurück zu den Zutaten</button>
+  </Modal>;
+
   if (bearbeite) {
     return (
       <Modal
         title={`Nährwerte: ${bearbeite.name}`}
-        onClose={() => setBearbeite(null)}
-        maxWidth={480}
+        onClose={() => { if (!busy) setBearbeite(null); }}
+        maxWidth={640}
         footer={
           <>
             {customMap[bearbeite.name.toLowerCase()] && (
@@ -125,14 +128,14 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
                 Eintrag löschen
               </button>
             )}
-            <button className="btn btn-ghost" onClick={() => setBearbeite(null)}>Abbrechen</button>
+            <button className="btn btn-ghost" disabled={busy} onClick={() => setBearbeite(null)}>Abbrechen</button>
             <button className="btn btn-primary" disabled={busy} onClick={speichern}>Speichern</button>
           </>
         }
       >
-        <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>Werte pro 100 g</p>
+        <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>Werte pro 100 g der Zutat. Unbekannte Werte leer lassen, bekannte Nullwerte als 0 erfassen. Ballaststoffe sind freiwillig. Unvollständige Angaben können gespeichert werden; die Nährwertausgabe bleibt bis zur vollständigen Erfassung der Pflichtangaben gesperrt.</p>
         {fehler && <p role="alert">{fehler}</p>}
-        <div className="form-grid-4" style={{ gap: 8, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 12 }}>
           {NW_FELDER.map(([key, label]) => (
             <div key={key}>
               <label htmlFor={`naehrwert-${key}`} style={{ fontSize: 11 }}>{label}</label>
@@ -140,6 +143,7 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
                 id={`naehrwert-${key}`}
                 type="text"
                 inputMode="decimal"
+                placeholder="unbekannt"
                 value={bearbeite[key]}
                 onChange={(e) => setBearbeite({ ...bearbeite, [key]: e.target.value })}
                 style={{ width: '100%' }}
@@ -151,12 +155,26 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
           {bearbeite.datenhinweise && <p className="muted">Quellenhinweise: {Object.entries(bearbeite.datenhinweise).map(([k,v]) => `${k}: ${v}`).join('; ')}. TR bedeutet Spuren, LOD/LOQ Nachweis-/Bestimmungsgrenze. Ohne Zahlenwert wird daraus keine Null.</p>}
           {customMap[bearbeite.name.toLowerCase()] && (() => {
             const ref = findNaehrwerte(bearbeite.name);
-            return ref && !['ungeprueft','widerspruechlich'].includes(ref.datenstatus) && <button className="btn" type="button" disabled={busy} onClick={() => bearbeiten(bearbeite.name, true)}>Geprüfte Referenzwerte in den Entwurf übernehmen</button>;
+            return ref && !naehrwertStatus(ref).quelleOffen && <details style={{ marginBottom: 12 }}>
+              <summary>Eigene Werte mit der Referenz vergleichen</summary>
+              <p className="muted">{ref.quelle || ref.quelle_pdf || ref.rohstoff || 'Hinterlegte Referenz'}</p>
+              <table style={{ width: '100%', fontSize: 12 }}><thead><tr><th>Je 100 g</th><th>Entwurf</th><th>Referenz</th></tr></thead><tbody>
+                {NW_FELDER.map(([k, label]) => <tr key={k}><th scope="row" style={{ textAlign: 'left' }}>{label}</th>
+                  <td>{bearbeite[k] === '' ? '—' : formatNaehrwert(Number(String(bearbeite[k]).replace(',', '.')), 2)}</td><td>{formatNaehrwert(ref[k], 2)}</td></tr>)}
+              </tbody></table>
+              <p className="muted">Die Übernahme füllt den Entwurf. Gespeichert wird erst mit „Speichern“. Eigene Allergenangaben bleiben erhalten.</p>
+              <button className="btn" type="button" disabled={busy} onClick={() => bearbeiten(bearbeite.name, true)}>Referenzwerte in den Entwurf übernehmen</button>
+            </details>;
           })()}
         <label style={{ display: 'block', marginBottom: 12 }}>Quelle / Produktdatenblatt
           <input value={bearbeite.quelle || ''} onChange={e => setBearbeite({ ...bearbeite, quelle: e.target.value })} style={{ width: '100%' }} />
         </label>
-        <label>Allergene</label>
+        {!bearbeite.quelle_geprueft && <p role="status" style={{ color: 'var(--warning)' }}>Produktzuordnung oder Quelle ist noch ungeprüft. Die Werte werden bis zur Bestätigung nicht für die Deklaration verwendet.</p>}
+        <label style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <input type="checkbox" checked={bearbeite.quelle_geprueft} onChange={e => setBearbeite({ ...bearbeite, quelle_geprueft: e.target.checked })} />Produktzuordnung und Nährwertquelle geprüft
+        </label>
+        <label>Enthaltene Allergene</label>
+        <p className="muted">Erkannte Allergene sind zunächst Vorschläge. Eine leere Auswahl bestätigt erst nach Prüfung, dass keine kennzeichnungspflichtigen Allergene enthalten sind.</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
           {Object.entries(EU_ALLERGENE).map(([code, a]) => (
             <label key={code} style={{ display: 'inline-flex', gap: 4, alignItems: 'center', fontSize: 12, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
@@ -184,15 +202,19 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
             })} />{label}
           </label>)}
         </fieldset>)}
+        <label style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <input type="checkbox" checked={bearbeite.allergene_geprueft} onChange={e => setBearbeite({ ...bearbeite, allergene_geprueft: e.target.checked })} />Allergenangaben anhand der Quelle vollständig geprüft
+        </label>
       </Modal>
     );
   }
 
   return (
     <Modal title="Zutat-Daten (Nährwerte & Allergene)" onClose={onClose} maxWidth={560}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
         <input
           type="search"
+          aria-label="Zutat filtern"
           placeholder="Zutat filtern…"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -200,11 +222,12 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
         />
         <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 13, whiteSpace: 'nowrap' }}>
           <input type="checkbox" checked={nurFehlende} onChange={(e) => setNurFehlende(e.target.checked)} />
-          nur fehlende/eigene
+          Nur unvollständige Nährwerte
         </label>
       </div>
       <div style={{ maxHeight: '55vh', overflowY: 'auto' }}>
-        {liste.length === 0 && <p className="muted">Alle Zutaten haben Nährwert-Daten. 🎉</p>}
+        <p className="muted" role="status">{liste.length} von {alleZutaten.length} Zutaten angezeigt</p>
+        {liste.length === 0 && <p className="muted">{filter.trim() ? 'Keine Zutat passt zu dieser Suche und Filterauswahl.' : 'Alle verwendeten Zutaten haben vollständige Nährwert-Pflichtangaben.'}</p>}
         {liste.map((z) => (
           <button
             key={z.name}
@@ -214,7 +237,7 @@ export default function ZutatDatenModal({ recipes, customIngredients, onSave, on
           >
             <span style={{ fontWeight: 600 }}>{z.name}</span>
             <span style={{ fontSize: 12, color: z.hatDaten ? 'var(--success)' : 'var(--error)' }}>
-              {z.istCustom ? z.hatDaten ? 'eigene Daten' : 'eigene Daten unvollständig' : z.hatDaten ? 'Standard' : 'fehlt'}
+              {z.istCustom ? z.hatDaten ? 'eigene Daten' : 'eigene Daten unvollständig' : z.hatDaten ? 'Referenzwerte vollständig' : 'Angaben fehlen'}
             </span>
           </button>
         ))}

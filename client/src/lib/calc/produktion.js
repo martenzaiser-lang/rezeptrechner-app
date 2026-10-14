@@ -31,5 +31,6 @@ export function produktRezept(rezept, produktName) {
       && (z.menge_kg > 0 || z.zusatz_prozent > 0 || z.menge_pro_presse > 0)
       && (!p || !z.fuer_produkte?.length || z.fuer_produkte.includes(p.name))) } : {}),
     stueckgewicht_g: p?.gewicht_g ?? rezept.stueckgewicht_g, produkte: p ? [p] : [],
-    backverlust_pct: p?.backverlust_pct ?? rezept.backverlust_pct };
+    backverlust_pct: p?.backverlust_pct ?? rezept.backverlust_pct,
+    backverlust_status: p?.backverlust_pct != null ? p.backverlust_status || 'unbestaetigt' : rezept.backverlust_status };
 }

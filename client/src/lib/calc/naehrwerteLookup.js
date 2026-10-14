@@ -12,9 +12,9 @@ import { ZUTAT_NAEHRWERTE } from '../../data/naehrwerte.js';
 import { istGewicht } from './ta.js';
 import { ROHSTOFF_ERGAENZUNGEN } from '../../data/rohstoffErgaenzungen.js';
 import { ROHSTOFF_SYNONYME } from '../../data/rohstoffSynonyme.js';
+import { istGekochterRoggen, ROGGEN_KOCHPROFIL } from '../../data/betrieblicheVorstufen.js';
 
-const NWF = ['kj', 'kcal', 'eiweiss', 'fett', 'gfs', 'kh', 'zucker', 'ballaststoffe', 'salz'];
-const gueltig = n => typeof n === 'number' && Number.isFinite(n) && n >= 0;
+import { naehrwertStatus, istNaehrwert, NAEHRWERT_LABEL } from './naehrwertFelder.js';
 function normalisiereNw(n) {
   if (!n) return null;
   const d = n.data || n;
@@ -36,13 +36,7 @@ export function findHersteller(zutatName) {
   if (HERSTELLER_DATEN[name]) return HERSTELLER_DATEN[name];
   if (HERSTELLER_SYNONYME[name]) {
     const d = HERSTELLER_DATEN[HERSTELLER_SYNONYME[name].toLowerCase()];
-    // Altbestand widerspricht sich zwischen Preisimport und Nährwertzuordnung.
-    // Beide vorhandenen Kandidaten nennen dieselben Allergene/Spuren.
-    if (['baguette-backmittel', 'baguette backmittel'].includes(name)) return {
-      ...d, datenstatus: 'ungeprueft', zutaten_lmiv: null,
-      bezeichnung: 'Baguette-Backmittel (Produktzuordnung offen)',
-      quelle: 'Weizenback 1856 oder Classic Baguette: verwendeten Artikel bestätigen.',
-    };
+    // Baguette-Backmittel = IREKS Weizenback 1856, bestätigt von Marten am 14.10.2026.
     return d;
   }
   // Keine Teilwortsuche: „Dinkelbackmittel“ darf nicht „Backmittel/Eiszeit“ treffen.
@@ -59,11 +53,11 @@ function herstellerToNw2(m) {
 export function getNaehrwert(zutatName, customNaehrwerte = {}) {
   const custom = Object.entries(customNaehrwerte).map(([name, data]) => ({ name, ...data }));
   const nw = findNaehrwerte(zutatName, custom);
-  if (!nw || ['ungeprueft', 'widerspruechlich'].includes(nw.datenstatus) || !NWF.every(k => gueltig(nw[k]))) return null;
+  if (!naehrwertStatus(nw).vollstaendig) return null;
   return { ...nw, protein: nw.eiweiss, carbs: nw.kh, fat: nw.fett, a: nw.a || nw.allergene || [] };
 }
 
-// calcNutrition (Original Z. 2739) — Anzeige nur bei >= 99% erfasster Menge
+// Anzeige nur bei vollständig erfasster Zutatenmenge.
 export function calcNutrition(r, skaliert, customNaehrwerte = {}) {
   const tot = { kcal: 0, protein: 0, carbs: 0, fat: 0, erfasst: 0, gesamt: 0, fehlend: [] };
   r.zutaten.forEach((z, i) => {
@@ -209,6 +203,7 @@ export function getRezeptAllergenStatus(rezept, customZutaten = []) {
   const fehlend = (rezept.deklarationsZutaten || rezept.zutaten).filter(istGewicht).filter(z => {
     const name = z.name.toLowerCase().trim();
     const c = customZutaten.find(c => c.name?.toLowerCase().trim() === name);
+    if ((c?.data || c)?.allergene_geprueft === false) return true;
     const eigen = c?.a ?? c?.allergene ?? c?.data?.a ?? c?.data?.allergene;
     if (Array.isArray(eigen)) return false;
     const m = findHersteller(name);
@@ -244,8 +239,9 @@ export function getRezeptLmivZutaten(rezept, customZutaten = []) {
 // findNaehrwerte 8-Feld (Original Z. 5737) — customZutaten: Array [{name, ...8-Feld}]
 export function findNaehrwerte(zutatName, customZutaten = []) {
   const name = zutatName.toLowerCase().trim();
-  const custom = customZutaten.find((z) => z.name.toLowerCase() === name);
+  const custom = customZutaten.find((z) => z.name?.toLowerCase().trim() === name);
   if (custom) return normalisiereNw(custom);
+  if (istGekochterRoggen(name)) return ROGGEN_KOCHPROFIL;
 
   const m = findHersteller(name);
   if (m) return herstellerToNw2(m);
@@ -274,11 +270,13 @@ export function berechneNaehrwerte(rezept, customZutaten = []) {
   const summe = { kj: 0, kcal: 0, eiweiss: 0, fett: 0, gfs: 0, kh: 0, zucker: 0, ballaststoffe: 0, salz: 0 };
   let gefunden = 0;
   const fehlend = [];
+  const fehlendeFelder = [];
 
   rezept.zutaten.forEach((z) => {
     if (z.ist_kommentar || z.name.toLowerCase() === 'gesamt' || !(z.menge_kg > 0)) return;
     const nw = findNaehrwerte(z.name, customZutaten);
-    if (nw && !['ungeprueft', 'widerspruechlich'].includes(nw.datenstatus) && NWF.every(k => gueltig(nw[k]))) {
+    const status = naehrwertStatus(nw);
+    if (status.vollstaendig) {
       gefunden++;
       const anteil = z.menge_kg / gesamtKg;
       summe.kj += nw.kj * anteil;
@@ -288,12 +286,14 @@ export function berechneNaehrwerte(rezept, customZutaten = []) {
       summe.gfs += (nw.gfs || 0) * anteil;
       summe.kh += (nw.kh || 0) * anteil;
       summe.zucker += (nw.zucker || 0) * anteil;
-      summe.ballaststoffe += (nw.ballaststoffe || 0) * anteil;
+      if (!istNaehrwert(nw.ballaststoffe)) summe.ballaststoffe = null;
+      else if (summe.ballaststoffe !== null) summe.ballaststoffe += nw.ballaststoffe * anteil;
       summe.salz += (nw.salz || 0) * anteil;
     } else {
       fehlend.push(z.name);
+      fehlendeFelder.push({ name: z.name, felder: status.fehlend.map(k => NAEHRWERT_LABEL[k]), quelleOffen: status.quelleOffen });
     }
   });
 
-  return { ...summe, gefunden, fehlend };
+  return { ...summe, gefunden, fehlend: [...new Set(fehlend)], fehlendeFelder };
 }

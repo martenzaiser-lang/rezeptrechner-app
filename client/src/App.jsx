@@ -24,6 +24,7 @@ function SwUpdateNotifier() {
     const onUpdate = () => {
       toast.info('Neue Version verfügbar', {
         duration: 0,
+        deferInDialog: true,
         action: { label: 'Neu laden', onClick: () => window.location.reload() },
       });
     };

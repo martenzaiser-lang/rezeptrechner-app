@@ -4,6 +4,26 @@
 // Wird in naehrwerteLookup.js in HERSTELLER_DATEN gemergt.
 
 export const HERSTELLER_ERGAENZUNGEN = {
+  'spicy topping': {
+    produkt: 'IREKS SPICY TOPPING', art_nr: '137900 (DE), Referenz 137990DK',
+    kj: 1549, kcal: 366, fett: 3.6, gfs: 0.6, kh: 73.5, zucker: 1.5,
+    ballaststoffe: 4.4, eiweiss: 7.7, salz: 3.9,
+    allergene: [], allergene_geprueft: true, spuren: ['A', 'C', 'F', 'G', 'I', 'K'],
+    zutaten_lmiv: 'Maisextrudat; Knoblauch; Pfeffer; Salz; Rapsöl; Zwiebel',
+    datenstatus: 'referenzwert', geprueft_am: '2026-10-14',
+    referenz_artikel: 'IREKS SPICY TOPPING 137990DK (Vergleich zur deutschen Variante)',
+    quelle: 'IREKS Qualitätszertifikat 137990DK, 08.04.2019, Seite 2; Vergleichsprofil der dänischen Variante. Deutsche Zutatenliste: IREKS Toppingmappe 2024. Kein aktueller Analysenwert des deutschen Artikels 137900.',
+    quelle_url: 'https://www.lcl.dk/.0/pp-static/prodimages/Datablade/datablad_372183.pdf',
+    datenhinweise: { identitaet: 'Hersteller IREKS vom Betrieb bestätigt. Nährwerte als Referenz der DK-Variante; deutsches Qualitätszertifikat für 137900 fehlt.' },
+  },
+  'kochcreme': {
+    produkt: 'KOMPLET Bourbon Kochcreme',
+    kj: null, kcal: null, fett: null, gfs: null, kh: null, zucker: null,
+    ballaststoffe: null, eiweiss: null, salz: null,
+    allergene: [], allergene_geprueft: false, datenstatus: 'ungeprueft',
+    quelle: 'KOMPLET-Herstellerseite bestätigt Produkt; öffentlich keine vollständige Nährwert-/Allergenspezifikation. Händlerdokumente erfordern Anmeldung. Frühere Dr.-Oetker-Werte sind nicht übertragbar.',
+    quelle_url: 'https://de.komplet.com/product/bourbon-kochcreme/', geprueft_am: '2026-10-14',
+  },
   'stachelbeeren': {
     produkt: 'Steinhaus Stachelbeeren, sehr leicht gezuckert', art_nr: '2.019.0',
     kj: 234, kcal: 55, fett: 0.2, gfs: 0.1, kh: 10.7, zucker: 8, ballaststoffe: 2.9, eiweiss: 0.5, salz: 0,
@@ -69,23 +89,12 @@ export const HERSTELLER_ERGAENZUNGEN = {
   // Hinweis: das hauseigene REZEPT 'Spicy Topping' (Gouda/Sesam/...)
   // nutzt diese Zutat als Kaufprodukt-Zeile — Zuordnung von Marten
   // bestätigt.
-  'spicy topping': {
-    produkt: 'IREKS Spicy Topping (via Backstars)',
-    bezeichnung: 'Würz-Topping auf Maisextrudat-Basis (Knoblauch-Pfeffer)',
-    kcal: 370, eiweiss: 7.7, fett: 3.6, gfs: 0.6, kh: 73.5, zucker: 1.5,
-    // Ballaststoffe nicht ausgewiesen: unbekannt, niemals automatisch 0
-    ballaststoffe: null, salz: 3.9,
-    zutaten_lmiv: 'Maisextrudat, Knoblauch, Pfeffer, jodiertes Speisesalz, Rapsöl, Zwiebel',
-    allergene: [],
-    spuren: ['A', 'C', 'F', 'G', 'I', 'K'],
-    quelle: 'Amazon-Listing Hobbybäcker Art. 500355 (Herstellerangaben, Stand 2026-07-17)',
-  },
 
   // 'Exzellent' / 'Optimal' = Brotgewürze der Nährmittelfabrik
   // Dr. Schweigmann & Co. Nachf. e.K. (bezogen über Rinne — PDFs unter
   // Downloads/rinne/: Produktspezifikation 25.04.2025 + Allergen-Liste EU).
   // Ballaststoffe sind in beiden Datenblättern NICHT ausgewiesen: null.
-  // Fehlende Angaben verhindern eine vollständige Nährwertdeklaration.
+  // Pflichtangaben sind vollständig; unbekannte Ballaststoffe werden nicht ausgewiesen.
   // Spuren = "Kreuzkontamination"-Spalte der Allergen-Liste.
   'exzellent': {
     kj: 1455.0,

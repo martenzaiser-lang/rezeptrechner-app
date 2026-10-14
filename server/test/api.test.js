@@ -429,7 +429,7 @@ describe('LMIV je Produktvariante', () => {
     expect(p.naehrwerte).toBeNull();
   });
   it('liefert pro Variante nur deren Zutaten, Allergene und Nährwerte einschließlich kJ', async () => {
-    const r = makeRecipe('varianten', 'Varianten', { stueckgewicht_g: 1000, backverlust_pct: 10,
+    const r = makeRecipe('varianten', 'Varianten', { stueckgewicht_g: 1000, backverlust_pct: 10, backverlust_status: 'gemessen',
       produkte: [{ name: 'Natur', gewicht_g: 1000 }, { name: 'Sesam', gewicht_g: 1000 }],
       zutaten: [{ name: 'Weizenmehl 550', menge_kg: 1, ist_mehl: true }, { name: 'Wasser', menge_kg: .6, ist_wasser: true }, { name: 'Sesam', menge_kg: .2, fuer_produkte: ['Sesam'] }],
     });

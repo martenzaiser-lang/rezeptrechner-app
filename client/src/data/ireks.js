@@ -196,9 +196,7 @@ export const IREKS_SYNONYME = {
   'classic baguette':'Classic Baguette','classis baguette':'Classic Baguette',
   'klassik baguette':'Classic Baguette','baguette classic':'Classic Baguette',
   'classic-baguette':'Classic Baguette',
-  // 'Baguette-Backmittel' im Baguetteteig ist laut Marten (2026-07-17)
-  // "IREKS 1859" = Weizenback 1856 (einziges 18xx-Produkt im Sortiment;
-  // falls es doch ein anderes ist, hier korrigieren) — NICHT Classic Baguette.
+  // Baguette-Backmittel = Weizenback 1856, ausdrücklich bestätigt am 14.10.2026.
   'baguette-backmittel':'Weizenback 1856','baguette backmittel':'Weizenback 1856',
   // Panitop Roggen (132000)
   'panitop roggen':'Panitop Roggen','panitop - roggen':'Panitop Roggen',
@@ -209,6 +207,7 @@ export const IREKS_SYNONYME = {
   // Rezepten IREKS Eiszeit (ausser Baguetteteig → Weizenback, s.o.).
   // Gilt auch fuer "Broetchenbackmittel" (Dinkel fein).
   'backmittel':'Eiszeit','brötchenbackmittel':'Eiszeit',
+  'eismalz':'Eiszeit', // bestätigt 22.07.2026, KBO-Preisimport
   // Mella HT Supersoft (133000) — Rezepte Zöpfe/Schnecken ('Mella HT
   // SuperSoft') und Butterkuchen ('Mella HT SUPER'). Die frühere Annahme
   // "= Berliner Supersoft" war falsch: eigenes Zertifikat 133000 liegt
@@ -223,6 +222,9 @@ export const IREKS_SYNONYME = {
   // Weizenback 1856 (136600)
   'weizenback 1856':'Weizenback 1856','weizenback':'Weizenback 1856','ireks weizenback':'Weizenback 1856',
   // Mella Bourbon-Vanillekrem (140200)
+  // Betriebliche Zuordnung 22.07.2026, dokumentiert im KBO-Preisimport.
+  'puddingpulver':'Mella Bourbon-Vanillekrem',
+  'mella bourbon vanillekrem':'Mella Bourbon-Vanillekrem',
   'mella bourbon-vanillekrem':'Mella Bourbon-Vanillekrem','mella-bourbon-vanillekrem':'Mella Bourbon-Vanillekrem',
   'bourbon-vanillekrem':'Mella Bourbon-Vanillekrem','bourbon vanillekrem':'Mella Bourbon-Vanillekrem',
   'vanillekrem':'Mella Bourbon-Vanillekrem','mella vanillekrem':'Mella Bourbon-Vanillekrem',

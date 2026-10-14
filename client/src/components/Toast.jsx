@@ -22,7 +22,7 @@ export function ToastProvider({ children }) {
       const id = ++idRef.current;
       const duration = opts.duration ?? (variant === 'error' ? 7000 : 4000);
       const action = opts.action || null;
-      setToasts((list) => [...list, { id, variant, message, action }]);
+      setToasts((list) => [...list, { id, variant, message, action, deferInDialog: opts.deferInDialog === true }]);
       if (duration > 0) {
         setTimeout(() => dismiss(id), duration);
       }
@@ -45,7 +45,7 @@ export function ToastProvider({ children }) {
         {toasts.map((t) => {
           const Icon = ICONS[t.variant] || Info;
           return (
-            <div key={t.id} className={'toast toast-' + t.variant}>
+            <div key={t.id} className={'toast toast-' + t.variant + (t.deferInDialog ? ' toast-defer-in-dialog' : '')}>
               <Icon size={18} className="toast-icon" />
               <span className="toast-message">{t.message}</span>
               {t.action && (

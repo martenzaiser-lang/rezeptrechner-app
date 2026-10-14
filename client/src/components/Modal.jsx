@@ -11,6 +11,8 @@ export default function Modal({ title, onClose, children, footer, maxWidth = 560
   closeRef.current = onClose;
   useEffect(() => {
     const previous = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     const focusable = () => [...panel.current.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]')].filter(el => el.getClientRects().length);
     if (!panel.current.contains(document.activeElement)) focusable()[0]?.focus();
     const onKey = (e) => {
@@ -24,21 +26,21 @@ export default function Modal({ title, onClose, children, footer, maxWidth = 560
       }
     };
     window.addEventListener('keydown', onKey);
-    return () => { window.removeEventListener('keydown', onKey); if (previous?.isConnected) previous.focus(); };
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = previousOverflow; if (previous?.isConnected) previous.focus(); };
   }, []);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div ref={panel} role="dialog" aria-modal="true" aria-labelledby={titleId} className="modal" style={{ maxWidth, width: '100%' }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div className="modal-header">
           <h2 id={titleId} style={{ margin: 0 }}>{title}</h2>
           <button className="btn btn-ghost" onClick={onClose} aria-label="Schließen">
             <X size={20} />
           </button>
         </div>
-        <div style={{ overflowY: 'auto', maxHeight: 'calc(90vh - 140px)' }}>{children}</div>
+        <div className="modal-body">{children}</div>
         {footer && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>{footer}</div>
+          <div className="modal-footer">{footer}</div>
         )}
       </div>
     </div>

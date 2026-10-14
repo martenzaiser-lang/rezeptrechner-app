@@ -30,7 +30,7 @@ export default function NaehrwertDruck({ rezept, customZutaten }) {
             ['Fett', 'fett'], ['davon gesättigte Fettsäuren', 'gfs'],
             ['Kohlenhydrate', 'kh'], ['davon Zucker', 'zucker'],
             ['Ballaststoffe', 'ballaststoffe'], ['Eiweiß', 'eiweiss'], ['Salz', 'salz'],
-          ].map(([label, key]) => <tr key={key}><th scope="row">{label}</th><td>{fmt(nw[key], key === 'salz' ? 2 : 1)} g</td></tr>)}
+          ].filter(([, key]) => nw[key] != null).map(([label, key]) => <tr key={key}><th scope="row">{label}</th><td>{fmt(nw[key], key === 'salz' ? 2 : 1)} g</td></tr>)}
         </tbody></table>
       </>}
     </section>, document.body)}

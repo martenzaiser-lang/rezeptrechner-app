@@ -95,7 +95,7 @@ const ZUORDNUNG = {
   'Spicy Topping': 'Ir.Spicy Topping',
   'Classic Baguette': 'Ir.Classic Baguette',
   'Classis Baguette': 'Ir.Classic Baguette',
-  'Baguette-Backmittel': 'Ir.Classic Baguette',
+  'Baguette-Backmittel': 'Ir.Weizenback 1856', // Zuordnung bestätigt 14.10.2026
   'Panitop - Roggen': 'Ir.Panitop-Roggen',
   'Lievito Madre Dolce': 'Ir. Lievito Madre Dolce',
   'Mella HT SuperSoft': 'Ir.Mella HT-Supersoft',

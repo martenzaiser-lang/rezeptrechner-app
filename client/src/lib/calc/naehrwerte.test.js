@@ -23,7 +23,7 @@ it('Kommentar verändert weder Nährwerte noch Allergene',()=>{
   expect(getRezeptAllergene(r,custom)).not.toContain('G');
 });
 it.each([0,10,20])('Backverlust %s wird nur auf fertige Nährwerte angewendet',bv=>{
-  const r=rezept([mehl(1)],{backverlust_pct:bv});
+  const r=rezept([mehl(1)],{backverlust_pct:bv,backverlust_status:'gemessen'});
   const result=produktNaehrwerte(r,custom);
   expect(result.werte.kcal).toBeCloseTo(123*100/(100-bv),10); expect(result.bezug).toContain('fertiges Produkt');
 });

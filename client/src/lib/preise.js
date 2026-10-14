@@ -2,7 +2,67 @@
 // Eigene Preise (DB) haben Vorrang, BAEKO-Standardpreise sind Fallback.
 
 import { ZUTAT_PREISE } from '../data/baekoPreise.js';
-import { skaliere, skaliereBlech } from './calc/skalierung.js';
+import { skaliere, skaliereBlech, skaliereByFactor } from './calc/skalierung.js';
+import { REZEPT_ZUTAT_QUELLEN } from './calc/rezeptZutaten.js';
+import { ROGGEN_KOCHSTUECK, istGekochterRoggen } from '../data/betrieblicheVorstufen.js';
+
+const istKostenfreiesWasser = name => /^(wasser|schüttwasser|leitungswasser|trinkwasser)(?:\s*\([^)]*\))?$/i.test(name.trim());
+// Betriebsangabe 14.10.2026: 1 kg Mehl + 1 kg Wasser + 20 g Salz.
+const SAUERMEHLE = { roggensauerteig: 'Roggenmehl 1370', weizensauerteig: 'Weizenmehl 550' };
+
+// Eigene Mischungen immer mit ihren aktuellen Zutatenpreisen kalkulieren.
+// Fehlende Preise in einer Unterrezeptur dürfen nicht durch alte Mixpreise
+// verdeckt werden. Gespeicherte Preislisten bleiben unverändert.
+export function rezeptPreise(recipes, prices = []) {
+  const result = Object.fromEntries(prices.map(p => [p.zutat_name, {
+    preis_kg: Number(p.preis_eur_kg),
+    preis_hinweise: /richtwert|schätz|\bca\./i.test(p.lieferant || '') ? [`${p.zutat_name}: ${p.lieferant}; aktuellen Einkaufspreis prüfen`] : [],
+    ...(/^baguette-backmittel$/i.test(p.zutat_name) && /classic baguette/i.test(p.lieferant || '')
+      ? { preis_kg: null, fehler: 'Baguette-Backmittel: Einkaufspreis für IREKS Weizenback 1856 fehlt (alter Artikel: Classic Baguette)' } : {}),
+  }]));
+  const namen = new Set(recipes.flatMap(r => r.zutaten.filter(z => !z.ist_kommentar).map(z => z.name)));
+  const besucht = new Set(), fertig = new Map();
+  function aufloesen(name) {
+    const key = name.trim().toLowerCase(), sauerMehl = SAUERMEHLE[key], kochRoggen = istGekochterRoggen(name);
+    const quelle = REZEPT_ZUTAT_QUELLEN[key] || (sauerMehl ? key : kochRoggen ? 'Gekochte Roggenkörner' : null);
+    if (!quelle) return result[name];
+    if (fertig.has(quelle)) return result[name] = fertig.get(quelle);
+    if (besucht.has(quelle)) throw Error(`Zirkuläre Preiskalkulation: ${quelle}`);
+    besucht.add(quelle);
+    let wert;
+    try {
+      const kandidaten = sauerMehl ? [{ name, zutaten: [
+        { name: sauerMehl, menge_kg: 1 }, { name: 'Wasser', menge_kg: 1 }, { name: 'Salz', menge_kg: .02 },
+      ] }] : kochRoggen ? [{ name, zutaten: [
+        { name: 'Roggenkörner', menge_kg: ROGGEN_KOCHSTUECK.trocken_kg },
+        { name: 'Wasser', menge_kg: ROGGEN_KOCHSTUECK.wasser_kg },
+      ] }] : recipes.filter(r => r.name.toLowerCase() === quelle.toLowerCase());
+      if (kandidaten.length !== 1) throw Error(`Quellrezept ${quelle} fehlt oder ist mehrfach vorhanden`);
+      const r = kandidaten[0];
+      if (r.zutaten.some(z => z.fuer_produkte?.length || z.menge_pro_presse > 0)) throw Error(`${quelle}: produktabhängige Mengen prüfen`);
+      const sk = skaliereByFactor(r, 1);
+      let kosten = 0, gewicht = 0;
+      const referenzen = new Set();
+      const preisHinweise = new Set(kochRoggen ? [ROGGEN_KOCHSTUECK.hinweis] : []);
+      for (const [i,z] of r.zutaten.entries()) {
+        if (z.ist_kommentar || !(sk[i] > 0)) continue;
+        const eigen = aufloesen(z.name), wasser = istKostenfreiesWasser(z.name);
+        if (eigen?.fehler) throw Error(eigen.fehler);
+        const preis = eigen?.preis_kg ?? findZutatPreis(z.name) ?? (wasser ? 0 : null);
+        if (preis == null || !Number.isFinite(preis) || preis < 0) throw Error(`${quelle}: Preis für ${z.name} fehlt`);
+        for (const n of eigen?.referenzen || []) referenzen.add(n);
+        for (const h of eigen?.preis_hinweise || []) preisHinweise.add(h);
+        if (eigen?.preis_kg == null && findZutatPreis(z.name) != null) referenzen.add(z.name);
+        kosten += sk[i] * preis; gewicht += sk[i];
+      }
+      if (!(gewicht > 0)) throw Error(`${quelle}: Zutatenmenge fehlt`);
+      wert = { preis_kg: kosten / gewicht, quelle: 'rezept', rezept_name: quelle, referenzen: [...referenzen], preis_hinweise: [...preisHinweise] };
+    } catch(err) { wert = { preis_kg: null, fehler: err.message }; }
+    besucht.delete(quelle); fertig.set(quelle, wert); return result[name] = wert;
+  }
+  for (const name of namen) aufloesen(name);
+  return result;
+}
 
 export function findZutatPreis(zutatName) {
   if (!zutatName) return null;
@@ -13,8 +73,8 @@ export function findZutatPreis(zutatName) {
 
 export function fehlendePreise(r, sk, eigenePreise = {}) {
   return r.zutaten.filter((z, i) => !z.ist_kommentar && sk?.[i] > 0 &&
-    !/^(wasser|schüttwasser|leitungswasser|trinkwasser)$/i.test(z.name.trim()) &&
-    eigenePreise[z.name]?.preis_kg == null && findZutatPreis(z.name) == null).map(z => z.name);
+    !istKostenfreiesWasser(z.name) &&
+    (eigenePreise[z.name]?.fehler || eigenePreise[z.name]?.preis_kg == null && findZutatPreis(z.name) == null)).map(z => z.name);
 }
 
 // eigenePreise: { zutatName: { preis_kg } } (aus DB-prices abgeleitet)
@@ -24,6 +84,7 @@ export function calcRezeptKosten(r, sk, eigenePreise = {}) {
   r.zutaten.forEach((z, idx) => {
     const kg = sk[idx] || 0;
     const p = eigenePreise[z.name];
+    if (p?.fehler) return;
     if (p?.preis_kg != null && Number.isFinite(Number(p.preis_kg))) {
       kosten += kg * p.preis_kg;
     } else {
@@ -41,6 +102,7 @@ export function calcRezeptKosten(r, sk, eigenePreise = {}) {
 // eigenePreise: { zutatName: { preis_kg } } (aus DB-prices abgeleitet)
 export function berechneRohstoffkosten(rezept, eigenePreise = {}) {
   const istBlech = rezept.berechnung === 'blech';
+  if (rezept.berechnungsfehler) return { summe: 0, zeilen: [], ohnePreis: [rezept.berechnungsfehler], istBlech, fehler: rezept.berechnungsfehler };
   let sk;
   try { sk = istBlech ? skaliereBlech(rezept, 1) : skaliere(rezept, 1); }
   catch(err) { return { summe:0, zeilen:[], ohnePreis:[err.message], istBlech, fehler:err.message }; }
@@ -53,17 +115,19 @@ export function berechneRohstoffkosten(rezept, eigenePreise = {}) {
     const kg = sk[idx] || 0;
     if (kg <= 0) return;
     const eigen = eigenePreise[z.name];
-    const preisKg = eigen?.preis_kg ?? findZutatPreis(z.name);
-    const istWasser = /^(wasser|schüttwasser|leitungswasser|trinkwasser)$/i.test(z.name.trim());
+    const preisKg = eigen?.fehler ? null : eigen?.preis_kg ?? findZutatPreis(z.name);
+    const istWasser = istKostenfreiesWasser(z.name);
     const kosten = preisKg != null ? kg * preisKg : 0;
     summe += kosten;
-    if (preisKg == null && !istWasser) ohnePreis.push(z.name);
+    if (preisKg == null && !istWasser) ohnePreis.push(eigen?.fehler || z.name);
     zeilen.push({
       name: z.name,
       gramm: kg * 1000,
       preisKg,
       kosten,
-      quelle: eigen?.preis_kg != null ? 'eigen' : preisKg != null ? 'bäko' : istWasser ? 'wasser' : 'fehlt',
+      referenzen: eigen?.referenzen || [],
+      preis_hinweise: eigen?.preis_hinweise || [],
+      quelle: eigen?.preis_kg != null ? eigen.quelle || 'eigen' : preisKg != null ? 'bäko' : istWasser ? 'wasser' : 'fehlt',
     });
   });
   return { summe, zeilen, ohnePreis, istBlech };

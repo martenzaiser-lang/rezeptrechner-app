@@ -66,7 +66,7 @@ function fw(kg) {
 }
 
 export default function BakerPage() {
-  const { recipes, prices, settings, customIngredients, initialLoadDone } = useData();
+  const { calculationRecipes: recipes, calculationPrices: eigenePreise, settings, calculationIngredients: customIngredients, initialLoadDone } = useData();
   const role = auth.getRole();
   const anzeige = getAnzeige(settings, role);
 
@@ -293,8 +293,6 @@ export default function BakerPage() {
           {ergebnis && (() => {
             const nw = anzeige.naehrwerte ? calcNutrition(rezept, ergebnis.sk, customMap) : { vollstaendig: false, fehlend: [] };
             const allergene = anzeige.allergene ? getRezeptAllergene(produktionsRezept(rezept, ergebnis.sk), customFlach) : [];
-            const eigenePreise = {};
-            prices.forEach((p) => { eigenePreise[p.zutat_name] = { preis_kg: Number(p.preis_eur_kg) }; });
             const kosten = anzeige.kosten ? calcRezeptKosten(rezept, ergebnis.sk, eigenePreise) : 0;
             const preisLuecken = anzeige.kosten ? fehlendePreise(rezept, ergebnis.sk, eigenePreise) : [];
             const stueckzahl = ergebnis.isBlech ? ergebnis.blechAnzahl

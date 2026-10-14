@@ -1,102 +1,78 @@
-/* Design-Politur (Wunsch Marten 2026-07-17): runder, futuristischer,
-   mehr Bewegung — aufbauend auf theme.css/refresh-v3.css, nur sanfte
-   Ergaenzungen. Respektiert prefers-reduced-motion. */
-
-/* Rundere Grundformen */
-.card { border-radius: 18px; }
-.btn { border-radius: 12px; }
-input, select, textarea { border-radius: 12px; }
-.modal { border-radius: 20px; }
-.zt-section { border-radius: 14px; }
-.teig-box { border-radius: 14px; }
-.mp-card { border-radius: 14px; }
-
-/* Seiteninhalt gleitet sanft ein (einmalig pro Navigation) */
-.app-main > * {
-  animation: seiteRein 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes seiteRein {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Chips: dezentes Anheben + Glow beim Beruehren */
-.quick-chip {
-  transition: transform 160ms ease, box-shadow 160ms ease;
-}
-.quick-chip:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px -6px var(--d1);
-}
-
-/* Zutatenzeilen: sanftes Hover-Highlight (Tablet: Tap-Feedback) */
-.zt-row-clean {
-  transition: background 140ms ease;
-}
-.zt-row-clean:hover {
-  background: var(--accent-light);
-}
-
-/* Sektions-Header: animierter Gradient-Schimmer (futuristischer Akzent) */
-.zt-section-header {
-  background-size: 200% 100%;
-  animation: sektionSchimmer 6s ease-in-out infinite;
-}
-@keyframes sektionSchimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-/* Teig-Box: pulsiert kurz, wenn sich der Wert aendert (key-Wechsel) */
-.teig-val {
-  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.teig-box:has(.teig-val):active .teig-val {
-  transform: scale(1.05);
-}
-
-/* Stepper-Buttons: satteres Druck-Feedback */
-.stepper button, .mp-controls button {
-  transition: transform 120ms ease, background 120ms ease;
-}
-.stepper button:active, .mp-controls button:active {
-  transform: scale(0.9);
-  background: var(--accent-light);
-}
-
-/* Login-Konto-Buttons: Anheben beim Hover */
-.login-card button[type="button"] {
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
-}
-.login-card button[type="button"]:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px -8px var(--d1);
-}
-
-/* Modals: weicherer Auftritt (ueberschreibt theme leicht) */
-.modal {
-  animation: modalRein 0.26s cubic-bezier(0.34, 1.4, 0.64, 1);
-}
-@keyframes modalRein {
-  from { opacity: 0; transform: scale(0.95) translateY(12px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-/* Abwiegen-Vollbild gleitet von unten herein */
-.abwiegen-overlay {
-  animation: abwiegenRein 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes abwiegenRein {
-  from { opacity: 0; transform: translateY(4%); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-main > *, .modal, .abwiegen-overlay, .zt-section-header {
-    animation: none;
+﻿/* Ruhige Oberflächen und gut lesbare Arbeitsansichten. Bestehende Farben
+   aus theme.css/refresh-v3.css; Druck bleibt unberührt. */
+@media screen {
+  body { line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { text-wrap: balance; }
+  button, input, select, textarea { font: inherit; }
+  input, select, textarea { border-radius: 12px; }
+  input::placeholder, textarea::placeholder { color: var(--text-secondary); opacity: 1; }
+  input, td, .zt-zutat-menge, .teig-val { font-variant-numeric: tabular-nums; }
+  .card { border-radius: 18px; }
+  .card:hover { transform: none; }
+  .card-title { line-height: 1.3; }
+  .muted, .card-sub, .mp-weight { color: var(--text-secondary); }
+  .card-sub, .zt-menge-sub, .mp-weight { font-size: 13px; line-height: 1.5; opacity: 1; }
+  .teig-lbl, .note-t { font-size: 12px; letter-spacing: .045em; }
+  .btn { border-radius: 12px; line-height: 1.35; }
+  .btn svg { flex-shrink: 0; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 3px;
   }
-  .quick-chip, .zt-row-clean, .stepper button, .mp-controls button,
-  .login-card button[type="button"], .teig-val {
-    transition: none;
+  .zt-section, .teig-box, .mp-card { border-radius: 14px; }
+  .zt-section-header { animation: none; padding-block: 10px; line-height: 1.4; }
+  .zt-row-clean { column-gap: 16px; padding-block: 12px; }
+  .zt-zutat-name, .admin-zutat-row .zutat-name { overflow-wrap: anywhere; }
+  .zt-zutat-menge { white-space: nowrap; }
+  .teig-box { padding-block: 10px; }
+  .mp-card { padding: 14px; gap: 8px; }
+  .admin-layout { gap: 20px; }
+  .admin-layout > * { min-width: 0; }
+  .admin-zutat-row { padding-block: 10px; }
+  .admin-liste-scroll, .modal-body { overscroll-behavior: contain; scrollbar-gutter: stable; }
+  .modal-overlay { padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
+  .modal {
+    display: flex; flex-direction: column; border-radius: 22px;
+    background: var(--card);
+    max-height: min(90vh, 960px); max-height: min(90dvh, 960px);
+    overflow: hidden; padding: 24px;
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .modal-header h2 { margin: 0; line-height: 1.3; overflow-wrap: anywhere; }
+  .modal-header > button { flex-shrink: 0; min-height: 44px; min-width: 44px; }
+  .modal-body { min-height: 0; overflow-y: auto; padding: 4px; margin: -4px; }
+  .modal-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding-top: 18px; }
+  .modal-header, .modal-footer { flex-shrink: 0; }
+  body:has([role="dialog"]) .toast-defer-in-dialog { display: none; }
+  .modal-footer .btn { min-height: 44px; }
+  @media (hover: hover) and (pointer: fine) {
+    .zt-row-clean:hover { background: var(--accent-light); }
+    .btn:not(:disabled):hover { transform: translateY(-1px); }
+  }
+  @media (max-width: 600px) {
+    input, select, textarea { font-size: 16px; }
+    .modal-overlay { padding-inline: 10px; }
+    .modal { padding: 18px; border-radius: 20px; max-height: 94vh; max-height: 94dvh; }
+    .modal-header h2 { font-size: 21px; }
+    .modal-footer .btn { flex: 1 1 auto; }
+    .admin-zutat-row .zutat-aktionen .btn { min-height: 44px; min-width: 44px; }
+    .mp-controls button { min-height: 44px; min-width: 44px; }
+    .zt-row-clean { column-gap: 10px; }
+    .baker-ctrl { row-gap: 14px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .app-main > * { animation: polish-reveal 220ms ease-out; }
+    .app-main .card { animation: none; }
+    .modal { animation: polish-dialog 220ms cubic-bezier(.2,.8,.2,1); }
+    .abwiegen-overlay { animation: polish-reveal 220ms ease-out; }
+    .btn, .stepper button, .mp-controls button {
+      transition: transform 140ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+    .btn:not(:disabled):active, .stepper button:not(:disabled):active, .mp-controls button:not(:disabled):active { transform: scale(.98); }
+    @keyframes polish-reveal { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    @keyframes polish-dialog { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: none; } }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    .btn:hover, .btn:active, .stepper button:active, .mp-controls button:active { transform: none; }
   }
 }

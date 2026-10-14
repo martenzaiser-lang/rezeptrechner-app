@@ -26,7 +26,8 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
     stueckgewicht_g: r.produkte?.length === 1 ? r.produkte[0].gewicht_g : r.stueckgewicht_g ?? 1000,
     min_stueck: r.min_stueck ?? 1,
     max_stueck: r.max_stueck ?? 999,
-    backverlust_pct: r.backverlust_pct ?? '',
+    backverlust_pct: (r.produkte?.length === 1 ? r.produkte[0].backverlust_pct : null) ?? r.backverlust_pct ?? '',
+    backverlust_status: r.produkte?.length === 1 && r.produkte[0].backverlust_pct != null ? r.produkte[0].backverlust_status || 'unbestaetigt' : r.backverlust_status || 'unbestaetigt',
     blech_breite_cm: r.blech_breite_cm || '',
     blech_laenge_cm: r.blech_laenge_cm || '',
     teigtemp_c: r.teigtemp_c ?? 26,
@@ -40,6 +41,7 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
     bedampfung: !!r.bedampfung,
     bedampf_hinweis: r.bedampf_hinweis || '',
     anmerkungen: r.anmerkungen || '',
+    naehrwert_hinweis: r.naehrwert_hinweis || '',
   });
   const [multi, setMulti] = useState(Boolean(r.produkte && r.produkte.length > 1));
   const [produkte, setProdukte] = useState(r.produkte ? r.produkte.map((p) => ({ ...p })) : []);
@@ -98,7 +100,7 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
       back_ober: parseInt(form.back_ober) || 0,
       back_unter: parseInt(form.back_unter) || 0,
       backzeit: parseInt(form.backzeit) || 0,
-      produkte: multi ? produkte : r.produkte?.length === 1 ? [{ ...r.produkte[0], gewicht_g: num(form.stueckgewicht_g, 1000) }] : [],
+      produkte: multi ? produkte : r.produkte?.length === 1 ? [{ ...r.produkte[0], gewicht_g: num(form.stueckgewicht_g, 1000), backverlust_pct: form.backverlust_pct === '' ? null : num(form.backverlust_pct), backverlust_status: form.backverlust_status }] : [],
     });
   }
 
@@ -159,7 +161,14 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
         {feld('Teiggewicht (g)', 'stueckgewicht_g', { type: 'number', step: 1 })}
         {feld('Min. Stückzahl', 'min_stueck', { type: 'number', min: 1 })}
         {feld('Max. Stückzahl', 'max_stueck', { type: 'number', min: 1 })}
-        {feld('Gemessener Gewichtsverlust %', 'backverlust_pct', { type: 'number', min: 0, max: 99.9, placeholder: 'z.B. 12', title: 'Gewichtsverlust beim Backen — nötig für korrekte LMIV-Nährwerte pro 100 g gebacken' })}
+        {feld('Gewichtsverlust (%)', 'backverlust_pct', { type: 'number', min: 0, max: 99.9, placeholder: 'z.B. 12', title: 'Verlust gegenüber der gesamten eingesetzten Rezeptur einschließlich Füllung und Glasur' })}
+        <label style={{ gridColumn: '1 / -1' }}>Grundlage des Gewichtsverlusts
+          <select aria-label="Grundlage des Gewichtsverlusts" value={form.backverlust_status} onChange={e => set('backverlust_status', e.target.value)} style={{ width: '100%' }}>
+            <option value="unbestaetigt">Unbestätigt – Nährwerte der ungebackenen Rezeptur</option>
+            <option value="geschaetzt">Schätzung – ausdrücklich als Schätzung ausweisen</option>
+            <option value="gemessen">Gemessen – abgekühltes Verkaufsgewicht</option>
+          </select>
+        </label>
         <p className="muted" style={{ gridColumn: '1 / -1', fontSize: 12 }}>Bezug: gesamte eingesetzte Rezeptur einschließlich späterer Füllungen und Glasuren gegenüber dem abgekühlten Verkaufsgewicht. Die Berechnung setzt Wasserverlust voraus. Aufgenommenes Frittierfett als eigene Zutatenmenge erfassen; bei Fettverlust oder veränderter Zusammensetzung sind angepasste Produktdaten erforderlich.</p>
       </div>
 
@@ -173,12 +182,24 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
       {multi ? (
         <div style={{ marginBottom: 10 }}>
           {produkte.map((p, i) => (
-            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+            <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
               <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
               <span className="muted" style={{ fontSize: 13 }}>
                 {p.gewicht_g} g{p.stueck_pro_presse > 0 ? ` · ${p.stueck_pro_presse} Stk/Presse` : ''}
               </span>
-              <button className="btn btn-ghost" onClick={() => setProdukte(produkte.filter((_, j) => j !== i))}>✕</button>
+              <button className="btn btn-ghost" aria-label={`${p.name} entfernen`} onClick={() => setProdukte(produkte.filter((_, j) => j !== i))}>✕</button>
+              <div style={{ flexBasis: '100%', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <label style={{ flex: '1 1 150px' }}>Gewichtsverlust (%)
+                  <input aria-label={`Gewichtsverlust ${p.name}`} type="number" min="0" max="99.9" step="any" placeholder="Wert des Rezepts" value={p.backverlust_pct ?? ''}
+                    onChange={e => setProdukte(produkte.map((q, j) => j === i ? { ...q, backverlust_pct: e.target.value === '' ? null : Number(e.target.value) } : q))} style={{ width: '100%' }} />
+                </label>
+                <label style={{ flex: '2 1 200px' }}>Grundlage
+                  <select aria-label={`Verlustgrundlage ${p.name}`} disabled={p.backverlust_pct == null} value={p.backverlust_status || 'unbestaetigt'}
+                    onChange={e => setProdukte(produkte.map((q, j) => j === i ? { ...q, backverlust_status: e.target.value } : q))} style={{ width: '100%' }}>
+                    <option value="unbestaetigt">Unbestätigt</option><option value="geschaetzt">Schätzung</option><option value="gemessen">Gemessen</option>
+                  </select>
+                </label>
+              </div>
             </div>
           ))}
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap', marginTop: 8 }}>
@@ -240,6 +261,11 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
         {feld('Bedampfungs-Hinweis', 'bedampf_hinweis', { placeholder: 'z.B. 2× stoßen' })}
       </div>
 
+      <div style={{ marginBottom: 10 }}>
+        <label>Hinweis zur Nährwertberechnung
+          <textarea value={form.naehrwert_hinweis || ''} onChange={e => set('naehrwert_hinweis', e.target.value)} rows={2} style={{ width: '100%' }} placeholder="z. B. Streuselmenge nach Augenmaß – Berechnung ist eine Schätzung" />
+        </label>
+      </div>
       <div style={{ marginBottom: 10 }}>
         <label>Anmerkungen für Teigmacher</label>
         <textarea

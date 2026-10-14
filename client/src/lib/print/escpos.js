@@ -6,7 +6,7 @@ import { produktionsRezept } from '../calc/produktion.js';
 // Reine Byte-Erzeugung OHNE Bluetooth — dadurch unit-testbar
 // (Web Bluetooth ist in Playwright nicht testbar). Transport: bluetooth.js.
 
-import { ta } from '../calc/ta.js';
+import { taErgebnis, ta } from '../calc/ta.js';
 import { getRezeptAllergene, berechneNaehrwerte } from '../calc/naehrwerteLookup.js';
 import { ALLERGEN_NAMEN } from '../../data/allergene.js';
 
@@ -275,7 +275,7 @@ export function generateBonBytes(rezept, skalierteZutaten, produktInfo, teilerIn
       const taWert = ta(rezept, skalierteZutaten);
       if (taWert && taWert > 0) {
         bytes.push(...ESCPOS.DOUBLE_HEIGHT);
-        bytes.push(...textToBytes('TA: ' + String(taWert).replace('.', ',') + '\n'));
+        bytes.push(...textToBytes('TA: ' + (taErgebnis(rezept, skalierteZutaten).hinweise?.length ? 'ca. ' : '') + String(taWert).replace('.', ',') + '\n'));
         bytes.push(...ESCPOS.NORMAL);
       }
     } catch {}

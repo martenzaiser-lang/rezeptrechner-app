@@ -27,11 +27,12 @@ import PasteImportModal from './admin/PasteImportModal.jsx';
 import LmivBlock from './admin/LmivBlock.jsx';
 import KostenBlock from './admin/KostenBlock.jsx';
 import KalkulationBlock from './admin/KalkulationBlock.jsx';
+import SortimentsKalkulationModal from './admin/SortimentsKalkulationModal.jsx';
 import '../styles/baker.css';
 import '../styles/admin.css';
 
 export default function AdminPage() {
-  const { recipes, settings, prices, customIngredients, initialLoadDone, refresh, mutateAndRefresh } = useData();
+  const { recipes, settings, prices, customIngredients, calculationIngredients, calculationRecipes, calculationPrices: eigenePreiseMap, initialLoadDone, refresh, mutateAndRefresh } = useData();
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -46,17 +47,14 @@ export default function AdminPage() {
   const rezept = recipes.find((r) => r.id === selectedId) || null;
   const [produktAuswahl, setProduktAuswahl] = useState('');
   const produktName = rezept?.produkte?.some(p => p.name === produktAuswahl) ? produktAuswahl : rezept?.produkte?.[0]?.name;
-  const kennzahlenRezept = rezept ? produktRezept(rezept, produktName) : null;
+  const rechenRezept = calculationRecipes.find(r => r.id === selectedId);
+  const kennzahlenRezept = rezept ? produktRezept(rechenRezept, produktName) : null;
   const baeckerProzente = useMemo(() => {
     if (!rezept || rezept.produkte?.length > 1) return [];
-    try { const sk = skaliereByFactor(rezept, 1); const b = taBilanz(rezept, sk); return b.mehl > 0 && !b.fehler.length ? sk.map(kg => kg / b.mehl * 100) : []; }
+    try { const sk = skaliereByFactor(rechenRezept, 1); const b = taBilanz(rechenRezept, sk); return b.mehl > 0 && !b.fehler.length ? sk.map(kg => kg / b.mehl * 100) : []; }
     catch { return []; }
-  }, [rezept]);
+  }, [rezept, rechenRezept]);
   const vorschlaege = useMemo(() => getZutatVorschlaege(recipes), [recipes]);
-  const eigenePreiseMap = useMemo(
-    () => Object.fromEntries(prices.map((p) => [p.zutat_name, { preis_kg: Number(p.preis_eur_kg) }])),
-    [prices]
-  );
 
   // Pro Rezept nur eine laufende Änderung; kein verlorener Timer bei Rezeptwechsel.
   const saving = useRef(false);
@@ -179,6 +177,9 @@ export default function AdminPage() {
             <FileSpreadsheet size={18} />
           </button>
         </div>
+        <button className="btn sortiment-open" onClick={() => setModal({ typ: 'sortiment' })}>
+          <Euro size={17} /> Sortiment kalkulieren
+        </button>
         <input
           type="search"
           placeholder="Suchen…"
@@ -317,15 +318,16 @@ export default function AdminPage() {
             </select>
             <span>{taLabel(kennzahlenRezept)}</span>
           </label>}
+          {taBilanz(kennzahlenRezept).hinweise.length > 0 && <details style={{ marginTop: 8 }}><summary>Grundlage der TA-Näherung</summary>{taBilanz(kennzahlenRezept).hinweise.map(h => <p key={h}>{h}</p>)}</details>}
           {kennzahlenRezept.berechnungsfehler && <p role="alert">{kennzahlenRezept.berechnungsfehler}</p>}
           <KostenBlock rezept={kennzahlenRezept} eigenePreise={eigenePreiseMap} />
           <KalkulationBlock
             rezept={kennzahlenRezept}
             eigenePreise={eigenePreiseMap}
             kalkulation={settings?.kalkulation}
-            onSave={(k) => speichereSettings({ ...settings, kalkulation: k })}
+            onSave={(k) => speichereSettings({ kalkulation: k })}
           />
-          <LmivBlock rezept={kennzahlenRezept} customZutaten={customIngredients.map((c) => ({ name: c.name, ...c.data }))} />
+          <LmivBlock rezept={kennzahlenRezept} customZutaten={calculationIngredients} />
         </div>
       ) : (
         <div className="card">
@@ -334,6 +336,7 @@ export default function AdminPage() {
       )}
 
       {/* Modals */}
+      {modal?.typ === 'sortiment' && <SortimentsKalkulationModal recipes={calculationRecipes} prices={eigenePreiseMap} settings={settings} onClose={() => setModal(null)} onSave={speichereSettings} />}
       {modal?.typ === 'rezept-neu' && (
         <RezeptEditorModal rezept={null} onClose={() => setModal(null)} onSave={(neu) => speichereRezept(neu, { istNeu: true })} />
       )}
@@ -348,7 +351,9 @@ export default function AdminPage() {
           onClose={() => setModal(null)}
           onSave={async (z) => {
             const zutaten = [...zutatenAktuell];
-            if (modal.idx != null) zutaten[modal.idx] = { ...zutaten[modal.idx], ...z };
+            // Der Editor liefert die vollständige Zutat einschließlich bewusst
+            // entfernter Vorstufenfelder. Alte Felder nicht wieder hineinmischen.
+            if (modal.idx != null) zutaten[modal.idx] = z;
             else zutaten.push(z);
             await speichereZutaten(zutaten);
           }}
@@ -412,6 +417,7 @@ export default function AdminPage() {
         <ZutatDatenModal
           recipes={recipes}
           customIngredients={customIngredients}
+          calculationIngredients={calculationIngredients}
           onClose={() => setModal(null)}
           onSave={async (name, data) => {
             try {

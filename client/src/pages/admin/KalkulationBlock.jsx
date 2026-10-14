@@ -36,7 +36,7 @@ export default function KalkulationBlock({ rezept, eigenePreise = {}, kalkulatio
   const bezug = istBlech
     ? `pro Blech ${rezept.blech_breite_cm || 50}×${rezept.blech_laenge_cm || 80} cm`
     : `pro Stück (${rezept.stueckgewicht_g || 1000} g Teig)`;
-  const fertigGramm = !istBlech && rezept.backverlust_pct > 0
+  const fertigGramm = !istBlech && ['gemessen', 'geschaetzt'].includes(rezept.backverlust_status) && rezept.backverlust_pct >= 0 && rezept.backverlust_pct < 100
     ? (rezept.stueckgewicht_g || 1000) * (1 - rezept.backverlust_pct / 100)
     : null;
 
@@ -81,7 +81,7 @@ export default function KalkulationBlock({ rezept, eigenePreise = {}, kalkulatio
               </div>
               <div className="muted" style={{ marginTop: 6 }}>
                 Kontrolle: Faktor {de(k.faktor, 1)} auf die Rohstoffe (netto)
-                {fertigGramm ? ` · ${de(k.empfohlen / (fertigGramm / 1000))} €/kg verkaufsfertig` : ''}
+                {fertigGramm ? ` · ${de(k.empfohlen / (fertigGramm / 1000))} €/kg verkaufsfertig${rezept.backverlust_status === 'geschaetzt' ? ' (Schätzung)' : ''}` : ''}
               </div>
               {ohnePreis.length > 0 && (
                 <p style={{ color: 'var(--error)', marginTop: 6, marginBottom: 0 }}>

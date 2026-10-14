@@ -23,7 +23,7 @@ describe('Bäckerprozente in allen Mengenmodi', () => {
     expect(produktNaehrwerte(produktRezept(p)).vollstaendig).toBe(false);
   });
   it('physikalisch unmöglicher Gewichtsverlust erzeugt keine druckbaren Nährwerte', () => {
-    const p=produktNaehrwerte(rezept([mehl(1),wasser(.6)],{backverlust_pct:90}));
+    const p=produktNaehrwerte(rezept([mehl(1),wasser(.6)],{backverlust_pct:90,backverlust_status:'gemessen'}));
     expect(p.vollstaendig).toBe(false); expect(p.fehlend.join(' ')).toContain('Nährstoffsumme');
   });
   it.each(['Rum', 'Classic Baguette', 'Gluten', 'Brotmischung'])('falsches Mehlflag bei %s ergibt keine scheinbar korrekte TA', name => {
@@ -83,7 +83,7 @@ describe('Produktionsplanung und Vorstufenzettel', () => {
 describe('Nährstoffbilanz und Quellen', () => {
   const reference=[{name:'Testmehl',kj:1400,kcal:330,eiweiss:10,fett:2,gfs:.4,kh:65,zucker:1,ballaststoffe:4,salz:.01}];
   it('Wasser zählt zum Nenner; nur das gemessene Fertiggewicht ändert den Bezug',()=>{
-    const r=rezept([zutat('Testmehl',1,{ist_mehl:true}),wasser(1)],{backverlust_pct:20});
+    const r=rezept([zutat('Testmehl',1,{ist_mehl:true}),wasser(1)],{backverlust_pct:20,backverlust_status:'gemessen'});
     const raw=berechneNaehrwerte(r,reference), end=produktNaehrwerte(r,reference);
     expect(raw.kcal).toBe(165);expect(raw.kj).toBe(700);
     expect(end.werte.kcal).toBeCloseTo(206.25);expect(end.werte.kj).toBe(875);
@@ -94,7 +94,7 @@ describe('Nährstoffbilanz und Quellen', () => {
   it('Hersteller-Teilwörter dürfen kein fremdes Produkt zuordnen',()=>{
     expect(findHersteller('Unbekanntes Dinkelbackmittel')).toBeNull();expect(findHersteller('MELLA SANDBISKUIT')).toBeTruthy();
   });
-  it.each(['Exzellent','Optimal','Spicy Topping','Delfia Effekt','SL-Creme'])('%s liefert mit ungeklärten Angaben keine vollständige Deklaration',name=>{
+  it.each(['Kochcreme','Delfia Effekt','SL-Creme'])('%s liefert mit ungeklärten Angaben keine vollständige Deklaration',name=>{
     expect(produktNaehrwerte(rezept([zutat(name,1)])).vollstaendig).toBe(false);
   });
   it('BLS-Werte haben eine überprüfbare Rohstoffzuordnung',()=>{

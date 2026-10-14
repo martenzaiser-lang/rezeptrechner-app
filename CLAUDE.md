@@ -76,14 +76,41 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
    localhost; in Playwright nicht testbar → escpos.js unit-testen.
 6. **Fachregeln**: Alle Bäckerprozente beziehen sich auf Gesamtmehl inkl.
    Vorstufen. Saaten und Altbrot zählen nicht als Mehl. Massen bekommen keine TA.
-   Fehlende Vorstufenanteile niemals mit TA 200 ersetzen. Kochstück nach dem
+   Fehlende Vorstufenanteile niemals pauschal mit TA 200 ersetzen. Für den
+   betrieblichen Roggen-/Weizensauer hat Marten am 14.10.2026 bestätigt:
+   1 kg Mehl + 1 kg Wasser + 20 g Salz = 2,02 kg, TA 200. Daher je
+   1/2,02 Mehl/Wasser, NICHT je 50 %.
+   Gekochte Roggenkörner (auch Katen-/Mehrkornbrot): 1 kg Körner + ca. 2,5 l
+   Wasser. Rechnerische 3,5 kg sind eine Schätzung, keine gemessene Ausbeute.
+   Gemeinsame Grundlage für TA/Nährwerte/Preise: `data/betrieblicheVorstufen.js`.
+   `ta_pro_kg` erfasst Vorstufen auch bei Prozentmengen. Eigene Mischungen
+   werden über `rezeptZutaten.js` aus aktuellen Quellrezepten abgeleitet.
+   Unbekannte Trägermehle nur nach ausdrücklicher fachlicher Festlegung als
+   Näherung kennzeichnen; größere Fertigmischungen nicht pauschal als Mehl zählen.
+   Kochstück nach dem
    Abkühlen auf Sollgewicht ergänzen; Ausgleichswasser nicht doppelt zählen.
 7. **Nährwerte**: Bezug ist 100 g des gesamten Produkts inkl. Wasser. Nur mit
-   belegtem Backverlust als Endprodukt deklarieren, sonst ungebackene Rezeptur.
+   bestätigtem Backverlust als Endprodukt deklarieren: `gemessen` oder ausdrücklich
+   `geschaetzt`; Altwerte ohne Status bleiben unbestätigt. Bezug ist die gesamte
+   Rezeptur einschließlich späterer Füllungen/Glasuren. Ballaststoffe sind optional
+   und bleiben bei fehlender Quelle leer; alle Pflichtfelder müssen bekannt sein.
    Fehlende Hersteller-/Rohstoffwerte bleiben unbekannt, nicht automatisch null.
    Eigene Zutaten haben Vorrang; Referenzübernahme nur als prüfbarer Editorentwurf.
+   Für beauftragte Datenabgleiche: `server/scripts/apply-quality-plan.mjs` prüft
+   einen externen JSON-Plan gegen den aktuellen Datenstand. Ohne `--apply` schreibt
+   es nichts. Mit `--apply`: Dateisicherung, Versionsvergleich und eine Transaktion.
 8. **Produktionsdaten**: Prüfberichte und Neon-Sicherungen liegen außerhalb
    dieses Repositories. Browserprüfungen laufen mit isolierter Testdatenbank.
+9. **Sortimentskalkulation**: Admin → Sortiment kalkulieren. Jede aktive Variante
+   erhält Rohstoffkosten und einen gerundeten Brutto-Preisvorschlag. Bei Kuchen
+   zuerst Stücke pro Blech festlegen. Der Entwurf (`settings.sortimentskalkulation`)
+   speichert bisherige/neue Preise und Zielquoten; CSV dient der Preisrunde, es gibt
+   keine automatische Kassenübertragung. Fehlende Preise verhindern Vorschläge;
+   BÄKO-Referenzen bleiben auch in verschachtelten eigenen Mischungen sichtbar.
+   `rezeptPreise` berechnet eigene Mischungen aus aktuellen Rohstoffpreisen.
+10. **UI**: Politur ausschließlich in `polish.css`/`sortiment.css`, bestehende
+    Farbpalette behalten. Dialoge haben scrollbaren Inhalt und erreichbare Aktionen.
+    Bewegungsreduktion des Betriebssystems beachten; Druck bleibt schwarz/weiß.
 
 ## Konventionen
 

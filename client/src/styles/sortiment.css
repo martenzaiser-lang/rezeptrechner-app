@@ -1,0 +1,44 @@
+.sortiment-open { width: 100%; justify-content: center; margin-bottom: 14px; }
+.sortiment-intro p { margin: 0 0 8px; line-height: 1.5; }
+.sortiment-intro p:first-child { font-weight: 600; }
+.sortiment-intro p + p, .sortiment-help { font-size: 13px; color: var(--text-secondary); }
+.sortiment-quoten { margin: 18px 0; padding: 14px; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 14px; }
+.sortiment-quoten > summary { font-weight: 650; cursor: pointer; }
+.sortiment-quoten p { font-size: 13px; line-height: 1.5; }
+.sortiment-parameter { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-top: 14px; }
+.sortiment-parameter label { font-size: 13px; }
+.sortiment-parameter input, .sortiment-parameter select { width: 100%; margin-top: 5px; }
+.sortiment-check { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; }
+.sortiment-summary { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-block: 14px; border-block: 1px solid var(--border); margin-bottom: 16px; font-size: 14px; }
+.sortiment-summary strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+.sortiment-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-block: 10px; }
+.sortiment-tools > input { flex: 1 1 220px; min-width: 0; width: auto; }
+.sortiment-tools > select { max-width: 100%; width: auto; flex: 0 1 200px; }
+.sortiment-help { line-height: 1.55; }
+.sortiment-table-wrap { overflow-x: auto; }
+.sortiment-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sortiment-table th { text-align: left; padding: 12px 10px; color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
+.sortiment-table td { padding: 16px 10px; border-top: 1px solid var(--border); vertical-align: top; font-variant-numeric: tabular-nums; }
+.sortiment-table td:first-child { width: 31%; min-width: 200px; }
+.sortiment-table td:not(:first-child) { min-width: 106px; }
+.sortiment-table input { width: 100%; min-width: 0; max-width: 126px; font-size: 14px; }
+.sortiment-basis { display: block; font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin-top: 4px; }
+.sortiment-portionen { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; margin-top: 8px; }
+.sortiment-portionen input { width: 100px; }
+.sortiment-hinweise { margin-top: 8px; font-size: 12px; }
+.sortiment-hinweise summary { cursor: pointer; color: var(--text-secondary); }
+.sortiment-hinweise summary svg { vertical-align: middle; margin-right: 4px; }
+.sortiment-hinweise p { overflow-wrap: anywhere; line-height: 1.5; margin-block: 8px; }
+.sortiment-save-note { margin-right: auto; align-self: center; color: var(--text-secondary); font-size: 13px; }
+@media(max-width:800px) {
+  .sortiment-parameter { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .sortiment-table, .sortiment-table tbody { display: block; }
+  .sortiment-table thead { display: none; }
+  .sortiment-table tr { display: block; border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+  .sortiment-table td, .sortiment-table td:first-child, .sortiment-table td:not(:first-child) { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 12px; padding: 7px 0; border: 0; min-width: 0; width: auto; }
+  .sortiment-table td:first-child { display: block; padding: 0 0 10px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .sortiment-table td:not(:first-child)::before { content: attr(data-label); font-size: 13px; color: var(--text-secondary); }
+  .sortiment-table input { font-size: 16px; max-width: none; }
+  .sortiment-table td[colspan] { display: block; }
+  .sortiment-save-note { flex-basis: 100%; }
+}

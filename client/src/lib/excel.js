@@ -19,18 +19,18 @@ function getXLSX() {
 export async function buildExcelWorkbook(rezepte) {
   const XLSX = await getXLSX();
   const wb = XLSX.utils.book_new();
-  const rH = ['ID', 'Name', 'Kategorie', 'Aktiv', 'Fertiggewicht_g', 'Backverlust_pct', 'Min_Stueck', 'Max_Stueck', 'Teigtemp_C', 'Knetzeit_langsam_min', 'Knetzeit_schnell_min', 'Stockgare_min', 'Stueckgare_min', 'Backtemp_Ober_C', 'Backtemp_Unter_C', 'Backzeit_min', 'Bedampfung', 'Bedampf_Hinweis', 'Anmerkungen', 'Erstellt'];
+  const rH = ['ID', 'Name', 'Kategorie', 'Aktiv', 'Teiggewicht_g', 'Backverlust_pct', 'Min_Stueck', 'Max_Stueck', 'Teigtemp_C', 'Knetzeit_langsam_min', 'Knetzeit_schnell_min', 'Stockgare_min', 'Stueckgare_min', 'Backtemp_Ober_C', 'Backtemp_Unter_C', 'Backzeit_min', 'Bedampfung', 'Bedampf_Hinweis', 'Anmerkungen', 'Erstellt'];
   const rR = rezepte.map((r) => [r.id, r.name, r.kategorie, r.aktiv ? 'JA' : 'NEIN', r.stueckgewicht_g, r.backverlust_pct, r.min_stueck, r.max_stueck, r.teigtemp_c, r.kz_langsam, r.kz_schnell, r.stockgare, r.stueckgare, r.back_ober, r.back_unter, r.backzeit, r.bedampfung ? 'JA' : 'NEIN', r.bedampf_hinweis, r.anmerkungen, r.erstellt]);
-  rH.push('Berechnung', 'Blech_Breite_cm', 'Blech_Laenge_cm', 'Produkte_JSON', 'BonOptionen_JSON', 'Rezeptart');
-  rR.forEach((row, i) => { const r = rezepte[i]; row.push(r.berechnung, r.blech_breite_cm, r.blech_laenge_cm, JSON.stringify(r.produkte || []), JSON.stringify(r.bonOptionen || null), r.rezeptart || ''); });
+  rH.push('Berechnung', 'Blech_Breite_cm', 'Blech_Laenge_cm', 'Produkte_JSON', 'BonOptionen_JSON', 'Rezeptart', 'Backverlust_Status', 'Backverlust_Quelle', 'Naehrwert_Hinweis');
+  rR.forEach((row, i) => { const r = rezepte[i]; row.push(r.berechnung, r.blech_breite_cm, r.blech_laenge_cm, JSON.stringify(r.produkte || []), JSON.stringify(r.bonOptionen || null), r.rezeptart || '', r.backverlust_status || '', r.backverlust_quelle || '', r.naehrwert_hinweis || ''); });
   const ws1 = XLSX.utils.aoa_to_sheet([rH, ...rR]);
   XLSX.utils.book_append_sheet(wb, ws1, 'Rezepte');
   const zH = ['Rezept_ID', 'Rezept_Name', 'Zutat_Name', 'Menge_kg', 'Ist_Mehl', 'Ist_Wasser', 'Bemerkung', 'Fuer_Produkte'];
-  zH.push('Ist_Kommentar', 'Einheit', 'Dosen_Gewicht_g', 'Zusatz_Prozent', 'Menge_pro_Presse', 'Nicht_auf_Bon', 'TA_Anteile_JSON', 'Vorstufe_nur_Mehl_Wasser', 'Vorstufe_TA', 'TA_Rolle', 'Prozent_Bezug', 'Presse_Bezug');
+  zH.push('Ist_Kommentar', 'Einheit', 'Dosen_Gewicht_g', 'Zusatz_Prozent', 'Menge_pro_Presse', 'Nicht_auf_Bon', 'TA_Anteile_JSON', 'Vorstufe_nur_Mehl_Wasser', 'Vorstufe_TA', 'TA_Rolle', 'Prozent_Bezug', 'Presse_Bezug', 'TA_pro_kg_JSON', 'TA_Naeherung', 'TA_Hinweis');
   const zR = [];
   rezepte.forEach((r) =>
     r.zutaten.forEach((z) =>
-      zR.push([r.id, r.name, z.name, z.menge_kg, z.ist_mehl ? 'JA' : 'NEIN', z.ist_wasser ? 'JA' : 'NEIN', z.bemerkung || '', (z.fuer_produkte || []).join(';'), z.ist_kommentar ? 'JA' : 'NEIN', z.einheit || '', z.dosen_gewicht_g || 0, z.zusatz_prozent || 0, z.menge_pro_presse || 0, z.nicht_auf_bon ? 'JA' : 'NEIN', JSON.stringify(z.ta_anteile || null), z.vorstufe_nur_mehl_wasser ? 'JA' : 'NEIN', z.vorstufe_ta ?? '', z.ta_rolle || '', z.prozent_bezug || '', z.presse_bezug || ''])
+      zR.push([r.id, r.name, z.name, z.menge_kg, z.ist_mehl ? 'JA' : 'NEIN', z.ist_wasser ? 'JA' : 'NEIN', z.bemerkung || '', (z.fuer_produkte || []).join(';'), z.ist_kommentar ? 'JA' : 'NEIN', z.einheit || '', z.dosen_gewicht_g || 0, z.zusatz_prozent || 0, z.menge_pro_presse || 0, z.nicht_auf_bon ? 'JA' : 'NEIN', JSON.stringify(z.ta_anteile || null), z.vorstufe_nur_mehl_wasser ? 'JA' : 'NEIN', z.vorstufe_ta ?? '', z.ta_rolle || '', z.prozent_bezug || '', z.presse_bezug || '', JSON.stringify(z.ta_pro_kg || null), z.ta_naeherung ? 'JA' : 'NEIN', z.ta_hinweis || ''])
     )
   );
   const ws2 = XLSX.utils.aoa_to_sheet([zH, ...zR]);
@@ -47,7 +47,7 @@ export async function downloadTemplate() {
   const XLSX = await getXLSX();
   const wb = XLSX.utils.book_new();
   const ws1 = XLSX.utils.aoa_to_sheet([
-    ['ID', 'Name', 'Kategorie', 'Aktiv', 'Fertiggewicht_g', 'Backverlust_pct'],
+    ['ID', 'Name', 'Kategorie', 'Aktiv', 'Teiggewicht_g', 'Backverlust_pct'],
     ['', 'Roggenmischbrot', 'Brot', 'JA', 750, 12],
   ]);
   XLSX.utils.book_append_sheet(wb, ws1, 'Rezepte');
@@ -105,8 +105,11 @@ export async function parseStandardFormat(wb) {
       name: String(name).trim(),
       kategorie: fc(row, 'kategorie') || 'Brot',
       aktiv: String(fc(row, 'aktiv') || 'JA').toUpperCase() !== 'NEIN',
-      stueckgewicht_g: num(fc(row, 'fertiggewicht_g', 'fertiggewicht', 'stueckgewicht_g'), 500),
+      stueckgewicht_g: num(fc(row, 'teiggewicht_g', 'stueckgewicht_g', 'fertiggewicht_g', 'fertiggewicht'), 500),
       backverlust_pct: num(fc(row, 'backverlust_pct', 'backverlust'), null),
+      backverlust_status: fc(row, 'backverlust_status') || 'unbestaetigt',
+      backverlust_quelle: fc(row, 'backverlust_quelle') || '',
+      naehrwert_hinweis: fc(row, 'naehrwert_hinweis') || '',
       min_stueck: Math.trunc(num(fc(row, 'min_stueck', 'min'), 1)),
       max_stueck: Math.trunc(num(fc(row, 'max_stueck', 'max'), 999)),
       teigtemp_c: num(fc(row, 'teigtemp_c', 'teigtemp'), 26),
@@ -150,6 +153,9 @@ export async function parseStandardFormat(wb) {
         prozent_bezug: fc(z, 'prozent_bezug') || '',
         presse_bezug: fc(z, 'presse_bezug') || '',
         ta_anteile: json(fc(z, 'ta_anteile_json'), null),
+        ta_pro_kg: json(fc(z, 'ta_pro_kg_json'), null),
+        ta_naeherung: String(fc(z, 'ta_naeherung')).toUpperCase() === 'JA',
+        ta_hinweis: fc(z, 'ta_hinweis') || '',
         vorstufe_nur_mehl_wasser: String(fc(z, 'vorstufe_nur_mehl_wasser')).toUpperCase() === 'JA',
         vorstufe_ta: fc(z, 'vorstufe_ta') ? num(fc(z, 'vorstufe_ta')) : undefined,
         ist_wasser: String(fc(z, 'ist_wasser', 'wasser') || '').toUpperCase() === 'JA',

@@ -15,6 +15,9 @@
 //   von Marten bestätigt 2026-07-22.
 
 export const SYNONYME_ERGAENZUNGEN = {
+  // Einkaufsliste / import-kbo-preise.js: betriebliche Zuordnung 22.07.2026.
+  'margarine': 'sp back',
+  'fett': 'sp back',
   'erdbeere-sahnessa': 'sahnessa erdbeer',
   'himbeere-sahnessa': 'sahnessa himbeer',
   'zitrone-sahnessa': 'sahnessa zitrone',

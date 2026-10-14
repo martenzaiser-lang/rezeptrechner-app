@@ -14,7 +14,8 @@ const de = (v, dez = 2) =>
 export default function KostenBlock({ rezept, eigenePreise = {} }) {
   const [offen, setOffen] = useState(false);
 
-  const { summe, zeilen, ohnePreis, istBlech } = berechneRohstoffkosten(rezept, eigenePreise);
+  const { summe, zeilen, ohnePreis, istBlech, fehler } = berechneRohstoffkosten(rezept, eigenePreise);
+  if (fehler) return <p role="alert" style={{ color: 'var(--error)' }}>Kosten nicht berechenbar: {fehler}</p>;
   const bezug = istBlech
     ? `pro Blech ${rezept.blech_breite_cm || 50}×${rezept.blech_laenge_cm || 80} cm`
     : `pro Stück (${rezept.stueckgewicht_g || 1000} g Teig)`;
@@ -27,7 +28,7 @@ export default function KostenBlock({ rezept, eigenePreise = {} }) {
         onClick={() => setOffen(!offen)}
       >
         <strong>
-          Kosten: {de(summe)} € {bezug}
+          {ohnePreis.length ? 'Bekannte Teilkosten' : 'Kosten'}: {de(summe)} € {bezug}
           {ohnePreis.length > 0 && (
             <span style={{ color: 'var(--error)', fontWeight: 400 }}> — {ohnePreis.length} Zutat{ohnePreis.length > 1 ? 'en' : ''} ohne Preis!</span>
           )}
@@ -49,7 +50,7 @@ export default function KostenBlock({ rezept, eigenePreise = {} }) {
                 ) : z.quelle === 'wasser' ? (
                   '—'
                 ) : (
-                  <span title={z.quelle === 'eigen' ? 'eigener Preis (Preisliste/DB)' : 'BÄKO-Standardpreis (App-intern)'}>
+                  <span title={z.quelle === 'rezept' ? 'Aus aktuellem Quellrezept und dessen Zutatenpreisen berechnet' : z.quelle === 'eigen' ? 'eigener Preis (Preisliste/DB)' : 'BÄKO-Standardpreis (App-intern)'}>
                     {de(z.preisKg)} €/kg{z.quelle === 'bäko' ? '*' : ''}
                   </span>
                 )}
@@ -58,7 +59,7 @@ export default function KostenBlock({ rezept, eigenePreise = {} }) {
             </div>
           ))}
           <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: 14, paddingTop: 8 }}>
-            <span>Summe {bezug}</span>
+            <span>{ohnePreis.length ? 'Bekannte Teilkosten' : 'Summe'} {bezug}</span>
             <span>{de(summe)} €{ohnePreis.length > 0 ? ' + ?' : ''}</span>
           </div>
           {!istBlech && (rezept.stueckgewicht_g || 0) > 0 && (

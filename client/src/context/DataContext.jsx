@@ -9,9 +9,11 @@
 // - Cloud-Status: online / sync / fehler / offline (Anzeige im Header).
 // - 20 rotierende lokale Backups (wie alte App) bei jedem neuen Datenstand.
 
-import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { makeBackup } from '../../../shared/backup.js';
 import { api, auth } from '../services/api.js';
+import { rezeptZutaten, aufgeloesteRezepte } from '../lib/calc/rezeptZutaten.js';
+import { rezeptPreise } from '../lib/preise.js';
 
 const POLL_INTERVAL_MS = 90_000;
 const CACHE_KEY = 'rz2_cache_v1';       // { recipes, settings, prices, customIngredients, etag, ts }
@@ -66,6 +68,9 @@ export function DataProvider({ children }) {
   const [settings, setSettings] = useState(cached?.settings || {});
   const [prices, setPrices] = useState(cached?.prices || []);
   const [customIngredients, setCustomIngredients] = useState(cached?.customIngredients || []);
+  const calculationIngredients = useMemo(() => rezeptZutaten(recipes, customIngredients), [recipes, customIngredients]);
+  const calculationRecipes = useMemo(() => aufgeloesteRezepte(recipes, calculationIngredients), [recipes, calculationIngredients]);
+  const calculationPrices = useMemo(() => rezeptPreise(calculationRecipes, prices), [calculationRecipes, prices]);
   // 'online' | 'sync' | 'fehler' | 'offline'
   const [cloudStatus, setCloudStatus] = useState(navigator.onLine ? 'sync' : 'offline');
   const [initialLoadDone, setInitialLoadDone] = useState(Boolean(cached));
@@ -206,6 +211,9 @@ export function DataProvider({ children }) {
         settings,
         prices,
         customIngredients,
+        calculationIngredients,
+        calculationRecipes,
+        calculationPrices,
         cloudStatus,
         initialLoadDone,
         letzterSync,

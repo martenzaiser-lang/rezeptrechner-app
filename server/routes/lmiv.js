@@ -20,6 +20,7 @@ import { getRezeptVerkaufsZutaten, getRezeptKenntlichmachung } from '../../clien
 
 import { produktRezept } from '../../client/src/lib/calc/produktion.js';
 import { produktNaehrwerte } from '../../client/src/lib/calc/produktNaehrwerte.js';
+import { rezeptZutaten, aufgeloesteRezepte } from '../../client/src/lib/calc/rezeptZutaten.js';
 
 export const lmivRouter = Router();
 
@@ -48,17 +49,18 @@ function requireApiKey(req, res, next) {
 lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
   try {
     const { rows } = await pool.query(
-      "SELECT data FROM recipes WHERE aktiv = true ORDER BY name"
+      "SELECT data, aktiv FROM recipes ORDER BY name"
     );
     const { rows: customRows } = await pool.query(
       'SELECT name, data FROM custom_ingredients'
     );
-    const customZutaten = customRows.map((c) => ({ name: c.name, ...c.data }));
+    const customZutaten = rezeptZutaten(rows.map(r => r.data), customRows);
+    const resolved = new Map(aufgeloesteRezepte(rows.map(r => r.data), customZutaten).map(r => [r.id, r]));
 
-    const produkte = rows.flatMap(({ data }) => {
+    const produkte = rows.filter(r => r.aktiv).flatMap(({ data }) => {
       const namen = data.produkte?.length ? data.produkte.map(p => p.name) : [data.name];
       return namen.map(name => {
-        const r = produktRezept(data, name);
+        const r = produktRezept(resolved.get(data.id), name);
         const allergene = getRezeptAllergene(r, customZutaten);
         const allergenStatus = getRezeptAllergenStatus(r, customZutaten);
         const allergeneText = allergenStatus.vollstaendig ? formatAllergene(allergene,true)
@@ -70,7 +72,7 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
           kj: Math.round(nw.kj), kcal: Math.round(nw.kcal),
           eiweiss_g: +nw.eiweiss.toFixed(1), fett_g: +nw.fett.toFixed(1),
           gesaettigte_fettsaeuren_g: +nw.gfs.toFixed(1), kohlenhydrate_g: +nw.kh.toFixed(1),
-          zucker_g: +nw.zucker.toFixed(1), ballaststoffe_g: +nw.ballaststoffe.toFixed(1), salz_g: +nw.salz.toFixed(2),
+          zucker_g: +nw.zucker.toFixed(1), ballaststoffe_g: nw.ballaststoffe == null ? null : +nw.ballaststoffe.toFixed(1), salz_g: +nw.salz.toFixed(2),
         } : null;
         return { name:r.name, kategorie:r.kategorie || '', allergene, allergeneText,
           allergeneVollstaendig:allergenStatus.vollstaendig,

@@ -1,6 +1,13 @@
 // Eindeutige Schreibweisen und Arbeitsanweisungen ändern die Rohstoffidentität nicht.
 // Keine allgemeine Teilwortsuche und keine Annahme über gekochte/gequollene Mengen.
 export const ROHSTOFF_SYNONYME = {
+  // Betriebliche Zuordnung, bestätigt von Marten am 14.10.2026.
+  'dinkelmehl': 'dinkelmehl 630',
+  // Eindeutige Betriebsnamen laut KBO-Einkaufsliste.
+  'dinkelvollkorn': 'dinkelvollkornmehl',
+  'roggenvollkorn': 'roggenvollkornmehl',
+  'olivenöl extra vergine': 'olivenöl',
+  'brezelsalz (zugabe verspätet)': 'salz',
   'wasser (schüttwasser)': 'wasser',
   'wasser (verspätete zugabe)': 'wasser',
   'wasser(heiß)': 'wasser',
