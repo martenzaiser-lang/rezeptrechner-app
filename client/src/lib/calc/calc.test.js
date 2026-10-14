@@ -15,9 +15,17 @@ describe('Unabhängige TA-Fachregeln', () => {
     const r = rezept([mehl(9), wasser(5), mehl(1,{bemerkung:abschnitt}), wasser(2,{bemerkung:abschnitt})]);
     expect(ta(r)).toBe(170);
   });
-  it.each(['Leinsaat','Eiszeit','Teigverbesserer','Milchpulver','Sonnenblumenkerne','Altbrot','Paniermehl','Leinsamenmehl'])('%s zählt weder als Mehl noch Fl?ssigkeit', name => {
+  it.each(['Leinsaat','Eiszeit','Teigverbesserer','Milchpulver','Sonnenblumenkerne','Altbrot','Leinsamenmehl'])('%s zählt weder als Mehl noch Fl?ssigkeit', name => {
     const r = rezept([mehl(10),wasser(6),zutat(name,1,{ist_mehl:/mehl|Altbrot/.test(name)})]);
     expect(ta(r)).toBe(160);
+  });
+  it.each(['Paniermehl', 'Semmelbrösel', 'Semmelmehl', 'Brotbrösel', 'Paniermehl/Semmelbrösel/Semmelmehl'])('%s zählt auch ohne Mehlflag und bei alter Zuordnung wie Mehl', name => {
+    for (const extra of [{}, { ist_mehl: true }, { ta_rolle: 'sonstiges' }]) {
+      const r = rezept([mehl(10), wasser(7), zutat(name, 1, extra)]);
+      expect(taBilanz(r).mehl).toBe(11);
+      expect(ta(r)).toBe(163.6);
+      expect(ta(r, [20, 14, 2])).toBe(163.6);
+    }
   });
   it('Saaten-Quellwasser zählt, Saaten-Eigengewicht nicht', () => {
     expect(ta(rezept([mehl(10),wasser(6),zutat('Sonnenblumenkerne',2,{ist_mehl:true,bemerkung:'Quellstück'}),wasser(2,{bemerkung:'Quellstück'})]))).toBe(180);

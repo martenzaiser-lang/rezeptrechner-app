@@ -7,7 +7,7 @@ import '../../styles/print.css';
 const fmt = (n, stellen = 1) => n.toLocaleString('de-DE', { minimumFractionDigits: stellen, maximumFractionDigits: stellen });
 export default function NaehrwertDruck({ rezept, customZutaten }) {
   useEffect(() => () => { delete document.body.dataset.printMode; }, []);
-  const { werte: nw, deklarationVollstaendig: vollstaendig, deklarationsFehler: fehlend, bezug } = produktNaehrwerte(rezept, customZutaten);
+  const { werte: nw, deklarationVollstaendig: vollstaendig, deklarationsFehler: fehlend, bezug, druckBezug } = produktNaehrwerte(rezept, customZutaten);
   function drucken() {
     if (!vollstaendig) return;
     document.body.dataset.printMode = 'nutrition';
@@ -23,7 +23,7 @@ export default function NaehrwertDruck({ rezept, customZutaten }) {
       {vollstaendig && <>
         <h1>{rezept.name}</h1>
         <h2>Durchschnittliche Nährwerte</h2>
-        <p>{bezug}</p>
+        <p>{druckBezug}</p>
         <table><tbody>
           <tr><th scope="row">Energie</th><td>{fmt(nw.kj, 0)} kJ / {fmt(nw.kcal, 0)} kcal</td></tr>
           {[

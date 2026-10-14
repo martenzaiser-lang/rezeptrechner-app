@@ -49,7 +49,7 @@ describe('Bäckerprozente in allen Mengenmodi', () => {
     const r=rezept([mehl(0,{zusatz_prozent:100}),zutat('Butter',0,{zusatz_prozent:60}),zutat('Zucker',0,{zusatz_prozent:40})],{rezeptart:'masse'});
     expect(skaliere(r,2)).toEqual([1,.6,.4]); expect(ta(r)).toBeNull();
   });
-  it.each(['Chiasamen','Mohn','Walnüsse','Mandeln','Altbrot','Paniermehl'])('%s wird selbst bei falschem Mehlflag ausgeschlossen',name=>{
+  it.each(['Chiasamen','Mohn','Walnüsse','Mandeln','Altbrot'])('%s wird selbst bei falschem Mehlflag ausgeschlossen',name=>{
     const r=rezept([mehl(1),wasser(1),zutat(name,1,{ist_mehl:true})]);expect(ta(r)).toBe(200);
   });
   it('ausdrücklich ungeklärte Rezeptart wird nicht automatisch überschrieben',()=>expect(rezeptart(rezept(undefined,{rezeptart:'unbekannt'}))).toBe('unbekannt'));

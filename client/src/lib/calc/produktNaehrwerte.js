@@ -29,6 +29,7 @@ export function produktNaehrwerte(rezept, customZutaten = []) {
     deklarationVollstaendig: !!roh && fehlend.length === 0 && allergenStatus.vollstaendig && zutatenStatus.vollstaendig,
     deklarationsFehler,
     fehlend, fehlendeFelder: roh?.fehlendeFelder || [],
+    druckBezug: bekannt ? 'pro 100 g fertiges Produkt' : 'pro 100 g ungebackene Rezeptur',
     bezug: (bekannt ? `pro 100 g ${status === 'geschaetzt' ? 'fertiges Produkt – Schätzung' : 'fertiges Produkt'} (Backverlust ${bv.toLocaleString('de-DE')} %)`
       : zahl ? `pro 100 g ungebackene Rezeptur (hinterlegter Backverlust ${bv.toLocaleString('de-DE')} % noch unbestätigt)`
       : 'pro 100 g ungebackene Rezeptur (Backverlust nicht hinterlegt)') + (hinweise.length ? ` · ${hinweise.join(' · ')}` : '') + (vergleichsartikel.length ? ` · Schätzung mit Vergleichsartikel: ${vergleichsartikel.join('; ')}` : ''),

@@ -75,7 +75,9 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
 5. **Web Bluetooth** (Bon-Druck) geht nur in Chrome/Edge über HTTPS oder
    localhost; in Playwright nicht testbar → escpos.js unit-testen.
 6. **Fachregeln**: Alle Bäckerprozente beziehen sich auf Gesamtmehl inkl.
-   Vorstufen. Saaten und Altbrot zählen nicht als Mehl. Massen bekommen keine TA.
+   Vorstufen. Saaten und Altbrot zählen nicht als Mehl. Paniermehl (auch
+   Semmelbrösel/Semmelmehl) zählt laut Marten vom 15.10.2026 exakt wie Mehl,
+   einschließlich seines Anteils in der Brotmischung. Massen bekommen keine TA.
    Fehlende Vorstufenanteile niemals pauschal mit TA 200 ersetzen. Für den
    betrieblichen Roggen-/Weizensauer hat Marten am 14.10.2026 bestätigt:
    1 kg Mehl + 1 kg Wasser + 20 g Salz = 2,02 kg, TA 200. Daher je

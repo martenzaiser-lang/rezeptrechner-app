@@ -5,7 +5,8 @@
 import { istGekochterRoggen } from '../../data/betrieblicheVorstufen.js';
 const name = z => String(z?.name || '').trim().toLowerCase();
 export const istGewicht = z => !z.ist_kommentar && name(z) !== 'gesamt';
-export const istKeinTaMehl = z => /altbrot|ausschussbrot|restbrot|paniermehl|semmelbrösel|brotbrösel|sonnenblumenkern|kürbiskern|leinsaat|leinsamen|sesam|mandel|kokosmehl|nuss|nüsse|mohn|chia|saaten/.test(name(z));
+const istPaniermehl = z => /^(paniermehl|semmelbrösel|semmelmehl|brotbrösel)(\s*\/\s*(paniermehl|semmelbrösel|semmelmehl|brotbrösel))*$/.test(name(z));
+export const istKeinTaMehl = z => !istPaniermehl(z) && /altbrot|ausschussbrot|restbrot|paniermehl|semmelbrösel|brotbrösel|sonnenblumenkern|kürbiskern|leinsaat|leinsamen|sesam|mandel|kokosmehl|nuss|nüsse|mohn|chia|saaten/.test(name(z));
 export const FLUESSIGKEITEN = ['wasser', 'milch', 'vollmilch', 'buttermilch', 'sahne', 'joghurt', 'kefir', 'ei', 'eier', 'vollei', 'eigelb', 'eiweiß', 'bier', 'saft', 'orangensaft', 'apfelsaft', 'wein', 'rum'];
 export const GEBUNDEN_KEYS = ['quell', 'koch', 'brüh'];
 export const isSauerteig = z => name(z).includes('sauerteig');
@@ -56,6 +57,10 @@ export function taBilanz(r, sk) {
       }
       const f = menge / z.menge_kg;
       m = a.mehl_kg * f; w = a.fluessigkeit_kg * f;
+    } else if (istPaniermehl(z)) {
+      // Betriebliche Festlegung: Paniermehl zählt wie Mehl (Marten, 15.10.2026).
+      // Gilt auch für Altbestände ohne Mehlflag bzw. mit Rolle „sonstiges“.
+      m = menge;
     } else if (z.ta_rolle === 'sonstiges') {
       // Explizit als weder Mehl noch Flüssigkeit gepflegt.
     } else if (istVorstufe(z) || z.ta_rolle === 'vorstufe') {

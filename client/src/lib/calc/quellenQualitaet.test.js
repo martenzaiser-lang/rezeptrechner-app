@@ -39,7 +39,7 @@ describe('Nachgewiesene Pflichtangaben und unbekannte Zusatzangaben', () => {
     expect(taErgebnis(r, sk).status).toBe('näherung');
     expect(taErgebnis(r, sk).hinweise[0]).toContain('29–39 %');
   });
-  it('erhält Hinweise zu Mengen nach Augenmaß auch beim Nährwertdruck', () => {
+  it('erhält Hinweise zu Mengen nach Augenmaß im internen Nährwertbezug', () => {
     expect(produktNaehrwerte(rezept([mehl(1)], { naehrwert_hinweis: 'Streusel nach Augenmaß' })).bezug).toContain('Streusel nach Augenmaß');
   });
   it('verwendet für Kochcreme die genaue KOMPLET-Spezifikation und kennzeichnet andere Vergleichsartikel', () => {
@@ -91,6 +91,27 @@ describe('Nachgewiesene Pflichtangaben und unbekannte Zusatzangaben', () => {
 });
 
 describe('Eigene Rezeptmischungen bleiben aktuell', () => {
+  it.each(['Brotmischung', 'Mischung'])('zählt nur den Paniermehlanteil aus %s als Mehl und skaliert Prozentmengen', alias => {
+    const mix = rezept([zutat('Paniermehl', 20, { ta_rolle: 'sonstiges' }), zutat('Salz', 5)], { id: 'mix', name: 'Brotmischung', rezeptart: 'mischung' });
+    const r = rezept([mehl(10), wasser(7), zutat(alias, 1.25)]);
+    const [aufgeloest] = aufgeloesteRezepte([r], rezeptZutaten([mix, r]));
+    expect(taErgebnis(aufgeloest)).toMatchObject({ mehl: 11, fluessigkeit: 7, ta: 163.6 });
+    const prozent = rezept([mehl(10), wasser(7), zutat(alias, 0, { zusatz_prozent: 12.5 })]);
+    const [p] = aufgeloesteRezepte([prozent], rezeptZutaten([mix, prozent]));
+    const sk = skaliereMitBezug(p, { faktor: 1 });
+    expect(sk[2]).toBeCloseTo(12.5 / 9);
+    expect(taErgebnis(p, sk).ta).toBe(163);
+    const geaendert = { ...mix, zutaten: [zutat('Paniermehl', 10), zutat('Salz', 15)] };
+    const [neu] = aufgeloesteRezepte([r], rezeptZutaten([geaendert, r]));
+    expect(taErgebnis(neu).mehl).toBe(10.5);
+  });
+  it('vererbt Paniermehl auch über Urstückteig und zählt es genau einmal', () => {
+    const mix = rezept([zutat('Paniermehl', 20), zutat('Salz', 5)], { id: 'mix', name: 'Brotmischung', rezeptart: 'mischung' });
+    const ur = rezept([zutat('Brotmischung', 1.25), wasser(1)], { id: 'ur', name: 'Urstück' });
+    const r = rezept([mehl(10), wasser(6), zutat('Urstückteig', 2.25)]);
+    const [aufgeloest] = aufgeloesteRezepte([r], rezeptZutaten([mix, ur, r]));
+    expect(taErgebnis(aufgeloest)).toMatchObject({ mehl: 11, fluessigkeit: 7, ta: 163.6 });
+  });
   it('nutzt beim Streusel das aktuelle Dinkelrezept und dessen Mehlanteile', () => {
     const s = rezept([zutat('Dinkelmehl 630', 13, { ist_mehl: true }), zutat('Margarine', 7.5), zutat('Zucker', 7.5)], { name: 'Streusel', rezeptart: 'masse' });
     const daten = rezeptZutaten([s, rezept([zutat('Streusel', 1.8)])]);
