@@ -26,17 +26,38 @@ async function request(method, path, body, opts = {}) {
   };
 
   trackActivity(1);
-  let res;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 90_000);
   try {
-    res = await fetch(BASE + path, {
-      method,
-      headers,
-      signal: controller.signal,
-      cache: 'no-store',
+    const res = await fetch(BASE + path, {
+      method, headers, signal: controller.signal, cache: 'no-store',
       body: body == null ? undefined : JSON.stringify(body),
     });
+    if (res.status === 304) return { notModified: true };
+
+    // Auch den Antwortinhalt innerhalb der Zeitbegrenzung lesen. Sonst kann
+    // ein abgebrochener Download nach empfangenen Headern endlos hängen.
+    const raw = await res.text();
+    if (!res.ok) {
+      let detail = '';
+      let resBody = null;
+      try { resBody = JSON.parse(raw); detail = resBody?.error || 'Anfrage fehlgeschlagen'; }
+      catch { detail = 'Server hat keine gültige Datenantwort geliefert'; }
+      if (res.status === 401 && !opts.skipAuthRedirect) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_email');
+        localStorage.removeItem('auth_role');
+        window.location.href = '/login';
+      }
+      const err = new Error(method + ' ' + path + ' → ' + res.status + ': ' + detail);
+      err.status = res.status;
+      err.body = resBody;
+      throw err;
+    }
+    // Aufrufer benötigen weiterhin Response.headers und Response.json().
+    // Der Inhalt ist bereits vollständig geladen, der Netzwerk-Stream beendet.
+    if (opts.raw) return new Response(raw, { status: res.status, headers: res.headers });
+    return raw ? JSON.parse(raw) : null;
   } catch (err) {
     if (err.name === 'AbortError') throw new Error(method === 'GET' ? 'Server antwortet nicht rechtzeitig. Bitte erneut laden.' : 'Antwort ausgeblieben. Speicherstatus vor einem erneuten Versuch prüfen.');
     throw err;
@@ -45,32 +66,6 @@ async function request(method, path, body, opts = {}) {
     trackActivity(-1);
   }
 
-  // 304 Not Modified (ETag-Polling): kein Fehler, kein Body.
-  if (res.status === 304) return { notModified: true };
-
-  if (!res.ok) {
-    let detail = '';
-    let resBody = null;
-    const raw = await res.text();
-    try { resBody = JSON.parse(raw); detail = resBody.error || 'Anfrage fehlgeschlagen'; }
-    catch { detail = 'Server hat keine gültige Datenantwort geliefert'; }
-    // Bei 401: Token ungueltig oder abgelaufen → ausloggen.
-    // Ausnahme: Offline-Betrieb wird im DataContext behandelt (skipAuthRedirect).
-    if (res.status === 401 && !opts.skipAuthRedirect) {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_email');
-      localStorage.removeItem('auth_role');
-      window.location.href = '/login';
-    }
-    const err = new Error(`${method} ${path} → ${res.status}: ${detail}`);
-    err.status = res.status;
-    err.body = resBody;
-    throw err;
-  }
-
-  if (opts.raw) return res;
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
 }
 
 export const api = {

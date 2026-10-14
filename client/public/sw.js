@@ -10,6 +10,15 @@
 const CACHE = 'rezeptrechner-shell-__BUILD_VERSION__';
 const SHELL = ['/', '/index.html', '/manifest.json', '/icon.png', '/logo.jpg', /* BUILD_ASSETS */];
 const OFFLINE_FALLBACK = new Response('', { status: 503, statusText: 'Offline' });
+const currentMatch = request => caches.open(CACHE).then(cache => cache.match(request));
+
+function cacheableAsset(url, response) {
+  if (!response.ok) return false;
+  const type = response.headers.get('Content-Type') || '';
+  if (/\.js$/.test(url.pathname)) return /javascript/.test(type);
+  if (/\.css$/.test(url.pathname)) return /text\/css/.test(type);
+  return !/text\/html/.test(type);
+}
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
@@ -43,14 +52,14 @@ self.addEventListener('fetch', (e) => {
       fetch(e.request)
         .then((res) => {
           if (!res.ok || !res.headers.get('Content-Type')?.includes('text/html')) {
-            return caches.match('/index.html').then(cached => cached || res);
+            return currentMatch('/index.html').then(cached => cached || res);
           }
           // frisches index.html in den Cache legen (Offline-Kaltstart)
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put('/index.html', copy)).catch(() => {});
           return res;
         })
-        .catch(() => caches.match('/index.html'))
+        .catch(() => currentMatch('/index.html'))
         .then((res) => res || OFFLINE_FALLBACK.clone())
     );
     return;
@@ -59,11 +68,13 @@ self.addEventListener('fetch', (e) => {
   // Statische Assets: Cache-First; Netz-Treffer werden fuer den
   // Offline-Fall in den Cache uebernommen (gehashte Dateien sind immutable).
   e.respondWith(
-    caches.match(e.request).then((cached) => {
+    // Aktuellen Cache zuerst: CacheStorage.match durchsucht sonst ältere
+    // Caches zuerst. Nur gehashte Assets dürfen aus dem Vorstand kommen.
+    currentMatch(e.request).then(cached => cached || (url.pathname.startsWith('/assets/') ? caches.match(e.request) : undefined)).then((cached) => {
       if (cached) return cached;
       return fetch(e.request)
         .then((res) => {
-          if (res.ok && (url.pathname.startsWith('/assets/') || SHELL.includes(url.pathname))) {
+          if (cacheableAsset(url, res) && (url.pathname.startsWith('/assets/') || SHELL.includes(url.pathname))) {
             const copy = res.clone();
             caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
           }
