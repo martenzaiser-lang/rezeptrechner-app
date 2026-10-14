@@ -14,7 +14,7 @@ import { timingSafeEqual, createHash } from 'node:crypto';
 import { pool } from '../db.js';
 import {
   getRezeptAllergene, getRezeptSpuren,
-  formatAllergene,
+  formatAllergene, getRezeptAllergenStatus,
 } from '../../client/src/lib/calc/naehrwerteLookup.js';
 import { getRezeptVerkaufsZutaten, getRezeptKenntlichmachung } from '../../client/src/lib/calc/verkaufsZutaten.js';
 
@@ -60,6 +60,9 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
       return namen.map(name => {
         const r = produktRezept(data, name);
         const allergene = getRezeptAllergene(r, customZutaten);
+        const allergenStatus = getRezeptAllergenStatus(r, customZutaten);
+        const allergeneText = allergenStatus.vollstaendig ? formatAllergene(allergene,true)
+          : 'Allergenangaben unvollständig – Rezeptdaten prüfen.' + (allergene.length ? ' Bekannte Allergene: ' + formatAllergene(allergene,true) : '');
         const spuren = getRezeptSpuren(r, customZutaten).filter(s => !allergene.includes(s));
         const profil = produktNaehrwerte(r, customZutaten);
         const nw = profil.werte;
@@ -69,7 +72,8 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
           gesaettigte_fettsaeuren_g: +nw.gfs.toFixed(1), kohlenhydrate_g: +nw.kh.toFixed(1),
           zucker_g: +nw.zucker.toFixed(1), ballaststoffe_g: +nw.ballaststoffe.toFixed(1), salz_g: +nw.salz.toFixed(2),
         } : null;
-        return { name:r.name, kategorie:r.kategorie || '', allergene, allergeneText:formatAllergene(allergene,true),
+        return { name:r.name, kategorie:r.kategorie || '', allergene, allergeneText,
+          allergeneVollstaendig:allergenStatus.vollstaendig,
           spuren, spurenText:formatAllergene(spuren,true), zutatenverzeichnis:getRezeptVerkaufsZutaten(r,customZutaten),
           kenntlichmachung:getRezeptKenntlichmachung(r,customZutaten), naehrwerte,
           naehrwerteBezug:profil.vollstaendig ? profil.bezug : 'Unvollständige Daten: ' + profil.fehlend.join(', '),

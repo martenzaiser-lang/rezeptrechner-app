@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { ClipboardCopy, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   getRezeptAllergene, getRezeptSpuren, getRezeptLmivZutaten,
-  formatAllergene,
+  formatAllergene, getRezeptAllergenStatus,
 } from '../../lib/calc/naehrwerteLookup.js';
 import { useToast } from '../../components/Toast.jsx';
 import { produktRezept } from '../../lib/calc/produktion.js';
@@ -22,6 +22,7 @@ export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
   const toast = useToast();
 
   const allergene = getRezeptAllergene(rezept, customZutaten);
+  const allergenStatus = getRezeptAllergenStatus(rezept, customZutaten);
   const spuren = getRezeptSpuren(rezept, customZutaten).filter((s) => !allergene.includes(s));
   const lmivZutaten = getRezeptLmivZutaten(rezept, customZutaten);
 
@@ -66,6 +67,9 @@ export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
             </select>
           </label>}
           <NaehrwertDruck rezept={rezept} customZutaten={customZutaten} />
+          {!allergenStatus.vollstaendig && <p style={{ color: 'var(--error)' }}>
+            Allergenangaben unvollständig — {rezept.berechnungsfehler || `Zutaten prüfen: ${allergenStatus.fehlend.join(', ') || 'keine Zutatenmenge'}`}
+          </p>}
           <div style={{ marginBottom: 10 }}>
             <strong style={{ fontSize: 13, color: 'var(--error)' }}>⚠️ Enthaltene Allergene (Pflicht-Kennzeichnung)</strong>
             <div style={{ fontSize: 14 }}>
@@ -112,7 +116,7 @@ export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
               </div>}
             </div>
           )}
-          <button className="btn" onClick={kopieren}>
+          <button className="btn" onClick={kopieren} disabled={!allergenStatus.vollstaendig || !!rezept.berechnungsfehler}>
             <ClipboardCopy size={15} /> Volldeklaration kopieren
           </button>
         </div>

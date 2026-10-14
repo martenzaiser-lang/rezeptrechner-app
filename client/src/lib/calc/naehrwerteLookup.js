@@ -112,7 +112,7 @@ export function getRezeptAllergene(rezept, customZutaten = []) {
   const excludeFromDairy = /mandelmilch|sojamilch|hafermilch|kokosmilch|reismilch|cashewmilch|erdnussbutter|mandelbutter|cashewbutter|nussbutter/;
   const allergenFrei = ['wasser', 'salz', 'zucker', 'honig', 'rübensirup', 'sonnenblumenkerne', 'kürbiskerne', 'leinsamen', 'chiasamen', 'mohn', 'sonnenblumenöl', 'rapsöl', 'olivenöl', 'hefe', 'frischhefe', 'trockenhefe', 'backpulver', 'kümmel', 'koriander', 'fenchel', 'anis', 'zimt', 'pfeffer', 'brotgewürz', 'kürbis', 'karotten', 'rote bete', 'süßkartoffel', 'kartoffel', 'rosinen', 'sultaninen', 'orangensaft', 'buchweizenmehl', 'maismehl', 'reismehl', 'hopfenmehl'];
 
-  rezept.zutaten.forEach((z) => {
+  (rezept.deklarationsZutaten || rezept.zutaten).forEach((z) => {
     if (!istGewicht(z)) return;
     const name = z.name.toLowerCase().trim();
     const isPflanzlich = excludeFromDairy.test(name);
@@ -192,7 +192,7 @@ export function formatAllergene(allergenCodes, asString = false) {
 // getRezeptSpuren (Original Z. 5703)
 export function getRezeptSpuren(rezept, customZutaten = []) {
   const spuren = new Set();
-  rezept.zutaten.forEach((z) => {
+  (rezept.deklarationsZutaten || rezept.zutaten).forEach((z) => {
     if (!istGewicht(z)) return;
     const c = customZutaten.find(c => c.name?.toLowerCase().trim() === z.name.toLowerCase().trim());
     const eigen = c?.data?.spuren ?? c?.spuren;
@@ -201,6 +201,22 @@ export function getRezeptSpuren(rezept, customZutaten = []) {
     if (m && m.spuren) m.spuren.forEach((s) => spuren.add(s));
   });
   return [...spuren].sort();
+}
+
+// Eine leere Trefferliste ist kein Nachweis, dass unbekannte Zutaten keine
+// Allergene enthalten. Namenserkennung liefert Hinweise, keine Freigabe.
+export function getRezeptAllergenStatus(rezept, customZutaten = []) {
+  const fehlend = (rezept.deklarationsZutaten || rezept.zutaten).filter(istGewicht).filter(z => {
+    const name = z.name.toLowerCase().trim();
+    const c = customZutaten.find(c => c.name?.toLowerCase().trim() === name);
+    const eigen = c?.a ?? c?.allergene ?? c?.data?.a ?? c?.data?.allergene;
+    if (Array.isArray(eigen)) return false;
+    const m = findHersteller(name);
+    if (Array.isArray(m?.allergene)) return false;
+    if (direktEintrag(ZUTAT_ALLERGENE, name) !== undefined) return false;
+    return !['wasser', 'salz', 'zucker'].includes(name);
+  }).map(z => z.name);
+  return { vollstaendig: !rezept.berechnungsfehler && fehlend.length === 0 && rezept.zutaten.some(istGewicht), fehlend };
 }
 
 // getRezeptLmivZutaten (Original Z. 5716): Zutatenverzeichnis absteigend

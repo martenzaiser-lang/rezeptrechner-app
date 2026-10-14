@@ -14,6 +14,9 @@ export function produktionsRezept(rezept, sk) {
 }
 
 export function produktRezept(rezept, produktName) {
+  // Bereits unvollständige Profile dürfen bei erneuter Anzeige nicht als
+  // leeres, scheinbar fehlerfreies Rezept neu berechnet werden.
+  if (rezept.berechnungsfehler) return rezept;
   const p = rezept.produkte?.find(p => p.name === produktName);
   // Bei Blechrezepten die Zutaten des gewählten Produkts vorab auswählen.
   const basis = rezept.berechnung === 'blech' && p
@@ -24,6 +27,9 @@ export function produktRezept(rezept, produktName) {
   };
   const result = berechneBaker(basis, eingabe);
   return { ...produktionsRezept(basis, result?.sk), name: p?.name || rezept.name, berechnungsfehler: result?.fehler,
+    ...(result?.fehler ? { deklarationsZutaten: rezept.zutaten.filter(z => istGewicht(z)
+      && (z.menge_kg > 0 || z.zusatz_prozent > 0 || z.menge_pro_presse > 0)
+      && (!p || !z.fuer_produkte?.length || z.fuer_produkte.includes(p.name))) } : {}),
     stueckgewicht_g: p?.gewicht_g ?? rezept.stueckgewicht_g, produkte: p ? [p] : [],
     backverlust_pct: p?.backverlust_pct ?? rezept.backverlust_pct };
 }

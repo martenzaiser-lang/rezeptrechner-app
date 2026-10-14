@@ -8,11 +8,20 @@ import { skaliere } from './calc/skalierung.js';
 import { taBilanz, ta, rezeptart } from './calc/ta.js';
 import { berechneNaehrwerte, findHersteller, findNaehrwerte } from './calc/naehrwerteLookup.js';
 import { produktNaehrwerte } from './calc/produktNaehrwerte.js';
+import { produktRezept } from './calc/produktion.js';
 import { berechneKochzettel } from './print/zettel.js';
 import { validateBackup } from '../../../shared/backup.js';
 import { mehl, wasser, zutat, rezept, koch } from '../../test/fach-fixtures.js';
 
 describe('Bäckerprozente in allen Mengenmodi', () => {
+  it('behält einen Berechnungsfehler bei wiederholter Produktaufbereitung', () => {
+    const r = rezept([mehl(1), zutat('Roggensauerteig', .5), zutat('Sesam', 0, { zusatz_prozent: 10 })]);
+    const p = produktRezept(r);
+    expect(p.berechnungsfehler).toBeTruthy();
+    expect(produktRezept(p)).toBe(p);
+    expect(p.deklarationsZutaten.map(z => z.name)).toContain('Sesam');
+    expect(produktNaehrwerte(produktRezept(p)).vollstaendig).toBe(false);
+  });
   it('physikalisch unmöglicher Gewichtsverlust erzeugt keine druckbaren Nährwerte', () => {
     const p=produktNaehrwerte(rezept([mehl(1),wasser(.6)],{backverlust_pct:90}));
     expect(p.vollstaendig).toBe(false); expect(p.fehlend.join(' ')).toContain('Nährstoffsumme');

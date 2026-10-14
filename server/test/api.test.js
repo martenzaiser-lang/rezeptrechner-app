@@ -415,6 +415,19 @@ describe('Changelog', () => {
 });
 
 describe('LMIV je Produktvariante', () => {
+  it('erhält bekannte Allergene bei gesperrter Mengenberechnung und meldet Datenlücken', async () => {
+    const r = makeRecipe('mehlbasis-fehlt', 'Vorstufe ungeklärt', { stueckgewicht_g: 1000,
+      zutaten: [{ name: 'Weizenmehl 550', menge_kg: 1, ist_mehl: true }, { name: 'Roggensauerteig', menge_kg: .5 }, { name: 'Sesam', menge_kg: 0, zusatz_prozent: 10 }],
+    });
+    await request(app).post('/api/recipes').set('Authorization', `Bearer ${tokens.admin}`).send(r);
+    const res = await request(app).get('/api/lmiv').set('X-Api-Key', process.env.LMIV_API_KEY);
+    const p = res.body.produkte[0];
+    expect(p.allergene).toContain('Aa');
+    expect(p.allergene).toContain('K');
+    expect(p.allergeneVollstaendig).toBe(false);
+    expect(p.allergeneText).toContain('unvollständig');
+    expect(p.naehrwerte).toBeNull();
+  });
   it('liefert pro Variante nur deren Zutaten, Allergene und Nährwerte einschließlich kJ', async () => {
     const r = makeRecipe('varianten', 'Varianten', { stueckgewicht_g: 1000, backverlust_pct: 10,
       produkte: [{ name: 'Natur', gewicht_g: 1000 }, { name: 'Sesam', gewicht_g: 1000 }],
@@ -438,6 +451,8 @@ describe('LMIV je Produktvariante', () => {
     const res = await request(app).get('/api/lmiv').set('X-Api-Key', process.env.LMIV_API_KEY);
     expect(res.body.produkte[0].naehrwerte).toBeNull();
     expect(res.body.produkte[0].naehrwerteBezug).toContain('Unbekannter Rohstoff');
+    expect(res.body.produkte[0].allergeneVollstaendig).toBe(false);
+    expect(res.body.produkte[0].allergeneText).toContain('unvollständig');
     expect((await request(app).get('/api/lmiv').set('X-Api-Key', 'falsch')).status).toBe(401);
   });
 });
