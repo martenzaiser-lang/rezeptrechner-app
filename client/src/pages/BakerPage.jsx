@@ -15,7 +15,7 @@ import KochstueckKontrolle from './baker/KochstueckKontrolle.jsx';
 import { produktionsRezept } from '../lib/calc/produktion.js';
 import { berechneBaker, teigZusammenfassung } from '../lib/calc/bakerBerechnung.js';
 import { schuettTemperatur, schuettHinweis } from '../lib/calc/schuettwasser.js';
-import { calcNutrition, getRezeptAllergene, formatAllergene } from '../lib/calc/naehrwerteLookup.js';
+import { calcNutrition, getRezeptAllergene, getRezeptAllergenStatus, getRezeptZutatenStatus, formatAllergene } from '../lib/calc/naehrwerteLookup.js';
 import { calcRezeptKosten, fehlendePreise } from '../lib/preise.js';
 import { getAnzeige } from '../lib/anzeige.js';
 import MengenSteuerung from './baker/MengenSteuerung.jsx';
@@ -292,14 +292,18 @@ export default function BakerPage() {
           )}
           {ergebnis && (() => {
             const nw = anzeige.naehrwerte ? calcNutrition(rezept, ergebnis.sk, customMap) : { vollstaendig: false, fehlend: [] };
-            const allergene = anzeige.allergene ? getRezeptAllergene(produktionsRezept(rezept, ergebnis.sk), customFlach) : [];
+            const portion = produktionsRezept(rezept, ergebnis.sk);
+            const allergenStatus = getRezeptAllergenStatus(portion, customFlach);
+            const zutatenStatus = getRezeptZutatenStatus(portion, customFlach);
+            const allergene = anzeige.allergene ? getRezeptAllergene(portion, customFlach) : [];
+            const angabenFehlen = (anzeige.naehrwerte && !nw.vollstaendig) || ((anzeige.allergene || anzeige.naehrwerte) && (!allergenStatus.vollstaendig || !zutatenStatus.vollstaendig));
             const kosten = anzeige.kosten ? calcRezeptKosten(rezept, ergebnis.sk, eigenePreise) : 0;
             const preisLuecken = anzeige.kosten ? fehlendePreise(rezept, ergebnis.sk, eigenePreise) : [];
             const stueckzahl = ergebnis.isBlech ? ergebnis.blechAnzahl
               : ergebnis.faktor * (rezept.produkte?.length > 1
                 ? rezept.produkte.reduce((sum, p) => sum + (eingabe.produktStueck?.[p.name] || 0) * (p.stueck_pro_presse > 0 ? p.stueck_pro_presse : 1), 0)
                 : (eingabe.stueck || 0));
-            if (!nw.vollstaendig && !allergene.length && !(kosten > 0) && !preisLuecken.length) return null;
+            if (!nw.vollstaendig && !allergene.length && !(kosten > 0) && !preisLuecken.length && !angabenFehlen) return null;
             return (
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12, fontSize: 13 }}>
                 {(kosten > 0 || preisLuecken.length > 0) && (
@@ -309,7 +313,7 @@ export default function BakerPage() {
                     {stueckzahl > 0 && <span className="muted">({(kosten / stueckzahl).toFixed(2).replace('.', ',')} €/{ergebnis.isBlech ? 'Blech' : 'St.'})</span>}
                   </div>
                 )}
-                {nw.vollstaendig && nw.gesamt > 0 && (
+                {nw.vollstaendig && allergenStatus.vollstaendig && zutatenStatus.vollstaendig && nw.gesamt > 0 && (
                   <div className="quick-chip" title="pro 100 g ungebackene Rezeptur">
                     🔥 {Math.round(nw.kcal / (nw.gesamt / 100))} kcal · E {(nw.protein / (nw.gesamt / 100)).toFixed(1)} g · KH {(nw.carbs / (nw.gesamt / 100)).toFixed(1)} g · F {(nw.fat / (nw.gesamt / 100)).toFixed(1)} g
                   </div>
@@ -317,6 +321,9 @@ export default function BakerPage() {
                 {allergene.length > 0 && (
                   <div className="quick-chip chip-warn">⚠️ {formatAllergene(allergene, true)}</div>
                 )}
+                {angabenFehlen && <div className="quick-chip chip-warn">
+                  Zutatenangaben unvollständig: {[...new Set([...nw.fehlend, ...allergenStatus.fehlend, ...zutatenStatus.fehlend])].join(', ') || 'Zutatenmengen prüfen'}
+                </div>}
               </div>
             );
           })()}

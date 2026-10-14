@@ -15,7 +15,7 @@ const istVorstufe = z => istGekochterRoggen(z.name) || /sauerteig|vorteig|poolis
 const kg = x => typeof x === 'number' && Number.isFinite(x) && x >= 0;
 
 export function rezeptart(r) {
-  if (['masse', 'teig', 'unbekannt'].includes(r.rezeptart)) return r.rezeptart;
+  if (['masse', 'teig', 'mischung', 'unbekannt'].includes(r.rezeptart)) return r.rezeptart;
   if (/rührmasse|rührteig|biskuit|wiener\s*masse|brandmasse|brandteig|mürb(e|eteig)|sand(torten)?masse/.test(name(r))) return 'masse';
   // Kuchen kann einen Hefeteig enthalten. Deshalb keine Gleichsetzung mit Masse.
   return ['Brot', 'Brötchen', 'Feingebäck', 'Plunder', 'Berliner / Krapfen'].includes(r.kategorie) ? 'teig' : 'unbekannt';
@@ -81,6 +81,7 @@ export function taBilanz(r, sk) {
 export function taErgebnis(r, sk) {
   const art = rezeptart(r);
   if (art === 'masse') return { status: 'ignoriert', kategorie: 'Masse', ta: null };
+  if (art === 'mischung') return { status: 'ignoriert', kategorie: 'Trockenmischung', ta: null };
   if (art === 'unbekannt') return { status: 'unvollständig', ta: null, fehler: ['Rezeptart prüfen'] };
   const b = taBilanz(r, sk);
   if (b.fehler.length || b.mehl <= 0) return { ...b, status: 'unvollständig', ta: null };

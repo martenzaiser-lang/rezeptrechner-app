@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { ClipboardCopy, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   getRezeptAllergene, getRezeptSpuren, getRezeptLmivZutaten,
-  formatAllergene, getRezeptAllergenStatus,
+  formatAllergene, getRezeptAllergenStatus, getRezeptZutatenStatus,
 } from '../../lib/calc/naehrwerteLookup.js';
 import { useToast } from '../../components/Toast.jsx';
 import { produktRezept } from '../../lib/calc/produktion.js';
@@ -24,6 +24,7 @@ export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
 
   const allergene = getRezeptAllergene(rezept, customZutaten);
   const allergenStatus = getRezeptAllergenStatus(rezept, customZutaten);
+  const zutatenStatus = getRezeptZutatenStatus(rezept, customZutaten);
   const spuren = getRezeptSpuren(rezept, customZutaten).filter((s) => !allergene.includes(s));
   const lmivZutaten = getRezeptLmivZutaten(rezept, customZutaten);
 
@@ -32,6 +33,7 @@ export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
   const bezug = profil.bezug;
 
   function kopieren() {
+    if (!profil.deklarationVollstaendig) return;
     let text = `${rezept.name}\n\nZutaten:\n`;
     lmivZutaten.forEach((z) => {
       text += z.lmiv
@@ -68,6 +70,9 @@ export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
             </select>
           </label>}
           <NaehrwertDruck rezept={rezept} customZutaten={customZutaten} />
+          {!zutatenStatus.vollstaendig && <p role="alert" style={{ color: 'var(--error)' }}>
+            Zutatenverzeichnis unvollständig — {zutatenStatus.fehlend.length ? `Zusammensetzung prüfen: ${zutatenStatus.fehlend.join(', ')}` : 'keine berechenbare Zutatenmenge'}
+          </p>}
           {!allergenStatus.vollstaendig && <p style={{ color: 'var(--error)' }}>
             Allergenangaben unvollständig — {rezept.berechnungsfehler || `Zutaten prüfen: ${allergenStatus.fehlend.join(', ') || 'keine Zutatenmenge'}`}
           </p>}
@@ -113,14 +118,14 @@ export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
               {profil.fehlendeFelder.length > 0 && <ul>{profil.fehlendeFelder.map((d, i) => <li key={i}>
                 {d.name}: {d.quelleOffen ? 'Produktzuordnung / Quelle ungeprüft. ' : ''}{d.felder.length ? `Fehlend: ${d.felder.join(', ')}` : ''}
               </li>)}</ul>}
-              {profil.vollstaendig && <div className="muted">
+              {profil.deklarationVollstaendig && <div className="muted">
                 Energie {Math.round(nw.kj)} kJ / {Math.round(nw.kcal)} kcal · Fett {fmt(nw.fett, 1)} g (ges. FS {fmt(nw.gfs, 1)} g) ·
                 Kohlenhydrate {fmt(nw.kh, 1)} g (Zucker {fmt(nw.zucker, 1)} g) · {nw.ballaststoffe != null && <>Ballaststoffe {fmt(nw.ballaststoffe, 1)} g · </>}
                 Eiweiß {fmt(nw.eiweiss, 1)} g · Salz {fmt(nw.salz, 2)} g
               </div>}
             </div>
           )}
-          <button className="btn" onClick={kopieren} disabled={!allergenStatus.vollstaendig || !!rezept.berechnungsfehler}>
+          <button className="btn" onClick={kopieren} disabled={!profil.deklarationVollstaendig}>
             <ClipboardCopy size={15} /> Volldeklaration kopieren
           </button>
         </div>

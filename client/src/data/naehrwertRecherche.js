@@ -3,6 +3,7 @@
 // ersetzen keine bestätigten Allergenangaben des tatsächlich verwendeten Artikels.
 // null bei freiwilligen Ballaststoffangaben bedeutet: nicht veröffentlicht.
 import { ROHSTOFF_ERGAENZUNGEN } from './rohstoffErgaenzungen.js';
+import { HERSTELLER_ERGAENZUNGEN } from './herstellerErgaenzungen.js';
 
 function profil(werte, quelle, quelle_url, extra = {}) {
   const [kj, kcal, fett, gfs, kh, zucker, eiweiss, salz, ballaststoffe = null] = werte;
@@ -11,6 +12,13 @@ function profil(werte, quelle, quelle_url, extra = {}) {
 }
 
 export const NAEHRWERT_RECHERCHE = {
+  'stollengewürz': profil([1694, 400, 2.8, 1.5, 90, 88.7, 1, .3, .6],
+    'Braun Stollen fein 1310001: Packungsfoto von Marten, 14.10.2026, stollen fein.png; Nährwerte je 100 g visuell geprüft.',
+    'https://martinbraun.de/Stollen-fein/1310001',
+    { produkt: 'Braun Stollen fein 1310001', allergene: ['G'], allergene_geprueft: true,
+      zutaten_lmiv: '<b>LAKTOSE (MILCH)</b>; Macis (7,5 %); Kardamom (2,5 %); Aroma; Jamaica-Rum (65 % vol.)',
+      quelle_bild: 'stollen fein.png', quelle_sha256: '1f88b11f1cfdb82574deda40d13d0cbe052256dc30df166ff9d0873e6bb7ca7a',
+      datenhinweise: { spuren: 'Der Spurenhinweis ist am unteren Bildrand abgeschnitten; daraus wird keine vollständige Spurenliste abgeleitet.' } }),
   dinkelruchmehl: profil([1431, 342, 1.772, .261, 64.271, 1.221, 12.715, .003, 3.7],
     'Roland Dinkel-Ruchmehl; Mühle Schlingemann, gleichnamiger Artikel im 2,5-kg-Gebinde',
     'https://www.muehle-schlingemann.de/dinkel-ruchmehl-roland-2-5-kg.html?language=de',
@@ -52,7 +60,10 @@ export const NAEHRWERT_RECHERCHE = {
   backerbse: profil([2145, 514, 30, 16, 51, 4, 8.7, 3.3, 2.5],
     'LEIMER Backerbsen; Hersteller veröffentlicht gleiche Werte für Klein- und Gastronomiegebinde',
     'https://www.leimer.de/produkte/suppeneinlagen/backerbsen.html',
-    { referenz_artikel: 'LEIMER Backerbsen (Weizen, Ei, Palmfett)' }),
+    { referenz_artikel: 'LEIMER Backerbsen (Weizen, Ei, Milch, Palmfett)',
+      allergene_geprueft: false, zutaten_geprueft: false,
+      referenz_allergene: ['Aa', 'C', 'G'],
+      datenhinweise: { allergene: 'LEIMER enthält Weizen, Ei und Milch. Der bisherige Eintrag ohne Allergene ist nicht belegt; tatsächlich verwendeten Backerbsen-Artikel klären.' } }),
   kartoffelflocken: profil([1473, 352, .5, .1, 75.3, 3.4, 7.4, .351, 7.4],
     'Mühle Geßmann, reine Kartoffelflocken für Brotteige; nicht zubereitetes Kartoffelpüree',
     'https://www.muehle-gessmann.de/weitere-produkte/flocken-und-pops/Glutenfreie-Flocken/Kartoffelflocken.html',
@@ -85,11 +96,7 @@ export const NAEHRWERT_RECHERCHE = {
     'Hobbybäcker Orangeat, kandierte Orangenschalen',
     'https://www.hobbybaecker.de/Gewuerze-Aromen/Sonstiges/Orangeat-450g',
     { referenz_artikel: 'Hobbybäcker Orangeat; Vergleich für BÄKO' }),
-  kochcreme: profil([1505, 354, .4, 0, 87, 5.4, .3, .1],
-    'Dr. Oetker Professional Premium Pudding Bourbon-Vanille, Pulver unzubereitet, Artikel 251515',
-    'https://www.oetker-professional.de/produkte/desserts/pudding/premium-pudding-bourbon-vanille-1-39-251515',
-    { produkt: 'KOMPLET Bourbon Kochcreme', referenz_artikel: 'Dr. Oetker Professional Premium Pudding Bourbon-Vanille, unzubereitetes Kochpulver',
-      naehrwert_hinweis: 'Kochcreme: Vergleich eines stärkebasierten Bourbon-Kochpulvers, zu dem Milch und Zucker separat gegeben werden. Keine exakte KOMPLET-Spezifikation; Allergene separat prüfen.' }),
+  kochcreme: HERSTELLER_ERGAENZUNGEN.kochcreme,
   chili: profil([1310, 313, 10, 3, 23, 16, 13, 0],
     'Gewürze Büchel Bio Rechi Chili gemahlen, reine getrocknete Chili',
     'https://www.gewuerze-buechel.de/bio-rechi-chili-gemahlen-2339.html',
@@ -284,22 +291,26 @@ Object.assign(NAEHRWERT_RECHERCHE, {
     }
   },
   "krokant": {
-    "kj": 1921,
-    "kcal": 456,
-    "fett": 12.918,
-    "gfs": 1.075,
-    "kh": 80.9,
-    "zucker": 80.786,
-    "eiweiss": 3.25,
-    "ballaststoffe": 1.6,
-    "salz": 0.01,
-    "quelle": "Max Rubner-Institut, BLS 4.0 (2025), S493000",
-    "quelle_url": "https://doi.org/10.25826/Data20251217-134202-0",
-    "bls_code": "S493000",
-    "rohstoff": "Haselnuss-Krokant",
-    "datenstatus": "referenzwert",
+    "kj": 1898,
+    "kcal": 450,
+    "fett": 12,
+    "gfs": 1.3,
+    "kh": 82,
+    "zucker": 81,
+    "eiweiss": 2.7,
+    "ballaststoffe": 1.8,
+    "salz": 0,
+    "quelle": "BÄKO-ZENTRALE, Nusskrokant 330554, GTIN 4304823003078; Kundenspezifikation 2702, Version 15 vom 03.06.2024, Seiten 3/4/9/10. Identität über Artikelnummer und GTIN der KBO-Liste geprüft.",
+    "quelle_url": "https://b2bfood.s3.eu-central-3.ionoscloud.com/b2bfood/documents/pdf/e31c74188e0cd027cb9bf726ee39622812791cbc4c14a006333aeb931cdf94f7.pdf",
+    "quelle_sha256": "e31c74188e0cd027cb9bf726ee39622812791cbc4c14a006333aeb931cdf94f7",
+    "gtin": "4304823003078",
+    "produkt": "BÄKO Nusskrokant 330554",
+    "datenstatus": "recherchiert",
     "geprueft_am": "2026-10-14",
-    "referenz_artikel": "Haselnuss-Krokant (BLS 4.0)"
+    "allergene": ["Hb"],
+    "allergene_geprueft": true,
+    "zutaten_lmiv": "Zucker (80 %); <b>HASELNÜSSE</b> (20 %)",
+    "spuren": ["G", "Ha", "Hc", "Hd", "He", "Hf", "Hg", "Hh"]
   }
 });
 

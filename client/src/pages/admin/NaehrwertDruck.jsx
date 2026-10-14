@@ -7,7 +7,7 @@ import '../../styles/print.css';
 const fmt = (n, stellen = 1) => n.toLocaleString('de-DE', { minimumFractionDigits: stellen, maximumFractionDigits: stellen });
 export default function NaehrwertDruck({ rezept, customZutaten }) {
   useEffect(() => () => { delete document.body.dataset.printMode; }, []);
-  const { werte: nw, vollstaendig, fehlend, bezug } = produktNaehrwerte(rezept, customZutaten);
+  const { werte: nw, deklarationVollstaendig: vollstaendig, deklarationsFehler: fehlend, bezug } = produktNaehrwerte(rezept, customZutaten);
   function drucken() {
     if (!vollstaendig) return;
     document.body.dataset.printMode = 'nutrition';
@@ -16,7 +16,7 @@ export default function NaehrwertDruck({ rezept, customZutaten }) {
     window.print();
   }
   return <>
-    <button className="btn" onClick={drucken} disabled={!vollstaendig} title={vollstaendig ? bezug : `Nährwerte fehlen: ${fehlend.join(', ') || 'keine Zutatenmenge'}`}>
+    <button className="btn" onClick={drucken} disabled={!vollstaendig} title={vollstaendig ? bezug : `Angaben unvollständig: ${fehlend.join(', ') || 'keine Zutatenmenge'}`}>
       <Printer size={15} /> Nur Nährwerte drucken
     </button>
     {createPortal(<section id="nutrition-print-sheet" aria-hidden="true">

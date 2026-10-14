@@ -14,7 +14,7 @@ import { timingSafeEqual, createHash } from 'node:crypto';
 import { pool } from '../db.js';
 import {
   getRezeptAllergene, getRezeptSpuren,
-  formatAllergene, getRezeptAllergenStatus,
+  formatAllergene, getRezeptAllergenStatus, getRezeptZutatenStatus,
 } from '../../client/src/lib/calc/naehrwerteLookup.js';
 import { getRezeptVerkaufsZutaten, getRezeptKenntlichmachung } from '../../client/src/lib/calc/verkaufsZutaten.js';
 
@@ -63,12 +63,13 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
         const r = produktRezept(resolved.get(data.id), name);
         const allergene = getRezeptAllergene(r, customZutaten);
         const allergenStatus = getRezeptAllergenStatus(r, customZutaten);
+        const zutatenStatus = getRezeptZutatenStatus(r, customZutaten);
         const allergeneText = allergenStatus.vollstaendig ? formatAllergene(allergene,true)
           : 'Allergenangaben unvollständig – Rezeptdaten prüfen.' + (allergene.length ? ' Bekannte Allergene: ' + formatAllergene(allergene,true) : '');
         const spuren = getRezeptSpuren(r, customZutaten).filter(s => !allergene.includes(s));
         const profil = produktNaehrwerte(r, customZutaten);
         const nw = profil.werte;
-        const naehrwerte = profil.vollstaendig ? {
+        const naehrwerte = profil.deklarationVollstaendig ? {
           kj: Math.round(nw.kj), kcal: Math.round(nw.kcal),
           eiweiss_g: +nw.eiweiss.toFixed(1), fett_g: +nw.fett.toFixed(1),
           gesaettigte_fettsaeuren_g: +nw.gfs.toFixed(1), kohlenhydrate_g: +nw.kh.toFixed(1),
@@ -76,9 +77,12 @@ lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
         } : null;
         return { name:r.name, kategorie:r.kategorie || '', allergene, allergeneText,
           allergeneVollstaendig:allergenStatus.vollstaendig,
-          spuren, spurenText:formatAllergene(spuren,true), zutatenverzeichnis:getRezeptVerkaufsZutaten(r,customZutaten),
-          kenntlichmachung:getRezeptKenntlichmachung(r,customZutaten), naehrwerte,
-          naehrwerteBezug:profil.vollstaendig ? profil.bezug : 'Unvollständige Daten: ' + profil.fehlend.join(', '),
+          zutatenVollstaendig:zutatenStatus.vollstaendig,
+          deklarationVollstaendig:profil.deklarationVollstaendig,
+          deklarationsFehler:profil.deklarationsFehler,
+          spuren, spurenText:formatAllergene(spuren,true), zutatenverzeichnis:zutatenStatus.vollstaendig ? getRezeptVerkaufsZutaten(r,customZutaten) : [],
+          kenntlichmachung:zutatenStatus.vollstaendig ? getRezeptKenntlichmachung(r,customZutaten) : [], naehrwerte,
+          naehrwerteBezug:profil.deklarationVollstaendig ? profil.bezug : 'Unvollständige Daten: ' + profil.deklarationsFehler.join(', '),
         };
       });
     });

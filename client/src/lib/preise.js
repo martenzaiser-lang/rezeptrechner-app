@@ -130,6 +130,10 @@ export function berechneRohstoffkosten(rezept, eigenePreise = {}) {
       quelle: eigen?.preis_kg != null ? eigen.quelle || 'eigen' : preisKg != null ? 'bäko' : istWasser ? 'wasser' : 'fehlt',
     });
   });
+  if (!zeilen.length) {
+    const fehler = 'Keine berechenbare Zutatenmenge';
+    return { summe: 0, zeilen, ohnePreis: [fehler], istBlech, fehler };
+  }
   return { summe, zeilen, ohnePreis, istBlech };
 }
 

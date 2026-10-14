@@ -7,7 +7,7 @@ export function validateRecipe(r) {
   if (r.id.length > 100 || r.name.length > 300) errors.push('Rezept-ID oder Name zu lang.');
   if (!Array.isArray(r.zutaten)) return [...errors, 'Zutaten müssen eine Liste sein.'];
   if (r.berechnung != null && !['blech', 'stueck'].includes(r.berechnung)) errors.push('Ungültiger Berechnungsmodus.');
-  if (r.rezeptart && !['teig', 'masse', 'unbekannt'].includes(r.rezeptart)) errors.push('Ungültige Rezeptart.');
+  if (r.rezeptart && !['teig', 'masse', 'mischung', 'unbekannt'].includes(r.rezeptart)) errors.push('Ungültige Rezeptart.');
   if (r.backverlust_pct != null && (!number(r.backverlust_pct) || r.backverlust_pct >= 100)) errors.push('Backverlust muss zwischen 0 und unter 100 % liegen.');
   if (r.backverlust_status != null && !['unbestaetigt', 'geschaetzt', 'gemessen'].includes(r.backverlust_status)) errors.push('Grundlage des Backverlusts ungültig.');
   for (const key of ['stueckgewicht_g', 'min_stueck', 'max_stueck', 'blech_breite_cm', 'blech_laenge_cm', 'kz_langsam', 'kz_schnell', 'stockgare', 'stueckgare', 'backzeit']) {
@@ -56,6 +56,8 @@ export function validateCustomIngredient(data) {
   const fett = data.fett ?? data.fat, kh = data.kh ?? data.carbs;
   if ((number(data.gfs) && number(fett) && data.gfs > fett) || (number(data.zucker) && number(kh) && data.zucker > kh)) errors.push('Gesättigte Fettsäuren/Zucker dürfen Fett/Kohlenhydrate nicht übersteigen.');
   if (data.allergene_geprueft != null && typeof data.allergene_geprueft !== 'boolean') errors.push('Allergenprüfung muss Ja/Nein sein.');
+  for (const k of ['zusammengesetzt', 'zutaten_geprueft']) if (data[k] != null && typeof data[k] !== 'boolean') errors.push(`${k} muss Ja/Nein sein.`);
+  if (data.zutaten_lmiv != null && (typeof data.zutaten_lmiv !== 'string' || data.zutaten_lmiv.length > 20000)) errors.push('Zutatenliste ist ungültig.');
   return errors;
 }
 

@@ -1,4 +1,4 @@
-import { berechneNaehrwerte, findNaehrwerte, getRezeptAllergene, getRezeptAllergenStatus, getRezeptSpuren, getRezeptLmivZutaten } from './naehrwerteLookup.js';
+import { berechneNaehrwerte, findNaehrwerte, getRezeptAllergene, getRezeptAllergenStatus, getRezeptSpuren, getRezeptLmivZutaten, getRezeptZutatenStatus } from './naehrwerteLookup.js';
 import { NAEHRWERT_FELDER } from './naehrwertFelder.js';
 import { skaliereMitBezug } from './prozentSkalierung.js';
 import { produktionsRezept } from './produktion.js';
@@ -53,6 +53,7 @@ export function rezeptZutaten(recipes, customIngredients = []) {
         ta_fehler: bilanz.fehler.join('; '), ta_hinweise: bilanz.hinweise,
         ...Object.fromEntries(NAEHRWERT_FELDER.map(k => [k, nw && !nw.fehlend.length ? nw[k] : null])),
         allergene, a: allergene, allergene_geprueft: status.vollstaendig,
+        zutaten_geprueft: getRezeptZutatenStatus(roh, zutaten).vollstaendig,
         spuren: getRezeptSpuren(roh, zutaten).filter(a => !allergene.includes(a)),
         datenstatus: nw && !nw.fehlend.length ? 'rezeptberechnung' : 'ungeprueft',
         bezeichnung: quelle,

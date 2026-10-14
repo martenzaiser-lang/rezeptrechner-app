@@ -107,6 +107,7 @@ const ZUORDNUNG = {
   'Brötchenbackmittel': 'Ir.Eiszeit', // Marten 22.07.2026: preislich wie Datenzuordnung = IREKS Eiszeit (vorher ANNAHME Weizenback 1856)
   'Creme Margarine': 'Homann Creme', // Marten 22.07.2026: Rezept Schlemmerriegel (vorher Tippfehler "Creme-Marzipan")
   'Kochcreme': 'Komplet Bourbon Kochcreme',
+  'Creme-Margarine': 'Homann Creme',
   'Puddingpulver': 'Ir.Mella Bourbon Vanillekrem', // Marten 22.07.2026 bestätigt
   'Silvia': 'Dawn Sylvia Obstkuchen 3652',
   'Eisella Mohn': 'Meister eisella Mohn',

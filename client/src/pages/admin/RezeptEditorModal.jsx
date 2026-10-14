@@ -153,6 +153,7 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
           <option value="unbekannt">Noch nicht zugeordnet – keine TA</option>
           <option value="teig">Teig – TA berechnen</option>
           <option value="masse">Masse / Mürbeteig – keine TA</option>
+          <option value="mischung">Trockenmischung – keine TA</option>
         </select>
       </label>
 

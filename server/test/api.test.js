@@ -415,6 +415,19 @@ describe('Changelog', () => {
 });
 
 describe('LMIV je Produktvariante', () => {
+  it.each(['allergene', 'zusammensetzung'])('veröffentlicht trotz vollständiger Nährwertzahlen keine Deklaration bei ungeprüfter %s', async (luecke) => {
+    const data = { kj:1700,kcal:400,fett:0,gfs:0,kh:100,zucker:100,eiweiss:0,salz:0,
+      allergene:[],allergene_geprueft:luecke !== 'allergene',
+      zusammengesetzt:luecke === 'zusammensetzung',zutaten_lmiv:'' };
+    await request(app).put('/api/custom-ingredients/Testmischung').set('Authorization', `Bearer ${tokens.admin}`).send(data).expect(200);
+    await request(app).post('/api/recipes').set('Authorization', `Bearer ${tokens.admin}`).send(makeRecipe('luecke','Prüfprodukt',{zutaten:[{name:'Testmischung',menge_kg:1}]})).expect(201);
+    const res = await request(app).get('/api/lmiv').set('X-Api-Key',process.env.LMIV_API_KEY);
+    expect(res.status).toBe(200);
+    expect(res.body.produkte[0].deklarationVollstaendig).toBe(false);
+    expect(res.body.produkte[0].naehrwerte).toBeNull();
+    expect(res.body.produkte[0].deklarationsFehler.join(' ')).toContain('Testmischung');
+    if (luecke === 'zusammensetzung') expect(res.body.produkte[0].zutatenverzeichnis).toEqual([]);
+  });
   it('erhält bekannte Allergene bei gesperrter Mengenberechnung und meldet Datenlücken', async () => {
     const r = makeRecipe('mehlbasis-fehlt', 'Vorstufe ungeklärt', { stueckgewicht_g: 1000,
       zutaten: [{ name: 'Weizenmehl 550', menge_kg: 1, ist_mehl: true }, { name: 'Roggensauerteig', menge_kg: .5 }, { name: 'Sesam', menge_kg: 0, zusatz_prozent: 10 }],

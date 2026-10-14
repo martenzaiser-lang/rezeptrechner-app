@@ -96,5 +96,5 @@ export const ZUTAT_ALLERGENE = {
   'kürbis': [], 'kürbiswürfel': [], 'karottenstifte': [], 'rote bete': [], 'süßkartoffel': [],
   'kartoffelflocken': [], 'rosinen': [], 'sultaninen': [], 'orangensaft': [],
   'buchweizenmehl': [], 'buchweizenvollmehl': [], 'maismehl': [], 'reismehl': [], 'hopfenmehl': [],
-  'backerbse': [], 'aroma': []
+  // Backerbsen und Aromamischungen benötigen eine konkrete Produktzuordnung.
 };

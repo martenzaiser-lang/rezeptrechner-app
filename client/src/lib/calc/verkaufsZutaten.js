@@ -197,7 +197,7 @@ export function getRezeptKenntlichmachung(rezept, customZutaten = []) {
     if (lm) customLmiv[(c.name || '').toLowerCase().trim()] = lm;
   }
   const labels = new Set();
-  for (const z of getRezeptLmivZutaten(rezept)) {
+  for (const z of getRezeptLmivZutaten(rezept, customZutaten)) {
     if (z.lmiv) scanKenntlichmachung(z.lmiv, labels);
     else {
       const lm = customLmiv[z.name.toLowerCase().trim()];

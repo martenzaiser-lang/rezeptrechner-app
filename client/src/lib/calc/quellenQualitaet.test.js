@@ -42,12 +42,13 @@ describe('Nachgewiesene Pflichtangaben und unbekannte Zusatzangaben', () => {
   it('erhält Hinweise zu Mengen nach Augenmaß auch beim Nährwertdruck', () => {
     expect(produktNaehrwerte(rezept([mehl(1)], { naehrwert_hinweis: 'Streusel nach Augenmaß' })).bezug).toContain('Streusel nach Augenmaß');
   });
-  it('kennzeichnet das vergleichbare Kochpulver ausdrücklich und erhält die KOMPLET-Identität', () => {
+  it('verwendet für Kochcreme die genaue KOMPLET-Spezifikation und kennzeichnet andere Vergleichsartikel', () => {
     expect(findNaehrwerte('Kochcreme').produkt).toContain('KOMPLET');
     const koch = produktNaehrwerte(rezept([zutat('Kochcreme', 1)]));
     expect(koch.vollstaendig).toBe(true);
-    expect(koch.bezug).toContain('Keine exakte KOMPLET-Spezifikation');
-    expect(koch.bezug).toContain('Schätzung mit Vergleichsartikel');
+    expect(findNaehrwerte('Kochcreme').gtin).toBe('3232940007024');
+    expect(koch.werte.zucker).toBe(.3);
+    expect(koch.bezug).not.toContain('Schätzung mit Vergleichsartikel');
     expect(findNaehrwerte('Spicy Topping').kcal).toBe(366);
     expect(findNaehrwerte('Spicy Topping').quelle).toContain('137990DK');
   });

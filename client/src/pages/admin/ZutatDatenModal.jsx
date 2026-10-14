@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from 'react';
 import Modal from '../../components/Modal.jsx';
-import { findNaehrwerte, getRezeptAllergene, getRezeptAllergenStatus } from '../../lib/calc/naehrwerteLookup.js';
+import { findNaehrwerte, getRezeptAllergene, getRezeptAllergenStatus, getRezeptZutatenStatus, getRezeptLmivZutaten, istZusammengesetzteZutat } from '../../lib/calc/naehrwerteLookup.js';
 import { NAEHRWERT_LABEL, naehrwertStatus, formatNaehrwert } from '../../lib/calc/naehrwertFelder.js';
 import { EU_ALLERGENE } from '../../data/allergene.js';
 import { validateCustomIngredient } from '../../../../shared/validation.js';
@@ -33,7 +33,9 @@ export default function ZutatDatenModal({ recipes, customIngredients, calculatio
   const liste = alleZutaten
     .map((name) => ({
       name,
-      hatDaten: naehrwertStatus(findNaehrwerte(name, calculationIngredients)).vollstaendig,
+      hatDaten: naehrwertStatus(findNaehrwerte(name, calculationIngredients)).vollstaendig
+        && getRezeptAllergenStatus({zutaten:[{name,menge_kg:1}]}, calculationIngredients).vollstaendig
+        && getRezeptZutatenStatus({zutaten:[{name,menge_kg:1}]}, calculationIngredients).vollstaendig,
       istCustom: !!customMap[name.toLowerCase()],
     }))
     .filter((z) => !filter || z.name.toLowerCase().includes(filter.toLowerCase()))
@@ -46,6 +48,9 @@ export default function ZutatDatenModal({ recipes, customIngredients, calculatio
     setBearbeite({
       ...data,
       name,
+      zusammengesetzt: istZusammengesetzteZutat(name, data),
+      zutaten_lmiv: getRezeptLmivZutaten({zutaten:[{name,menge_kg:1}]}, referenz ? [] : customIngredients)[0]?.lmiv || '',
+      zutaten_geprueft: getRezeptZutatenStatus({zutaten:[{name,menge_kg:1}]}, referenz ? [] : customIngredients).vollstaendig,
       allergene_geprueft: getRezeptAllergenStatus({ zutaten: [{ name, menge_kg: 1 }] }, customIngredients).vollstaendig,
       quelle_geprueft: !['ungeprueft', 'widerspruechlich'].includes(data.datenstatus),
       quelle: data.quelle || (data.quelle_pdf ? `${data.quelle_pdf}, Seite ${data.quelle_seite}` : ''),
@@ -92,6 +97,9 @@ export default function ZutatDatenModal({ recipes, customIngredients, calculatio
       a: b.allergene,
       allergene: b.allergene,
       allergene_geprueft: b.allergene_geprueft,
+      zusammengesetzt: b.zusammengesetzt,
+      zutaten_lmiv: b.zutaten_lmiv || '',
+      zutaten_geprueft: b.zutaten_geprueft,
       quelle: b.quelle || '',
       datenstatus: b.quelle_geprueft ? 'eigene_angabe' : 'ungeprueft',
     };
@@ -205,6 +213,16 @@ export default function ZutatDatenModal({ recipes, customIngredients, calculatio
         <label style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           <input type="checkbox" checked={bearbeite.allergene_geprueft} onChange={e => setBearbeite({ ...bearbeite, allergene_geprueft: e.target.checked })} />Allergenangaben anhand der Quelle vollständig geprüft
         </label>
+        <label style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <input type="checkbox" checked={bearbeite.zusammengesetzt} onChange={e => setBearbeite({ ...bearbeite, zusammengesetzt: e.target.checked, zutaten_geprueft: false })} />Zusammengesetzte Zutat (z. B. Backmittel oder Füllung)
+        </label>
+        <label style={{ display: 'block', marginTop: 12 }}>
+          Zutatenliste laut Etikett / Hersteller
+          <textarea value={bearbeite.zutaten_lmiv} onChange={e => setBearbeite({ ...bearbeite, zutaten_lmiv: e.target.value, zutaten_geprueft: false })} rows={4} style={{ width: '100%' }} />
+        </label>
+        <label style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <input type="checkbox" checked={bearbeite.zutaten_geprueft} onChange={e => setBearbeite({ ...bearbeite, zutaten_geprueft: e.target.checked })} />Zusammensetzung vollständig geprüft (bei reinen Rohstoffen genügt der eindeutige Name)
+        </label>
       </Modal>
     );
   }
@@ -222,12 +240,12 @@ export default function ZutatDatenModal({ recipes, customIngredients, calculatio
         />
         <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 13, whiteSpace: 'nowrap' }}>
           <input type="checkbox" checked={nurFehlende} onChange={(e) => setNurFehlende(e.target.checked)} />
-          Nur unvollständige Nährwerte
+          Nur unvollständige Angaben
         </label>
       </div>
       <div style={{ maxHeight: '55vh', overflowY: 'auto' }}>
         <p className="muted" role="status">{liste.length} von {alleZutaten.length} Zutaten angezeigt</p>
-        {liste.length === 0 && <p className="muted">{filter.trim() ? 'Keine Zutat passt zu dieser Suche und Filterauswahl.' : 'Alle verwendeten Zutaten haben vollständige Nährwert-Pflichtangaben.'}</p>}
+        {liste.length === 0 && <p className="muted">{filter.trim() ? 'Keine Zutat passt zu dieser Suche und Filterauswahl.' : 'Nährwert-Pflichtangaben, Allergene und Zusammensetzungen sind vollständig.'}</p>}
         {liste.map((z) => (
           <button
             key={z.name}

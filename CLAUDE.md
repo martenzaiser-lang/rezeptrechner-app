@@ -96,6 +96,11 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
    und bleiben bei fehlender Quelle leer; alle Pflichtfelder müssen bekannt sein.
    Fehlende Hersteller-/Rohstoffwerte bleiben unbekannt, nicht automatisch null.
    Eigene Zutaten haben Vorrang; Referenzübernahme nur als prüfbarer Editorentwurf.
+   `vollstaendig` in produktNaehrwerte bewertet die Zahlen; erst
+   `deklarationVollstaendig` gibt die Ausgabe frei (zusätzlich geprüfte Allergene
+   und Zusammensetzungen). Druck, Kopieren, Backen-Anzeige und LMIV-API beachten
+   diese zusätzlichen Lücken. Neue Artikel brauchen eine Zutatenliste oder die
+   ausdrückliche Zuordnung als reiner Rohstoff; eigene Mischungen vererben Lücken.
    Für beauftragte Datenabgleiche: `server/scripts/apply-quality-plan.mjs` prüft
    einen externen JSON-Plan gegen den aktuellen Datenstand. Ohne `--apply` schreibt
    es nichts. Mit `--apply`: Dateisicherung, Versionsvergleich und eine Transaktion.

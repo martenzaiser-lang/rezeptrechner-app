@@ -13,6 +13,7 @@ import { istGewicht } from './ta.js';
 import { ROHSTOFF_ERGAENZUNGEN } from '../../data/rohstoffErgaenzungen.js';
 import { ROHSTOFF_SYNONYME } from '../../data/rohstoffSynonyme.js';
 import { NAEHRWERT_RECHERCHE } from '../../data/naehrwertRecherche.js';
+import { ZUSAMMENGESETZTE_ZUTATEN, ZUTATEN_DEKLARATION } from '../../data/zutatenDeklaration.js';
 import { istGekochterRoggen, ROGGEN_KOCHPROFIL } from '../../data/betrieblicheVorstufen.js';
 
 import { naehrwertStatus, istNaehrwert, NAEHRWERT_LABEL } from './naehrwertFelder.js';
@@ -215,7 +216,9 @@ export function getRezeptAllergenStatus(rezept, customZutaten = []) {
     const eigen = c?.a ?? c?.allergene ?? c?.data?.a ?? c?.data?.allergene;
     if (Array.isArray(eigen)) return false;
     const m = findHersteller(name);
+    if (m?.allergene_geprueft === false) return true;
     if (Array.isArray(m?.allergene)) return false;
+    if (NAEHRWERT_RECHERCHE[name]?.allergene_geprueft === false) return true;
     if (NAEHRWERT_RECHERCHE[name]?.allergene_geprueft === true) return false;
     const basis = ROHSTOFF_SYNONYME[name] || name;
     if (direktEintrag(ZUTAT_ALLERGENE, basis) !== undefined) return false;
@@ -235,7 +238,7 @@ export function getRezeptLmivZutaten(rezept, customZutaten = []) {
       const c = customZutaten.find(c => c.name?.toLowerCase().trim() === z.name.toLowerCase().trim());
       const eigen = c?.data || c;
       const recherchiert = NAEHRWERT_RECHERCHE[z.name.toLowerCase().trim()];
-      const m = eigen?.zutaten_lmiv != null ? eigen : recherchiert?.zutaten_lmiv != null ? recherchiert : findHersteller(z.name);
+      const m = eigen?.zutaten_lmiv != null ? eigen : recherchiert?.zutaten_lmiv != null ? recherchiert : findHersteller(z.name) || ZUTATEN_DEKLARATION[z.name.toLowerCase().trim()];
       return {
         name: z.name,
         anteil: ((z.menge_kg || 0) / gesamtKg) * 100,
@@ -245,6 +248,27 @@ export function getRezeptLmivZutaten(rezept, customZutaten = []) {
       };
     })
     .sort((a, b) => b.anteil - a.anteil);
+}
+
+// Ein Nährwertprofil oder eine Allergenliste ersetzt nicht die Zusammensetzung
+// eines Backmittels, einer Füllung oder einer anderen zusammengesetzten Zutat.
+export function istZusammengesetzteZutat(name, data = {}) {
+  if (typeof data.zusammengesetzt === 'boolean') return data.zusammengesetzt;
+  const key = name.toLowerCase().trim(), basis = ROHSTOFF_SYNONYME[key] || key;
+  if (findHersteller(name) || ZUSAMMENGESETZTE_ZUTATEN.includes(key)) return true;
+  // Bei völlig neuen Artikeln lässt sich aus Zahlen und Namen keine reine
+  // Rohstoffart ableiten. Im Editor ausdrücklich zuordnen oder Liste ergänzen.
+  return !istGekochterRoggen(key) && !NAEHRWERT_RECHERCHE[basis]
+    && direktEintrag({ ...ZUTAT_NAEHRWERTE, ...ROHSTOFF_ERGAENZUNGEN }, basis) === undefined;
+}
+
+export function getRezeptZutatenStatus(rezept, customZutaten = []) {
+  const liste = getRezeptLmivZutaten(rezept, customZutaten);
+  const fehlend = liste.filter(z => {
+    const d = findNaehrwerte(z.name, customZutaten) || {};
+    return d.zutaten_geprueft === false || (istZusammengesetzteZutat(z.name, d) && !z.lmiv?.trim());
+  }).map(z => z.name);
+  return { vollstaendig: !rezept.berechnungsfehler && liste.length > 0 && fehlend.length === 0, fehlend };
 }
 
 // findNaehrwerte 8-Feld (Original Z. 5737) — customZutaten: Array [{name, ...8-Feld}]

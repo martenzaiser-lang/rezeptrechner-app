@@ -1,4 +1,4 @@
-import { berechneNaehrwerte, findNaehrwerte } from './naehrwerteLookup.js';
+import { berechneNaehrwerte, findNaehrwerte, getRezeptAllergenStatus, getRezeptZutatenStatus } from './naehrwerteLookup.js';
 
 import { NAEHRWERT_FELDER } from './naehrwertFelder.js';
 export { NAEHRWERT_FELDER } from './naehrwertFelder.js';
@@ -16,8 +16,18 @@ export function produktNaehrwerte(rezept, customZutaten = []) {
   // Gruppen addieren; kleine Rundungsabweichungen der Quellen zulassen.
   const unplausibel = werte && ['eiweiss', 'fett', 'kh', 'ballaststoffe', 'salz'].reduce((s,k) => s + werte[k], 0) > 102;
   const fehlend = rezept.berechnungsfehler ? [rezept.berechnungsfehler] : [...(roh?.fehlend || [])];
+  if (!roh && !fehlend.length) fehlend.push('Keine berechenbare Zutatenmenge');
   if (unplausibel) fehlend.push('Gewichtsverlust oder Produktdaten prüfen: unplausible Nährstoffsumme pro 100 g.');
+  const allergenStatus = getRezeptAllergenStatus(rezept, customZutaten);
+  const zutatenStatus = getRezeptZutatenStatus(rezept, customZutaten);
+  const deklarationsFehler = [...fehlend];
+  if (!allergenStatus.vollstaendig && allergenStatus.fehlend.length) {
+    deklarationsFehler.push(`Allergenangaben ungeprüft: ${allergenStatus.fehlend.join(', ')}`);
+  }
+  if (zutatenStatus.fehlend.length) deklarationsFehler.push(`Zusammensetzung ungeprüft: ${zutatenStatus.fehlend.join(', ')}`);
   return { werte, vollstaendig: !!roh && fehlend.length === 0,
+    deklarationVollstaendig: !!roh && fehlend.length === 0 && allergenStatus.vollstaendig && zutatenStatus.vollstaendig,
+    deklarationsFehler,
     fehlend, fehlendeFelder: roh?.fehlendeFelder || [],
     bezug: (bekannt ? `pro 100 g ${status === 'geschaetzt' ? 'fertiges Produkt – Schätzung' : 'fertiges Produkt'} (Backverlust ${bv.toLocaleString('de-DE')} %)`
       : zahl ? `pro 100 g ungebackene Rezeptur (hinterlegter Backverlust ${bv.toLocaleString('de-DE')} % noch unbestätigt)`
