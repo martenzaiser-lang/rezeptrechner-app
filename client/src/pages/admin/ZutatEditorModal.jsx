@@ -42,6 +42,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
   const [nichtAufBon, setNichtAufBon] = useState(!!z.nicht_auf_bon);
   const [fuerProdukte, setFuerProdukte] = useState(z.fuer_produkte || []);
   const [zusatzProzent, setZusatzProzent] = useState(z.zusatz_prozent ? String(z.zusatz_prozent).replace('.', ',') : '');
+  const [prozentBezug, setProzentBezug] = useState(z.prozent_bezug || 'mehl');
   const [zeigeVorschlaege, setZeigeVorschlaege] = useState(false);
   const [taRolle, setTaRolle] = useState(z.ta_rolle || (z.ta_anteile || z.ta_pro_kg || z.vorstufe_nur_mehl_wasser ? 'vorstufe' : z.ist_mehl ? 'mehl' : z.ist_wasser ? 'fluessigkeit' : ''));
   const vorstufenBasisKg = mengenModus === 'gewicht' ? z.menge_kg : 1;
@@ -76,7 +77,7 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
       ta_rolle: istKommentar ? 'sonstiges' : taRolle,
       ta_naeherung: !istKommentar && ['sonstiges', 'vorstufe'].includes(taRolle) && taNaeherung,
       ta_hinweis: taHinweis.trim(),
-      prozent_bezug: 'mehl',
+      prozent_bezug: prozentBezug,
       presse_bezug: 'endprodukt',
     };
     if (!istKommentar) {
@@ -293,11 +294,15 @@ export default function ZutatEditorModal({ zutat, rezept, vorschlaege, onSave, o
           )}
 
           {mengenModus === 'prozent' && <div style={{ marginBottom: 10 }}>
-            <label>Bäckerprozent</label>
-            <p className="muted">Bäckerprozent: Gesamtmehl einschließlich Vorstufen = 100 %.</p>
+            <label>Prozentzugabe</label>
+            <label>Bezug der Prozentmenge<select aria-label="Prozentbezug" value={prozentBezug} onChange={e => setProzentBezug(e.target.value)} style={{width:'100%'}}>
+              <option value="mehl">Gesamtmehl = 100 % (Bäckerprozent)</option>
+              <option value="basisteig">Basisteig vor Prozentzugaben = 100 %</option>
+              <option value="endprodukt">Produktgewicht einschließlich Zugaben = 100 %</option>
+            </select></label>
             <input type="text" inputMode="decimal" value={zusatzProzent} onChange={(e) => { if (dezimalOk(e.target.value)) setZusatzProzent(e.target.value); }} style={{ width: '100%' }} placeholder="z.B. 20 für 20% Rosinen" />
             <p style={{ fontSize: 11, color: 'var(--muted)', margin: '6px 0 0' }}>
-              Gesamtmehl = 100 %. Wasser und sämtliche weiteren Zutaten werden darauf bezogen.
+              {prozentBezug === 'mehl' ? 'Gesamtmehl einschließlich Vorstufen = 100 %.' : prozentBezug === 'endprodukt' ? 'Beispiel: 12 % von 850 g Produktgewicht sind 102 g Zugabe; sie gehören zum Produktgewicht.' : 'Die festen Grundrezeptmengen bilden den Basisteig. Die Zugabe kommt anteilig hinzu und gehört zum Produktgewicht.'}
             </p>
           </div>}
         </>

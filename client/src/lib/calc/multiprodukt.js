@@ -8,7 +8,7 @@ export function skaliereMultiProdukt(r, map = {}) {
     const pressen = p.stueck_pro_presse > 0 ? n : 0;
     const stueck = pressen ? pressen * p.stueck_pro_presse : n;
     const sk = skaliereMitBezug(r, { zielKg: stueck * p.gewicht_g / 1000,
-      pressen, produktName: p.name, legacyMulti: true });
+      pressen, produktName: p.name });
     return summe.map((v, i) => v + sk[i]);
   }, r.zutaten.map(() => 0));
 }

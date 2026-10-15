@@ -277,7 +277,7 @@ export default function AdminPage() {
                       : z.menge_kg > 0
                         ? `${(+(z.menge_kg * 1000).toFixed(2)).toLocaleString('de-DE')} g`
                         : z.zusatz_prozent > 0
-                          ? `${z.zusatz_prozent}%`
+                          ? `${z.zusatz_prozent}% ${z.prozent_bezug === 'endprodukt' ? 'vom Produktgewicht' : z.prozent_bezug === 'basisteig' ? 'vom Basisteig' : 'vom Gesamtmehl'}`
                           : z.menge_pro_presse > 0
                             ? `${z.menge_pro_presse} kg/Presse`
                             : '—'}

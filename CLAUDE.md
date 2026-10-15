@@ -75,7 +75,13 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
 5. **Web Bluetooth** (Bon-Druck) geht nur in Chrome/Edge über HTTPS oder
    localhost; in Playwright nicht testbar → escpos.js unit-testen.
 6. **Fachregeln**: Alle Bäckerprozente beziehen sich auf Gesamtmehl inkl.
-   Vorstufen. Saaten und Altbrot zählen nicht als Mehl. Paniermehl (auch
+   Vorstufen. Prozentzugaben sind davon zu unterscheiden: `prozent_bezug`
+   bestimmt ausdrücklich Mehl, Basisteig vor Prozentzugaben oder Produktgewicht
+   einschließlich Zugaben. Bestehende Produktionsrezepte niemals pauschal auf
+   Mehlprozente umstellen. Roggenteig-Körner/Quellzutaten sind laut ursprünglicher
+   Produktionssicherung Produktgewichtsanteile (12 % Katenbrot-Körner = 102 g
+   je 850 g Teigeinlage); diese Mengen dürfen sich durch TA-Korrekturen nicht ändern.
+   Saaten und Altbrot zählen nicht als Mehl. Paniermehl (auch
    Semmelbrösel/Semmelmehl) zählt laut Marten vom 15.10.2026 exakt wie Mehl,
    einschließlich seines Anteils in der Brotmischung. Massen bekommen keine TA.
    Fehlende Vorstufenanteile niemals pauschal mit TA 200 ersetzen. Für den
