@@ -1,8 +1,20 @@
 import { it, expect } from 'vitest';
-import { generateBonBytes, textToBytes, getBonConfig, getFrischeZutaten, teilerInfoText } from './escpos.js';
+import { generateBonBytes, generateVorteigBonBytes, textToBytes, getBonConfig, getFrischeZutaten, teilerInfoText } from './escpos.js';
+import { produktRezept } from '../calc/produktion.js';
 import { koch, rezept, mehl, wasser, zutat } from '../../../test/fach-fixtures.js';
 import { skaliereMultiProdukt } from '../calc/multiprodukt.js';
 const plain = bytes => String.fromCharCode(...bytes);
+it('druckt Grundname und Variante auf Haupt- und Vorstufenbons', () => {
+  const r=produktRezept(rezept([mehl(1)],{name:'Joghurt-Dinkel',produkte:[{name:'mit Körnern',gewicht_g:1000}]}),'mit Körnern');
+  const titel=plain(textToBytes('Joghurt-Dinkel - mit Körnern'));
+  expect(plain(generateBonBytes(r,[1],'1 Stück',''))).toContain(titel);
+  expect(plain(generateVorteigBonBytes(r,[],'1 Stück','Vorteig',''))).toContain(titel);
+});
+it('bricht lange Rezeptnamen um, ohne das Namensende abzuschneiden', () => {
+  const name='Langes Joghurt Dinkel Spezialbrot mit Sonnenblumenkernen';
+  const bon=plain(generateBonBytes(rezept([mehl(1)],{name}),[1],'1 Stück',''));
+  expect(bon.replace(/\n/g,' ')).toContain(name);
+});
 it('CP858 kodiert Umlaute und Euro für den Bondrucker',()=>expect(textToBytes('äöüÄÖÜß€')).toEqual([0x84,0x94,0x81,0x8e,0x99,0x9a,0xe1,0xd5]));
 it('Bon-TA enthält Kochstückwasser, frische Flüssigkeit bleibt separat',()=>{
   const r=koch(), sk=r.zutaten.map(z=>z.menge_kg);

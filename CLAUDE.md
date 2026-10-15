@@ -114,6 +114,11 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
    pro kg Quark plus 1 g Salz/kg Quark. Vorhandene Backverluste dürfen laut
    Marten als Schätzungen verwendet werden; fehlende Werte bleiben offen.
    Teilrezepte/Füllungen kennzeichnen ihren tatsächlichen Gewichtsbezug.
+   Im reinen Kundendruck keine internen Schätz-/Vergleichshinweise. „davon Zucker*“
+   erhält nur bei verwendeten, zuckerhaltigen Malzzutaten den kurzen Hinweis
+   „Enthält auch Zucker aus Getreidemalz.“ – keine Aussage „ohne Zuckerzusatz“.
+   Der Druckname (`produktAnzeigename`) kombiniert Grundrezept und Variante;
+   `produktRezept` erhält diese Namen auch über wiederholte Aufbereitung hinweg.
 8. **Produktionsdaten**: Prüfberichte und Neon-Sicherungen liegen außerhalb
    dieses Repositories. Browserprüfungen laufen mit isolierter Testdatenbank.
 9. **Sortimentskalkulation**: Admin → Sortiment kalkulieren. Jede aktive Variante

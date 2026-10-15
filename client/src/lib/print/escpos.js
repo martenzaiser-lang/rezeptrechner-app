@@ -9,6 +9,7 @@ import { produktionsRezept } from '../calc/produktion.js';
 import { taErgebnis, ta } from '../calc/ta.js';
 import { getRezeptAllergene, berechneNaehrwerte } from '../calc/naehrwerteLookup.js';
 import { ALLERGEN_NAMEN } from '../../data/allergene.js';
+import { produktAnzeigename } from '../calc/produktName.js';
 
 export const ESC = 0x1b;
 export const GS = 0x1d;
@@ -51,6 +52,19 @@ export function bonTruncate(text, maxLen) {
   if (cut < maxLen * 0.5) cut = text.lastIndexOf('-', maxLen - 1);
   if (cut < maxLen * 0.5) cut = maxLen;
   return text.substring(0, cut).trim();
+}
+
+function bonRezeptname(rezept) {
+  let rest = produktAnzeigename(rezept).replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim();
+  const zeilen = [];
+  while (rest.length > 32) {
+    const leer = rest.lastIndexOf(' ', 32);
+    const cut = leer > 0 ? leer : 32;
+    zeilen.push(rest.slice(0, cut));
+    rest = rest.slice(cut).trim();
+  }
+  if (rest) zeilen.push(rest);
+  return zeilen.join('\n');
 }
 
 export function padBonLine(left, right) {
@@ -222,7 +236,7 @@ export function generateBonBytes(rezept, skalierteZutaten, produktInfo, teilerIn
   }
   if (cfg.rezeptname && rezept) {
     bytes.push(...ESCPOS.BOLD_ON, ...ESCPOS.DOUBLE_HEIGHT);
-    bytes.push(...textToBytes(bonTruncate(rezept.name, 32) + '\n'));
+    bytes.push(...textToBytes(bonRezeptname(rezept) + '\n'));
     bytes.push(...ESCPOS.NORMAL, ...ESCPOS.BOLD_OFF);
   }
   if (cfg.datum) {
@@ -340,7 +354,7 @@ export function generateVorteigBonBytes(rezept, zutaten, produktInfo, titel, tei
 
   if (rezept) {
     bytes.push(...ESCPOS.BOLD_ON, ...ESCPOS.DOUBLE_HEIGHT);
-    bytes.push(...textToBytes(bonTruncate(rezept.name, 32) + '\n'));
+    bytes.push(...textToBytes(bonRezeptname(rezept) + '\n'));
     bytes.push(...ESCPOS.NORMAL, ...ESCPOS.BOLD_OFF);
   }
 

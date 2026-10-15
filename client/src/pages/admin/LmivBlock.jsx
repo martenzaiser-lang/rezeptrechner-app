@@ -14,6 +14,7 @@ import { produktRezept } from '../../lib/calc/produktion.js';
 import { produktNaehrwerte } from '../../lib/calc/produktNaehrwerte.js';
 import { formatNaehrwert as fmt } from '../../lib/calc/naehrwertFelder.js';
 import NaehrwertDruck from './NaehrwertDruck.jsx';
+import { produktAnzeigename } from '../../lib/calc/produktName.js';
 
 export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
   const [offen, setOffen] = useState(false);
@@ -34,7 +35,7 @@ export default function LmivBlock({ rezept: grundrezept, customZutaten }) {
 
   function kopieren() {
     if (!profil.deklarationVollstaendig) return;
-    let text = `${rezept.name}\n\nZutaten:\n`;
+    let text = `${produktAnzeigename(rezept)}\n\nZutaten:\n`;
     lmivZutaten.forEach((z) => {
       text += z.lmiv
         ? `- ${z.name} (${z.bezeichnung}): ${z.lmiv.replace(/<\/?b>/g, '').trim()}\n`

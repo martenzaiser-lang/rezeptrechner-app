@@ -5,6 +5,7 @@
 
 import { gruppiereZutaten, fmtSektionsSumme } from '../../lib/calc/sektionen.js';
 import { taLabel } from '../../lib/calc/ta.js';
+import { produktAnzeigename } from '../../lib/calc/produktName.js';
 import '../../styles/print.css';
 
 export default function PrintSheet({ rezept, sk, teigGesamtKg, mengeInfo }) {
@@ -19,7 +20,7 @@ export default function PrintSheet({ rezept, sk, teigGesamtKg, mengeInfo }) {
   return (
     <div id="print-sheet">
       <div className="print-kopf">
-        <h1>{rezept.name}</h1>
+        <h1>{produktAnzeigename(rezept)}</h1>
         <div className="print-meta">
           <span>{mengeInfo}</span>
           {taLabel(rezept, sk) && <span>{taLabel(rezept, sk)}</span>}

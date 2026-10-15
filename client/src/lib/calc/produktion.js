@@ -27,6 +27,8 @@ export function produktRezept(rezept, produktName) {
   };
   const result = berechneBaker(basis, eingabe);
   return { ...produktionsRezept(basis, result?.sk), name: p?.name || rezept.name, berechnungsfehler: result?.fehler,
+    grundrezept_name: rezept.grundrezept_name || rezept.name,
+    produkt_name: p?.name || rezept.produkt_name || null,
     ...(result?.fehler ? { deklarationsZutaten: rezept.zutaten.filter(z => istGewicht(z)
       && (z.menge_kg > 0 || z.zusatz_prozent > 0 || z.menge_pro_presse > 0)
       && (!p || !z.fuer_produkte?.length || z.fuer_produkte.includes(p.name))) } : {}),
