@@ -82,6 +82,16 @@ export default function ZutatDatenModal({ recipes, customIngredients, calculatio
       bls_code: b.bls_code,
       rohstoff: b.rohstoff,
       datenhinweise: b.datenhinweise,
+      naehrwert_ausgenommen: b.naehrwert_ausgenommen,
+      naehrwert_hinweis: b.naehrwert_hinweis,
+      produkt: b.produkt,
+      original_bezug: b.original_bezug,
+      original_naehrwerte: b.original_naehrwerte,
+      dichte_kg_l: b.dichte_kg_l,
+      dichte_status: b.dichte_status,
+      referenz_artikel: b.referenz_artikel,
+      referenz_bestaetigt: b.referenz_bestaetigt,
+      spuren: b.spuren,
       kj: num(b.kj),
       kcal: num(b.kcal),
       eiweiss: num(b.eiweiss),
@@ -101,7 +111,7 @@ export default function ZutatDatenModal({ recipes, customIngredients, calculatio
       zutaten_lmiv: b.zutaten_lmiv || '',
       zutaten_geprueft: b.zutaten_geprueft,
       quelle: b.quelle || '',
-      datenstatus: b.quelle_geprueft ? 'eigene_angabe' : 'ungeprueft',
+      datenstatus: b.quelle_geprueft ? b.naehrwert_ausgenommen ? 'betriebliche_vorgabe' : 'eigene_angabe' : 'ungeprueft',
     };
     const errors = validateCustomIngredient(data);
     if (errors.length) { setFehler(errors.join(' ')); return; }
@@ -143,12 +153,14 @@ export default function ZutatDatenModal({ recipes, customIngredients, calculatio
       >
         <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>Werte pro 100 g der Zutat. Unbekannte Werte leer lassen, bekannte Nullwerte als 0 erfassen. Ballaststoffe sind freiwillig. Unvollständige Angaben können gespeichert werden; die Nährwertausgabe bleibt bis zur vollständigen Erfassung der Pflichtangaben gesperrt.</p>
         {fehler && <p role="alert">{fehler}</p>}
+        {bearbeite.naehrwert_ausgenommen && <p role="status">Diese Zutat wird nach betrieblicher Vorgabe ohne Nährwertbeitrag berechnet. Ihre Menge bleibt im Gesamtgewicht enthalten.</p>}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 12 }}>
           {NW_FELDER.map(([key, label]) => (
             <div key={key}>
               <label htmlFor={`naehrwert-${key}`} style={{ fontSize: 11 }}>{label}</label>
               <input
                 id={`naehrwert-${key}`}
+                disabled={bearbeite.naehrwert_ausgenommen === true}
                 type="text"
                 inputMode="decimal"
                 placeholder="unbekannt"

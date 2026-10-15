@@ -9,6 +9,10 @@ export const NAEHRWERT_FELDER = Object.keys(NAEHRWERT_LABEL);
 export const PFLICHT_FELDER = NAEHRWERT_FELDER.filter(k => k !== 'ballaststoffe');
 export const istNaehrwert = n => typeof n === 'number' && Number.isFinite(n) && n >= 0;
 export function naehrwertStatus(daten) {
+  // Ausdrückliche betriebliche Ausnahme, kein Ersatz für unbekannte Werte.
+  if (daten?.naehrwert_ausgenommen === true && daten.datenstatus === 'betriebliche_vorgabe') {
+    return { vollstaendig: true, fehlend: [], quelleOffen: false };
+  }
   const fehlend = PFLICHT_FELDER.filter(k => !istNaehrwert(daten?.[k]));
   const quelleOffen = ['ungeprueft', 'widerspruechlich'].includes(daten?.datenstatus);
   return { vollstaendig: fehlend.length === 0 && !quelleOffen, fehlend, quelleOffen };

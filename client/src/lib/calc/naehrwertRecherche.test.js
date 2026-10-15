@@ -82,8 +82,8 @@ describe('Recherche und bestätigte Produktzuordnungen Oktober 2026', () => {
     const custom = rezeptZutaten([mix,ur,end]);
     const p = produktNaehrwerte(end,custom);
     expect(p.vollstaendig).toBe(true);
-    expect(p.bezug).toContain('Getrockneter Hopfen');
-    expect(p.bezug).toContain('trockenen Blüten');
+    expect(p.bezug).toContain('Hopfenmehl');
+    expect(p.bezug).toContain('ohne Nährwertbeitrag');
     expect(p.bezug).toContain('Obergrenzen');
   });
 });

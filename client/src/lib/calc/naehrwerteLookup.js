@@ -56,6 +56,9 @@ export function getNaehrwert(zutatName, customNaehrwerte = {}) {
   const custom = Object.entries(customNaehrwerte).map(([name, data]) => ({ name, ...data }));
   const nw = findNaehrwerte(zutatName, custom);
   if (!naehrwertStatus(nw).vollstaendig) return null;
+  if (nw.naehrwert_ausgenommen === true && nw.datenstatus === 'betriebliche_vorgabe') {
+    return { kcal: 0, protein: 0, carbs: 0, fat: 0, a: nw.a || nw.allergene || [] };
+  }
   return { ...nw, protein: nw.eiweiss, carbs: nw.kh, fat: nw.fett, a: nw.a || nw.allergene || [] };
 }
 
@@ -316,6 +319,10 @@ export function berechneNaehrwerte(rezept, customZutaten = []) {
     const status = naehrwertStatus(nw);
     if (status.vollstaendig) {
       gefunden++;
+      // Kaffee bleibt im Rezeptgewicht enthalten, liefert nach betrieblicher
+      // Vorgabe aber keinen Nährwertbeitrag. Auch Ballaststoffe nicht als
+      // unbekannt auf die gesamte Rezeptur übertragen.
+      if (nw.naehrwert_ausgenommen === true && nw.datenstatus === 'betriebliche_vorgabe') return;
       const anteil = z.menge_kg / gesamtKg;
       summe.kj += nw.kj * anteil;
       summe.kcal += (nw.kcal || 0) * anteil;

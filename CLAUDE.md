@@ -103,6 +103,17 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
    Rezeptur einschließlich späterer Füllungen/Glasuren. Ballaststoffe sind optional
    und bleiben bei fehlender Quelle leer; alle Pflichtfelder müssen bekannt sein.
    Fehlende Hersteller-/Rohstoffwerte bleiben unbekannt, nicht automatisch null.
+   Freigaben vom 15.10.2026 aus `Rezeptrechner_Zutatendaten_recherchiert.txt`:
+   `zutatendatenBestaetigt.js` enthält die neuen Produktzuordnungen und Quellen.
+   Reine Gewürze/Kräuter und Hopfenmehl werden betrieblich ohne Nährwertbeitrag
+   berechnet. Spicy Topping (Maisextrudat) und Braun Stollen fein (Zucker/Laktose)
+   behalten ihre Produktnährwerte. Kaffee ist ausdrücklich ausgenommen
+   (`naehrwert_ausgenommen`, `datenstatus: betriebliche_vorgabe`); seine Werte
+   bleiben leer und seine Masse bleibt im Rezeptgesamtgewicht. Für Apfelsaft,
+   Orangennektar und Rum ist 1 Liter = 1 kg als betriebliche Näherung freigegeben;
+   Originalbezug 100 ml und Umrechnungsgrundlage bleiben im Datensatz erhalten.
+   Konservenwerte einschließlich Aufguss, keine automatische Abtropfumrechnung.
+   Bewusst gewählte Eierlikör-/Rum-Vergleichswerte bleiben intern gekennzeichnet.
    Eigene Zutaten haben Vorrang; Referenzübernahme nur als prüfbarer Editorentwurf.
    `vollstaendig` in produktNaehrwerte bewertet die Zahlen; erst
    `deklarationVollstaendig` gibt die Ausgabe frei (zusätzlich geprüfte Allergene

@@ -4,6 +4,7 @@
 // null bei freiwilligen Ballaststoffangaben bedeutet: nicht veröffentlicht.
 import { ROHSTOFF_ERGAENZUNGEN } from './rohstoffErgaenzungen.js';
 import { HERSTELLER_ERGAENZUNGEN } from './herstellerErgaenzungen.js';
+import { ZUTATENDATEN_BESTAETIGT } from './zutatendatenBestaetigt.js';
 
 function profil(werte, quelle, quelle_url, extra = {}) {
   const [kj, kcal, fett, gfs, kh, zucker, eiweiss, salz, ballaststoffe = null] = werte;
@@ -435,3 +436,6 @@ Object.assign(NAEHRWERT_RECHERCHE, {
     }
   }
 });
+
+// Neuere betriebliche Produktzuordnungen ersetzen die früheren Vergleichsprofile.
+Object.assign(NAEHRWERT_RECHERCHE, ZUTATENDATEN_BESTAETIGT);

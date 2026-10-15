@@ -53,6 +53,8 @@ export function validateCustomIngredient(data) {
   for (const k of ['kj', 'kcal', 'eiweiss', 'protein', 'fett', 'fat', 'gfs', 'kh', 'carbs', 'zucker', 'sugar', 'ballaststoffe', 'fiber', 'salz']) {
     if (data[k] != null && (!number(data[k]) || data[k] > (k === 'kj' ? 4200 : k === 'kcal' ? 1000 : 100))) errors.push(`${k}: ungültiger Wert pro 100 g.`);
   }
+  if (data.naehrwert_ausgenommen != null && typeof data.naehrwert_ausgenommen !== 'boolean') errors.push('Nährwertausnahme muss Ja/Nein sein.');
+  if (data.naehrwert_ausgenommen === true && data.datenstatus !== 'betriebliche_vorgabe') errors.push('Nährwertausnahme erfordert eine ausdrückliche betriebliche Vorgabe.');
   for (const k of ['a', 'allergene', 'spuren']) if (data[k] != null && (!Array.isArray(data[k]) || data[k].some(x => !/^[A-N][a-h]?$/.test(x)))) errors.push(`${k}: ungültige Allergencodes.`);
   const fett = data.fett ?? data.fat, kh = data.kh ?? data.carbs;
   if ((number(data.gfs) && number(fett) && data.gfs > fett) || (number(data.zucker) && number(kh) && data.zucker > kh)) errors.push('Gesättigte Fettsäuren/Zucker dürfen Fett/Kohlenhydrate nicht übersteigen.');

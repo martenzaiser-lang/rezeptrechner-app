@@ -49,8 +49,8 @@ describe('Nachgewiesene Pflichtangaben und unbekannte Zusatzangaben', () => {
     expect(findNaehrwerte('Kochcreme').gtin).toBe('3232940007024');
     expect(koch.werte.zucker).toBe(.3);
     expect(koch.bezug).not.toContain('Schätzung mit Vergleichsartikel');
-    expect(findNaehrwerte('Spicy Topping').kcal).toBe(366);
-    expect(findNaehrwerte('Spicy Topping').quelle).toContain('137990DK');
+    expect(findNaehrwerte('Spicy Topping').kcal).toBe(355);
+    expect(findNaehrwerte('Spicy Topping').quelle).toContain('Backstars');
   });
   it('erhöht eine bereits als Teigeinlage gespeicherte Stückmenge nicht erneut um Backverlust', () => {
     expect(rohgew({ stueckgewicht_g: 600, backverlust_pct: 10 })).toBe(600);
