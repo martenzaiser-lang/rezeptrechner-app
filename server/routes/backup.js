@@ -19,7 +19,7 @@ backupRouter.get('/', requireAdmin, async (_req, res, next) => {
     const snap = await transaction(async client => {
       await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
       return snapshot(client);
-    });
+    }, { readOnly: true });
     res.json({ backup: makeBackup(snap), revision: snap.revision });
   } catch (err) { next(err); }
 });

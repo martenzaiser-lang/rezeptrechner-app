@@ -4,7 +4,8 @@
 // - Beim Start SOFORT aus dem localStorage-Cache rendern (Render Free
 //   braucht nach 15 min Schlaf ~50 s Cold-Start — der Baecker um 3 Uhr
 //   morgens darf darauf nicht warten).
-// - Polling alle 90 s mit ETag: unveraenderter Stand kostet nur ein 304.
+// - Sichtbare App: Polling alle 90 s. Das Backend teilt einen Cache zwischen
+//   Geräten; unveränderte Daten verursachen dabei keinen Neon-Abruf.
 // - Zusaetzlich sofort bei visibilitychange (Tablet aufgeweckt) und online.
 // - Cloud-Status: online / sync / fehler / offline (Anzeige im Header).
 // - 20 rotierende lokale Backups (wie alte App) bei jedem neuen Datenstand.
@@ -161,7 +162,9 @@ export function DataProvider({ children }) {
     // kann laenger dauern — dann lieber Cache + Daten-Stand-Banner zeigen).
     const wartenTimeout = setTimeout(beendeWarten, 10_000);
 
-    const interval = setInterval(() => refresh({ full: true }), POLL_INTERVAL_MS);
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') refresh();
+    }, POLL_INTERVAL_MS);
     const onVisible = () => {
       if (document.visibilityState === 'visible') refresh({ full: true });
     };

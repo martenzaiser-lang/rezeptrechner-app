@@ -4,6 +4,7 @@
 
 import { Router } from 'express';
 import { pool } from '../db.js';
+import { getDataSnapshot, invalidateDataCache } from '../services/data-cache.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { addLog } from '../services/changelog-service.js';
 import { validatePrices } from '../../shared/validation.js';
@@ -12,10 +13,8 @@ export const pricesRouter = Router();
 
 pricesRouter.get('/', requireAuth, async (_req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT zutat_name, preis_eur_kg, lieferant FROM prices ORDER BY zutat_name'
-    );
-    res.json({ prices: rows });
+    const { prices } = await getDataSnapshot();
+    res.json({ prices });
   } catch (err) {
     next(err);
   }
@@ -51,6 +50,7 @@ pricesRouter.put('/', requireAdmin, async (req, res, next) => {
     }
     await addLog(req.authUser.email, 'price', { details: { count: prices.length } }, client);
     await client.query('COMMIT');
+    invalidateDataCache();
     res.json({ ok: true });
   } catch (err) {
     if (client) await client.query('ROLLBACK').catch(() => {});

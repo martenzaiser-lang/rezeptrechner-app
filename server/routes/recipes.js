@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { createHash } from 'node:crypto';
-import { pool } from '../db.js';
+import { getDataSnapshot } from '../services/data-cache.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { addLog } from '../services/changelog-service.js';
 import { transaction, httpError } from '../services/transaction.js';
@@ -13,10 +12,11 @@ const params = (r, user) => [r.id, r.name, r.kategorie || '', r.aktiv !== false,
 
 recipesRouter.get('/', requireAuth, async (req, res, next) => {
   try {
-    // ETag und Inhalt stammen aus EINEM SELECT, damit sie nicht auseinanderlaufen.
-    const { rows } = await pool.query('SELECT data, version, updated_at FROM recipes ORDER BY name');
-    const etag = '"' + createHash('sha256').update(JSON.stringify(rows.map(r => [r.data.id, r.version, r.updated_at]))).digest('hex') + '"';
+    const snapshot = await getDataSnapshot();
+    const rows = snapshot.recipes;
+    const etag = '"' + snapshot.revisions.recipes + '"';
     res.set('ETag', etag);
+    res.set('Cache-Control', 'private, no-cache');
     if (req.headers['if-none-match'] === etag) return res.status(304).end();
     res.json({ recipes: rows.map(r => ({ ...r.data, _version: r.version })), updatedAt: rows.reduce((m, r) => r.updated_at > m ? r.updated_at : m, null) });
   } catch (err) { next(err); }

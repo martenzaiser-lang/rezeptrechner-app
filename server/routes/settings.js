@@ -2,7 +2,7 @@
 // Lesen: alle Rollen. Schreiben: Admin.
 
 import { Router } from 'express';
-import { pool } from '../db.js';
+import { getDataSnapshot } from '../services/data-cache.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { addLog } from '../services/changelog-service.js';
 import { transaction, httpError } from '../services/transaction.js';
@@ -12,9 +12,7 @@ export const settingsRouter = Router();
 
 settingsRouter.get('/', requireAuth, async (_req, res, next) => {
   try {
-    const { rows } = await pool.query('SELECT key, value FROM settings');
-    const settings = {};
-    for (const r of rows) settings[r.key] = r.value;
+    const { settings } = await getDataSnapshot();
     res.json(settings);
   } catch (err) {
     next(err);

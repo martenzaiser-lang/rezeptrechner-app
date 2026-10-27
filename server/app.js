@@ -6,7 +6,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config } from './config.js';
-import { pool } from './db.js';
+import { getDataSnapshot } from './services/data-cache.js';
 import { authRouter } from './routes/auth.js';
 import { recipesRouter } from './routes/recipes.js';
 import { settingsRouter } from './routes/settings.js';
@@ -39,11 +39,12 @@ if (config.NODE_ENV !== 'test') {
   app.use('/api/', rateLimit({ windowMs: 60 * 1000, max: 300 }));
 }
 
-// Health: prueft auch die DB-Verbindung (Cloud-Status-Indicator im Client).
+// Dieselbe DB-Prüfung wie die Leser verwenden: häufige Healthchecks dürfen
+// Neon nicht dauerhaft wach halten. Zeitpunkt der letzten Prüfung offenlegen.
 app.get('/api/health', async (_req, res) => {
   try {
-    await pool.query('SELECT 1');
-    res.json({ ok: true, db: true, version: process.env.RENDER_GIT_COMMIT || 'lokal' });
+    const { checkedAt } = await getDataSnapshot();
+    res.json({ ok: true, db: true, dbCheckedAt: new Date(checkedAt).toISOString(), version: process.env.RENDER_GIT_COMMIT || 'lokal' });
   } catch (err) {
     res.status(503).json({ ok: false, db: false });
   }

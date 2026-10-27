@@ -1,7 +1,7 @@
 // API-Integrationstests mit echtem PostgreSQL-Kern im Arbeitsspeicher (PGlite).
 // Deckt ab: Login je Rolle, 401/403-Matrix, ETag→304, version→409, Bulk.
 
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi } from 'vitest';
 import request from 'supertest';
 import { createTestPostgres } from './postgres.js';
 
@@ -18,6 +18,7 @@ vi.mock('../db.js', () => ({
 
 const { app } = await import('../app.js');
 const { hashPassword } = await import('../services/auth-service.js');
+const { invalidateDataCache, DATA_CACHE_TTL_MS, DATA_REVISION_SQL } = await import('../services/data-cache.js');
 
 const USERS = [
   { email: 'marten@oetzmann.de', password: 'admin-pw-123', role: 'admin' },
@@ -53,7 +54,9 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await dbMock.db.exec('TRUNCATE recipes, change_log, settings, prices, custom_ingredients');
+  invalidateDataCache();
 });
+afterEach(() => vi.restoreAllMocks());
 afterAll(() => dbMock.pool.end());
 
 describe('Auth', () => {
@@ -302,6 +305,144 @@ describe('ETag-Polling', () => {
       .set('If-None-Match', etag);
     expect(fresh.status).toBe(200);
     expect(fresh.headers.etag).not.toBe(etag);
+  });
+});
+
+describe('Neon-Transfer und Datenaktualität', () => {
+  const admin = (method, path) => request(app)[method](path).set('Authorization', `Bearer ${tokens.admin}`);
+  const reader = path => request(app).get(path).set('Authorization', `Bearer ${tokens.teigmacher}`);
+  function recordQueries() {
+    const queries = [];
+    const connect = dbMock.pool.connect.bind(dbMock.pool);
+    vi.spyOn(dbMock.pool, 'connect').mockImplementation(async () => {
+      const client = await connect();
+      return { ...client, query(sql, params) { queries.push(sql); return client.query(sql, params); } };
+    });
+    return queries;
+  }
+
+  it('parallele Geräte teilen einen Abruf; weiteres Polling, LMIV und Health lesen ohne DB', async () => {
+    await admin('post', '/api/recipes').send(makeRecipe('cache', 'Cache-Brot')).expect(201);
+    const queries = recordQueries();
+    const results = await Promise.all([
+      reader('/api/recipes'), reader('/api/settings'), reader('/api/prices'), reader('/api/custom-ingredients'),
+      reader('/api/recipes'), request(app).get('/api/health'),
+    ]);
+    expect(results.every(r => r.status === 200)).toBe(true);
+    expect(queries.filter(q => q === DATA_REVISION_SQL)).toHaveLength(1);
+    expect(queries.filter(q => q.startsWith('SELECT data,'))).toHaveLength(1);
+    queries.length = 0;
+    for (let i = 0; i < 3; i++) {
+      await reader('/api/recipes').set('If-None-Match', results[0].headers.etag).expect(304);
+      await reader('/api/settings').expect(200);
+      await reader('/api/prices').expect(200);
+      await reader('/api/custom-ingredients').expect(200);
+      await request(app).get('/api/lmiv').set('X-Api-Key', process.env.LMIV_API_KEY).expect(200);
+      await request(app).get('/api/health').expect(200);
+    }
+    expect(queries).toEqual([]);
+  });
+
+  it('nach 15 Minuten nur Prüfsummen, bei externer Änderung nur betroffenen Datenbereich laden', async () => {
+    await admin('post', '/api/recipes').send(makeRecipe('r', 'Unverändert')).expect(201);
+    const first = await reader('/api/recipes');
+    const queries = recordQueries();
+    const now = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(now + DATA_CACHE_TTL_MS + 100);
+    await reader('/api/recipes').set('If-None-Match', first.headers.etag).expect(304);
+    expect(queries).toEqual(['BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY', DATA_REVISION_SQL, 'COMMIT']);
+    // Ein SQL-Skript ändert die Daten ohne updated_at und ohne Cache-Invalidierung.
+    await dbMock.pool.query("UPDATE recipes SET data = jsonb_set(data, '{name}', '\"Extern geändert\"') WHERE id = 'r'");
+    clock.mockReturnValue(now + 2 * DATA_CACHE_TTL_MS + 200);
+    queries.length = 0;
+    const updated = await reader('/api/recipes').set('If-None-Match', first.headers.etag).expect(200);
+    expect(updated.body.recipes[0].name).toBe('Extern geändert');
+    expect(queries.filter(q => /^SELECT/.test(q))).toEqual([
+      DATA_REVISION_SQL, 'SELECT data, version, updated_at, aktiv FROM recipes ORDER BY name, id',
+    ]);
+    await dbMock.pool.query("DELETE FROM recipes WHERE id = 'r'");
+    clock.mockReturnValue(now + 3 * DATA_CACHE_TTL_MS + 300);
+    const deleted = await reader('/api/recipes').set('If-None-Match', updated.headers.etag).expect(200);
+    expect(deleted.body.recipes).toEqual([]);
+  });
+
+  it('alle App-Schreibwege sind ohne 15-Minuten-Wartezeit auf dem zweiten Gerät sichtbar', async () => {
+    await reader('/api/recipes').expect(200); // leeren Cache vor allen Mutationen füllen
+    await admin('post', '/api/recipes').send(makeRecipe('r', 'Neu')).expect(201);
+    const before = await reader('/api/recipes');
+    expect(before.body.recipes[0].name).toBe('Neu');
+    await admin('put', '/api/recipes/r').send(makeRecipe('r', 'Geändert', { _version: 1 })).expect(200);
+    expect((await reader('/api/recipes')).body.recipes[0].name).toBe('Geändert');
+    await admin('post', '/api/recipes/bulk').send({ recipes: [makeRecipe('r', 'Importiert', { _version: 2 })] }).expect(200);
+    expect((await reader('/api/recipes')).body.recipes[0].name).toBe('Importiert');
+    await admin('put', '/api/settings').send({ name: 'Neuer Betrieb' }).expect(200);
+    expect((await reader('/api/settings')).body.name).toBe('Neuer Betrieb');
+    await admin('put', '/api/prices').send({ prices: [{ zutat_name: 'Mehl', preis_eur_kg: 1 }] }).expect(200);
+    expect((await reader('/api/prices')).body.prices).toHaveLength(1);
+    await admin('put', '/api/prices').send({ prices: [{ zutat_name: 'Mehl', preis_eur_kg: 0, deleted: true }] }).expect(200);
+    expect((await reader('/api/prices')).body.prices).toEqual([]);
+    await admin('put', '/api/custom-ingredients/Mehl').send({ kcal: 350, allergene: [] }).expect(200);
+    expect((await reader('/api/custom-ingredients')).body.ingredients).toHaveLength(1);
+    await admin('delete', '/api/custom-ingredients/Mehl').expect(200);
+    expect((await reader('/api/custom-ingredients')).body.ingredients).toEqual([]);
+    const saved = (await admin('get', '/api/backup')).body;
+    await admin('delete', '/api/recipes/r').send({ _version: 3 }).expect(200);
+    expect((await reader('/api/recipes')).body.recipes).toEqual([]);
+    const current = (await admin('get', '/api/backup')).body;
+    await admin('post', '/api/backup/restore').send({ backup: saved.backup, expectedRevision: current.revision }).expect(200);
+    expect((await reader('/api/recipes')).body.recipes[0].name).toBe('Importiert');
+  });
+
+  it('ein fehlgeschlagener Schreibvorgang verändert den Cache nicht', async () => {
+    await admin('post', '/api/recipes').send(makeRecipe('r', 'Aktuell')).expect(201);
+    const first = await reader('/api/recipes');
+    await admin('put', '/api/recipes/r').send(makeRecipe('r', 'Veraltet', { _version: 99 })).expect(409);
+    const queries = recordQueries();
+    await reader('/api/recipes').set('If-None-Match', first.headers.etag).expect(304);
+    expect(queries).toEqual([]);
+  });
+
+  it('bei abgelaufenem Cache und DB-Ausfall Fehler melden; nach Wiederkehr neu prüfen', async () => {
+    const first = await reader('/api/recipes');
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + DATA_CACHE_TTL_MS + 100);
+    const connect = dbMock.pool.connect.bind(dbMock.pool);
+    vi.spyOn(dbMock.pool, 'connect').mockRejectedValueOnce(new Error('DB-Testausfall')).mockImplementation(connect);
+    await reader('/api/recipes').set('If-None-Match', first.headers.etag).expect(500);
+    await reader('/api/recipes').set('If-None-Match', first.headers.etag).expect(304);
+  });
+
+  it('ein während des Lesens erfolgtes Speichern kann keinen alten Cache hinterlassen', async () => {
+    await admin('post', '/api/recipes').send(makeRecipe('r', 'Vorher')).expect(201);
+    let resume, arrived;
+    const gate = new Promise(resolve => { resume = resolve; });
+    const reachedCommit = new Promise(resolve => { arrived = resolve; });
+    const connect = dbMock.pool.connect.bind(dbMock.pool);
+    let hold = true;
+    vi.spyOn(dbMock.pool, 'connect').mockImplementation(async () => {
+      const client = await connect();
+      let released = false;
+      return {
+        async query(sql, params) {
+          const result = await client.query(sql, params);
+          if (sql === 'COMMIT' && hold) {
+            hold = false;
+            client.release(); released = true;
+            arrived();
+            await gate;
+          }
+          return result;
+        },
+        release() { if (!released) client.release(); },
+      };
+    });
+    const reading = reader('/api/recipes').then(r => r);
+    await reachedCommit;
+    try {
+      await admin('put', '/api/recipes/r').send(makeRecipe('r', 'Nachher', { _version: 1 })).expect(200);
+    } finally { resume(); }
+    const result = await reading;
+    expect(result.body.recipes[0].name).toBe('Nachher');
+    expect((await reader('/api/recipes')).body.recipes[0]._version).toBe(2);
   });
 });
 

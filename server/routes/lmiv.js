@@ -11,7 +11,7 @@
 
 import { Router } from 'express';
 import { timingSafeEqual, createHash } from 'node:crypto';
-import { pool } from '../db.js';
+import { getDataSnapshot } from '../services/data-cache.js';
 import {
   getRezeptAllergene, getRezeptSpuren,
   formatAllergene, getRezeptAllergenStatus, getRezeptZutatenStatus,
@@ -48,12 +48,7 @@ function requireApiKey(req, res, next) {
  */
 lmivRouter.get('/', requireApiKey, async (_req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      "SELECT data, aktiv FROM recipes ORDER BY name"
-    );
-    const { rows: customRows } = await pool.query(
-      'SELECT name, data FROM custom_ingredients'
-    );
+    const { recipes: rows, ingredients: customRows } = await getDataSnapshot();
     const customZutaten = rezeptZutaten(rows.map(r => r.data), customRows);
     const resolved = new Map(aufgeloesteRezepte(rows.map(r => r.data), customZutaten).map(r => [r.id, r]));
 

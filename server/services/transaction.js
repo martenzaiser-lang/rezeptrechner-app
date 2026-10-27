@@ -1,11 +1,14 @@
 import { pool } from '../db.js';
-export async function transaction(fn) {
+import { invalidateDataCache } from './data-cache.js';
+
+export async function transaction(fn, { readOnly = false } = {}) {
   let client;
   try {
     client = await pool.connect();
     await client.query('BEGIN');
     const result = await fn(client);
     await client.query('COMMIT');
+    if (!readOnly) invalidateDataCache();
     return result;
   } catch (err) {
     if (client) await client.query('ROLLBACK').catch(() => {});
