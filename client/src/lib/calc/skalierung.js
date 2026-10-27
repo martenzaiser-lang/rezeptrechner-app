@@ -1,4 +1,4 @@
-import { skaliereMitBezug } from './prozentSkalierung.js';
+import { skaliereMitBezug, bezugsGewicht } from './prozentSkalierung.js';
 
 export const getEinzelGewicht = r => r.produkte?.length === 1 && r.produkte[0].gewicht_g > 0 ? r.produkte[0].gewicht_g : r.stueckgewicht_g || 1000;
 export const skaliere = (r, n) => n > 0 ? skaliereMitBezug(r, { zielKg: n * getEinzelGewicht(r) / 1000,
@@ -15,6 +15,7 @@ export const blechFaktor = (r, anzahl = 1, breite, laenge) => {
 };
 export const skaliereBlech = (r, n = 1, b, l) => skaliereMitBezug(r, { faktor: blechFaktor(r, n, b, l) });
 export const schluesselzahl = (r, n) => {
-  const charge = skaliereMitBezug(r, { faktor: 1 }).reduce((s,v) => s+v,0);
+  const produktName = r.produkte?.length === 1 ? r.produkte[0].name : undefined;
+  const charge = bezugsGewicht(r, skaliereMitBezug(r, { faktor: 1, produktName }), produktName);
   return charge > 0 ? n * getEinzelGewicht(r) / 1000 / charge : 0;
 };

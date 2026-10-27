@@ -81,6 +81,12 @@ npm run seed --workspace server      # legt die 3 Benutzer an (SEED_*-Env-Vars)
    Mehlprozente umstellen. Roggenteig-Körner/Quellzutaten sind laut ursprünglicher
    Produktionssicherung Produktgewichtsanteile (12 % Katenbrot-Körner = 102 g
    je 850 g Teigeinlage); diese Mengen dürfen sich durch TA-Korrekturen nicht ändern.
+   Baguetteteig (Marten, 27.10.2026): Bei Oliven-/Tomaten-/Körnerciabatta und
+   Schokobaguette bezeichnet `produkte[].gewicht_bezug: 'basisteig'` das volle
+   Grundteiggewicht ohne produktzugeordnete Zugaben. Je Presse: 5 kg + 1 kg
+   Oliven, 4,8 kg + 0,5 kg Tomaten, 5,4 kg + ca. 1,2 kg Urstückteig und
+   5,2 kg + 1 kg Kuvertüre. Urstückteig: 22,22 % vom Basisteig. Andere Rezepte
+   behalten ihren bisherigen Gesamtgewichtsbezug.
    Saaten und Altbrot zählen nicht als Mehl. Paniermehl (auch
    Semmelbrösel/Semmelmehl) zählt laut Marten vom 15.10.2026 exakt wie Mehl,
    einschließlich seines Anteils in der Brotmischung. Massen bekommen keine TA.

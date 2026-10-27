@@ -3,8 +3,22 @@ import { istGewicht, taBilanz } from './ta.js';
 // Bäckerprozente beziehen sich auf GESAMTMEHL = 100 %.
 // Rezeptzugaben können ausdrücklich auf Basisteig oder Produktgewicht bezogen sein.
 // kg-Angaben haben Vorrang. Zusammengesetzte Vorstufen werden in der
-// Mehlbilanz zerlegt. Das Zielgewicht umfasst Wasser und sämtliche Zutaten.
+// Mehlbilanz zerlegt. Ohne ausdrücklichen Basisteigbezug umfasst das
+// Zielgewicht Wasser und sämtliche Zutaten.
 export function skaliereMitBezug(r, { zielKg, faktor, pressen = 0, produktName } = {}) {
+  // Beim ausdrücklich als Basisteig geführten Produkt zählt die Eingabe nur
+  // die gemeinsamen Teigzutaten. Produktzugeordnete Zugaben kommen hinzu.
+  // Zwei Bezugsansätze trennen skalierbare Mengen von festen Pressenzugaben;
+  // die bestehenden Mehl-/Basisteig-/Produktprozente bleiben dabei erhalten.
+  if (faktor == null && zielKg != null && r.produkte?.find(p => p.name === produktName)?.gewicht_bezug === 'basisteig') {
+    const fest = skaliereMitBezug(r, { faktor: 0, pressen, produktName });
+    const charge = skaliereMitBezug(r, { faktor: 1, pressen, produktName });
+    const festKg = bezugsGewicht(r, fest, produktName);
+    const chargeKg = bezugsGewicht(r, charge, produktName) - festKg;
+    const f = (zielKg - festKg) / chargeKg;
+    if (!(chargeKg > 0) || !Number.isFinite(f) || f < 0) throw new Error('Keine passende Grundteigmenge für das gewünschte Gewicht vorhanden.');
+    return charge.map((v, i) => (v - fest[i]) * f + fest[i]);
+  }
   const aktiv = z => istGewicht(z) && (!produktName || !z.fuer_produkte?.length || z.fuer_produkte.includes(produktName));
   const basis = r.zutaten.map(z => aktiv(z) && !(z.menge_pro_presse > 0) && z.menge_kg > 0 ? z.menge_kg : 0);
   const prozent = r.zutaten.map((z,i) => aktiv(z) && !basis[i] && !(z.menge_pro_presse > 0) ? (z.zusatz_prozent || 0) / 100 : 0);
@@ -40,6 +54,11 @@ export function skaliereMitBezug(r, { zielKg, faktor, pressen = 0, produktName }
   const f = faktor ?? ((zielKg - festKg) / chargeKg);
   if (!Number.isFinite(f) || f < 0) throw new Error('Pressenzutaten übersteigen das eingestellte Produktgewicht.');
   return charge.map((v,i) => v*f + fest[i]);
+}
+
+export function bezugsGewicht(r, mengen, produktName) {
+  const basisteig = r.produkte?.find(p => p.name === produktName)?.gewicht_bezug === 'basisteig';
+  return mengen.reduce((sum, kg, i) => sum + (basisteig && r.zutaten[i].fuer_produkte?.length ? 0 : kg), 0);
 }
 
 function skaliereGemischteBezuege(r, basis, prozent, fest, { zielKg, faktor }) {

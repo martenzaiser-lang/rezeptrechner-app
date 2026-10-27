@@ -192,7 +192,7 @@ export default function RezeptEditorModal({ rezept, onSave, onClose }) {
             <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
               <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
               <span className="muted" style={{ fontSize: 13 }}>
-                {p.gewicht_g} g{p.stueck_pro_presse > 0 ? ` · ${p.stueck_pro_presse} Stk/Presse` : ''}
+                {p.gewicht_g} g{p.gewicht_bezug === 'basisteig' ? ' Grundteig + Zugaben' : ''}{p.stueck_pro_presse > 0 ? ` · ${p.stueck_pro_presse} Stk/Presse` : ''}
               </span>
               <button className="btn btn-ghost" aria-label={`${p.name} entfernen`} onClick={() => setProdukte(produkte.filter((_, j) => j !== i))}>✕</button>
               <div style={{ flexBasis: '100%', display: 'flex', flexWrap: 'wrap', gap: 8 }}>

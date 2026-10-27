@@ -26,6 +26,7 @@ export function validateRecipe(r) {
     }
     if (names.has(p.name.toLowerCase())) errors.push(`Doppelter Produktname: ${p.name}`);
     names.add(p.name.toLowerCase());
+    if (p.gewicht_bezug != null && !['endprodukt', 'basisteig'].includes(p.gewicht_bezug)) errors.push(`Gewichtsbezug von ${p.name} ungültig.`);
     if (p.backverlust_pct != null && (!number(p.backverlust_pct) || p.backverlust_pct >= 100)) errors.push(`Backverlust von ${p.name} ungültig.`);
     if (p.backverlust_status != null && !['unbestaetigt', 'geschaetzt', 'gemessen'].includes(p.backverlust_status)) errors.push(`Grundlage des Backverlusts von ${p.name} ungültig.`);
   }

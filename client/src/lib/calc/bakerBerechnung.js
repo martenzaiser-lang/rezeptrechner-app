@@ -66,12 +66,13 @@ function berechne(r, eingabe) {
 // Teig-Zusammenfassung bei prozentualen Zusaetzen (Einzelprodukt-Variante,
 // Original Z. 2880-2881): "X kg Teig + Fuellung (Y kg) + ..."
 export function teigZusammenfassung(r, sk, teigGesamtKg) {
+  const grundteigGewicht = r.produkte?.some(p => p.gewicht_bezug === 'basisteig');
   const pz = {};
   r.zutaten.forEach((z, i) => {
-    if (!(!z.ist_kommentar && z.zusatz_prozent > 0 && !(z.menge_kg > 0))) return;
+    if (z.ist_kommentar || !(grundteigGewicht ? z.fuer_produkte?.length : z.zusatz_prozent > 0 && !(z.menge_kg > 0))) return;
     const w = sk[i] || 0;
     if (!w) return;
-    const sn = z.bemerkung ? z.bemerkung.split('–')[0].trim() : z.name;
+    const sn = !grundteigGewicht && z.bemerkung ? z.bemerkung.split('–')[0].trim() : z.name;
     pz[sn] = (pz[sn] || 0) + w;
   });
   if (!Object.keys(pz).length) return null;

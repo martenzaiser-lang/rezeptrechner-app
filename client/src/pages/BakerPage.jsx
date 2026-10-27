@@ -207,7 +207,8 @@ export default function BakerPage() {
 
   const ergebnis = rezept && eingabe ? berechneBaker(rezept, eingabe) : null;
   const zusammenfassung =
-    ergebnis && !ergebnis.hasMulti ? teigZusammenfassung(rezept, ergebnis.sk, ergebnis.teigGesamtKg) : null;
+    ergebnis && (!ergebnis.hasMulti || rezept.produkte?.some(p => p.gewicht_bezug === 'basisteig'))
+      ? teigZusammenfassung(rezept, ergebnis.sk, ergebnis.teigGesamtKg) : null;
   const schuettErg = schuettTemperatur(schuett);
 
   return (

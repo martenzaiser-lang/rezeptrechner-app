@@ -47,7 +47,7 @@ export default function MengenSteuerung({ rezept, eingabe, onChange, ergebnis })
             return (
               <div className="mp-card" key={i} title={`${p.name} (${p.gewicht_g}g${isPresse ? ' · ' + p.stueck_pro_presse + ' Stk/Presse' : ''})`}>
                 <span className="mp-name">{p.name}</span>
-                <span className="mp-weight">{isPresse ? `${p.stueck_pro_presse}×${p.gewicht_g}g` : `${p.gewicht_g}g`}</span>
+                <span className="mp-weight">{isPresse ? `${p.stueck_pro_presse}×${p.gewicht_g}g` : `${p.gewicht_g}g`}{p.gewicht_bezug === 'basisteig' ? ' Grundteig' : ''}</span>
                 <div className="mp-controls">
                   <button onClick={() => setProdukt(p.name, val - 1)}>−</button>
                   <DezimalInput
@@ -128,7 +128,7 @@ export default function MengenSteuerung({ rezept, eingabe, onChange, ergebnis })
         )}
 
         <div className="teig-box">
-          <div className="teig-lbl">Teig</div>
+          <div className="teig-lbl">{rezept.produkte?.some(p => p.gewicht_bezug === 'basisteig') ? 'Gesamt mit Zugaben' : 'Teig'}</div>
           <div className="teig-val">
             {teigStr}
             {ergebnis?.proBlechKg != null && (
