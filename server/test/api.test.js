@@ -491,6 +491,23 @@ describe('Bulk-Import', () => {
 });
 
 describe('Settings / Preise / Custom-Zutaten', () => {
+  it('speichert Gebäckverknüpfungen getrennt; schützt sie vor ungültigen und nicht autorisierten Änderungen', async () => {
+    const before = await request(app).get('/api/recipes').set('Authorization', `Bearer ${tokens.admin}`);
+    const gebaeckaufbauten = { schemaVersion: 1, produkte: [{ id: 'torte', name: 'Testtorte', bestandteile: [{ typ: 'rezept', rezeptId: 'boden' }] }] };
+    await request(app).put('/api/settings').set('Authorization', `Bearer ${tokens.admin}`).send({ name: 'Testbetrieb', gebaeckaufbauten }).expect(200);
+    for (const role of ['teigmacher', 'kuchenmacher']) {
+      const saved = await request(app).get('/api/settings').set('Authorization', `Bearer ${tokens[role]}`).expect(200);
+      expect(saved.body.gebaeckaufbauten).toEqual(gebaeckaufbauten);
+      await request(app).put('/api/settings').set('Authorization', `Bearer ${tokens[role]}`).send({ gebaeckaufbauten }).expect(403);
+    }
+    await request(app).put('/api/settings').set('Authorization', `Bearer ${tokens.admin}`).send({ name: 'Nicht speichern', gebaeckaufbauten: { schemaVersion: 1, produkte: [{ id: 'falsch' }] } }).expect(400);
+    const saved = await request(app).get('/api/settings').set('Authorization', `Bearer ${tokens.admin}`);
+    expect(saved.body.name).toBe('Testbetrieb');
+    expect(saved.body.gebaeckaufbauten).toEqual(gebaeckaufbauten);
+    const after = await request(app).get('/api/recipes').set('Authorization', `Bearer ${tokens.admin}`);
+    expect(after.body).toEqual(before.body);
+  });
+
   it('Settings-Roundtrip', async () => {
     await request(app)
       .put('/api/settings')

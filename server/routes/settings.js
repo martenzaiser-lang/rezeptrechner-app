@@ -7,6 +7,7 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { addLog } from '../services/changelog-service.js';
 import { transaction, httpError } from '../services/transaction.js';
 import { isRecord } from '../../shared/validation.js';
+import { validateGebaeckaufbauten } from '../../shared/gebaeckaufbau.js';
 
 export const settingsRouter = Router();
 
@@ -23,6 +24,10 @@ settingsRouter.put('/', requireAdmin, async (req, res, next) => {
   try {
     const settings = req.body || {};
     if (!isRecord(settings)) throw httpError(400, 'Einstellungen müssen ein Objekt sein.');
+    if (Object.hasOwn(settings, 'gebaeckaufbauten')) {
+      const errors = validateGebaeckaufbauten(settings.gebaeckaufbauten);
+      if (errors.length) throw httpError(400, errors.join(' '));
+    }
     const keys = Object.keys(settings);
     if (!keys.length) {
       return res.status(400).json({ error: 'Keine Einstellungen übergeben' });

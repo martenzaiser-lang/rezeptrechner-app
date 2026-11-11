@@ -7,6 +7,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Scale } from 'lucide-react';
+import GebaeckAufbau, { GebaeckVerwendungen } from '../components/GebaeckAufbau.jsx';
 import { useData } from '../context/DataContext.jsx';
 import { auth } from '../services/api.js';
 import { sichtbareRezepte } from '../lib/rezeptFilter.js';
@@ -89,6 +90,7 @@ export default function BakerPage() {
   const [planungOpen, setPlanungOpen] = useState(false);
   const [zettel, setZettel] = useState(null);
   const [druckerOpen, setDruckerOpen] = useState(false);
+  const [gebaeckOpen, setGebaeckOpen] = useState(false);
   const [printerOn, setPrinterOn] = useState(isPrinterConnected());
   const toast = useToast();
   const istKuchenmacher = role === 'kuchenmacher';
@@ -263,6 +265,7 @@ export default function BakerPage() {
         </button>
       </div>
 
+      {gebaeckOpen && <GebaeckAufbau rezeptId={rezept?.id} onClose={() => setGebaeckOpen(false)} />}
       {rezept && eingabe && (
         <div className="card">
           <h2 style={{ margin: '0 0 10px' }}>{rezept.name}</h2>
@@ -285,6 +288,7 @@ export default function BakerPage() {
               {rezept.produkte?.length > 1 ? 'Stückzahlen bei den Produkten eingeben' : 'Stückzahl eingeben'}
             </p>
           )}
+          <GebaeckVerwendungen rezeptId={rezept.id} onOpen={() => setGebaeckOpen(true)} />
           {rezept.anmerkungen?.trim() && (
             <div className="note-block">
               <div className="note-t">⚠️ WICHTIG</div>

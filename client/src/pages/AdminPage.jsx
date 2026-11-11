@@ -28,6 +28,7 @@ import LmivBlock from './admin/LmivBlock.jsx';
 import KostenBlock from './admin/KostenBlock.jsx';
 import KalkulationBlock from './admin/KalkulationBlock.jsx';
 import SortimentsKalkulationModal from './admin/SortimentsKalkulationModal.jsx';
+import GebaeckAufbau, { GebaeckVerwendungen } from '../components/GebaeckAufbau.jsx';
 import '../styles/baker.css';
 import '../styles/admin.css';
 
@@ -180,6 +181,7 @@ export default function AdminPage() {
         <button className="btn sortiment-open" onClick={() => setModal({ typ: 'sortiment' })}>
           <Euro size={17} /> Sortiment kalkulieren
         </button>
+        <button className="btn sortiment-open" onClick={() => setModal({ typ: 'gebaeckaufbau' })}>Gebäckaufbau & Allergene</button>
         <input
           type="search"
           placeholder="Suchen…"
@@ -328,6 +330,7 @@ export default function AdminPage() {
             onSave={(k) => speichereSettings({ kalkulation: k })}
           />
           <LmivBlock rezept={kennzahlenRezept} customZutaten={calculationIngredients} />
+          <GebaeckVerwendungen rezeptId={rezept.id} onOpen={() => setModal({ typ: 'gebaeckaufbau', rezeptId: rezept.id })} />
         </div>
       ) : (
         <div className="card">
@@ -336,6 +339,7 @@ export default function AdminPage() {
       )}
 
       {/* Modals */}
+      {modal?.typ === 'gebaeckaufbau' && <GebaeckAufbau rezeptId={modal.rezeptId} onClose={() => setModal(null)} onRezeptOpen={(id, variante) => { setSelectedId(id); setProduktAuswahl(variante || ''); setModal(null); }} />}
       {modal?.typ === 'sortiment' && <SortimentsKalkulationModal recipes={calculationRecipes} prices={eigenePreiseMap} settings={settings} onClose={() => setModal(null)} onSave={speichereSettings} />}
       {modal?.typ === 'rezept-neu' && (
         <RezeptEditorModal rezept={null} onClose={() => setModal(null)} onSave={(neu) => speichereRezept(neu, { istNeu: true })} />

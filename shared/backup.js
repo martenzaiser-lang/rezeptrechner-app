@@ -1,4 +1,5 @@
 import { isRecord, validateRecipe, validatePrices, validateCustomIngredient } from './validation.js';
+import { validateGebaeckaufbauten } from './gebaeckaufbau.js';
 export function makeBackup({ recipes, settings, prices, customIngredients }) {
   return { format: 'rezeptrechner-backup', schemaVersion: 2, exportiert: new Date().toISOString(),
     rezepte: recipes, cfg: settings, prices, customIngredients };
@@ -9,6 +10,7 @@ export function validateBackup(b) {
   const errors = b.rezepte.flatMap(validateRecipe);
   if (new Set(b.rezepte.map(r => r?.id)).size !== b.rezepte.length) errors.push('Doppelte Rezept-IDs.');
   if (b.cfg !== undefined && !isRecord(b.cfg)) errors.push('Ungültige Einstellungen.');
+  if (isRecord(b.cfg) && Object.hasOwn(b.cfg, 'gebaeckaufbauten')) errors.push(...validateGebaeckaufbauten(b.cfg.gebaeckaufbauten));
   if (b.prices !== undefined) errors.push(...validatePrices(b.prices));
   if (b.customIngredients !== undefined) {
     if (!Array.isArray(b.customIngredients)) errors.push('Ungültige eigene Zutaten.');

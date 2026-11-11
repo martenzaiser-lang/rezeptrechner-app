@@ -1,0 +1,66 @@
+Gebäckaufbau und Allergene
+=========================
+
+Die Verwaltung bietet unter „Gebäckaufbau & Allergene“ einen durchsuchbaren
+Katalog fertiger Gebäcke. Ein Grundrezept zeigt seine Verwendungen auch in
+der Backansicht. Bäckerrollen können den Aufbau lesen; Schreibzugriffe auf
+die Einstellungen bleiben auf Administratoren beschränkt.
+
+Datenhaltung
+------------
+Der Katalog liegt ausschließlich in der geschützten Einstellung
+settings.gebaeckaufbauten. Produktionsdaten, konkrete Zusammensetzungen,
+Lieferantendokumente und Sicherungen gehören nicht in das Git-Repository
+oder in das öffentlich ausgelieferte JavaScript.
+
+Schema: { schemaVersion: 1, produkte: [...] }
+Ein Produkt besitzt id, name und bestandteile. Optional sind hinweis,
+bestaetigtAm (YYYY-MM-DD), artikelnummern, imShop und offen.
+
+Ein Bestandteil verweist entweder mit typ: "rezept" und rezeptId auf ein
+Grundrezept oder mit typ: "zutat" und zutat auf einen Rohstoffnamen. Bei
+Rezepten mit Produktvarianten ist produktName ausdrücklich erforderlich.
+rolle und mengeHinweis sind reine Erläuterungen für die Anzeige.
+
+Die API und die vollständige Sicherungswiederherstellung prüfen das Schema.
+Der Katalog wird mit den Einstellungen zwischengespeichert und in den
+vorhandenen vollständigen Sicherungen mitgeführt. Der Browser zeigt ihn
+lesend an; die Pflege erfolgt derzeit über die geschützte Admin-API.
+
+Berechnung und Grenzen
+----------------------
+Enthaltene Allergene und mögliche Spuren werden bei jeder Änderung aus den
+aktuellen Rezepten und Rohstoffprofilen neu ermittelt. Exakt dieselbe
+Allergenart wird nicht zusätzlich als Spur ausgegeben. Unbestimmte Gruppen
+bleiben erhalten, wenn die Quelle weitere Arten nicht näher bezeichnet.
+
+Fehlende Rezepte, entfernte Varianten, unbekannte oder ungeprüfte Rohstoffe,
+unvollständige Zusammensetzungen und betriebliche offene Angaben verhindern
+die Anzeige „Allergene ermittelt“. Es gibt keinen stillen Rückfall auf eine
+andere Variante und keine Freigabe eines leeren Gebäcks als allergenfrei.
+
+Mengenhinweise werden weder ins Grundrezept geschrieben noch verrechnet.
+Die Allergenermittlung verwendet lediglich das bestätigte Vorhandensein
+eines Bestandteils. Für Nährwerte, Zutatenreihenfolge und Mengenanteile des
+fertigen Gebäcks werden weiterhin vollständige Mengen und die passende
+Bezugsbasis benötigt. Der Aufbau stellt diese Angaben nicht automatisch her.
+
+Eine Änderung im Gebäckaufbau aktualisiert die Anzeige in der Rezeptrechner-
+App. Sie schreibt nicht automatisch Allergen-Overrides im separaten Shop um.
+Shopangaben müssen nach Rezept-/Rohstoffänderungen ebenfalls geprüft werden.
+
+Prüfung vom 11.11.2026
+---------------------
+282 Client- und 41 Serverprüfungen erfolgreich, jeweils mit einem Worker.
+Zusätzliche Tests decken Referenzen, Varianten, Trennung von Spuren,
+unveränderte Quelldaten, dynamische Neuberechnung, Backup-Roundtrip,
+Schemafehler und Schreibschutz der Bäckerrollen ab.
+
+Playwright: Desktop und 390-Pixel-Ansicht, Suche nach Name/Artikelnummer,
+Rückverknüpfung zum Grundrezept, Verwendungsfilter, leere Ergebnisse,
+Schließen mit Escape und lesender Zugriff als Kuchenmacher geprüft.
+
+Der gesicherte Vorher-/Nachher-Abgleich bestätigt unveränderte Rezeptmengen,
+Produktionsparameter, bestehende Rohstoffwerte und Preise. Ergänzt wurden
+der eigenständige Katalog und neue Allergenprofile. Eine veraltete offene
+Rohstoffangabe wurde ausschließlich in einer Rezeptnotiz berichtigt.
