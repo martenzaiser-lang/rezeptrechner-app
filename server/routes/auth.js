@@ -5,8 +5,15 @@ import { z } from 'zod';
 import { findUserByEmail, verifyPassword } from '../services/auth-service.js';
 import { signLoginToken } from '../services/jwt-service.js';
 import { requireAuth } from '../middleware/auth.js';
+import { createMcpOwnerSession } from '../services/mcp-owner-session.cjs';
 
 export const authRouter = Router();
+
+authRouter.post('/mcp-owner-session', requireAuth, createMcpOwnerSession({
+  principal: req => req.authUser,
+  loadUser: findUserByEmail,
+  signToken: (owner, service) => signLoginToken({ ...owner, delegatedBy: service.id }),
+}));
 
 // Email maskieren fuer Logs (Datenminimierung).
 function maskEmail(email) {

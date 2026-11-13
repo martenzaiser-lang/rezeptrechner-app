@@ -6,9 +6,9 @@ import { config } from '../config.js';
 
 export function signLoginToken(user) {
   return jwt.sign(
-    { sub: user.id, email: user.email, role: user.role },
+    { sub: user.id, email: user.email, role: user.role, ...(user.delegatedBy ? { delegatedBy: user.delegatedBy } : {}) },
     config.JWT_SECRET,
-    { expiresIn: config.JWT_EXPIRES_IN }
+    { expiresIn: user.delegatedBy ? '1h' : config.JWT_EXPIRES_IN }
   );
 }
 

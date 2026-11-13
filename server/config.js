@@ -16,6 +16,9 @@ const schema = z.object({
   // Bedienungs-Schmerzpunkt laut Marten).
   JWT_EXPIRES_IN: z.string().default('30d'),
   CORS_ORIGIN: z.string().default('http://localhost:5174'),
+  // Private MCP-Delegation bleibt ohne beide Angaben deaktiviert.
+  MCP_SERVICE_EMAIL: z.union([z.literal(''), z.string().email()]).default(''),
+  MCP_DELEGATED_OWNER_EMAIL: z.union([z.literal(''), z.string().email()]).default(''),
   // Nur der gemeinsame Mittwald-Frontend-Start verwendet diesen Testhinweis.
   MIGRATION_TEST_MODE: z.enum(['true', 'false']).default('true').transform(value => value === 'true'),
 });

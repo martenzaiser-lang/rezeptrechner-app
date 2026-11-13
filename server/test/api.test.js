@@ -59,6 +59,37 @@ beforeEach(async () => {
 afterEach(() => vi.restoreAllMocks());
 afterAll(() => dbMock.pool.end());
 
+describe('MCP-Inhabersitzung und vollständiger Verlauf', () => {
+  it('delegiert nur das konfigurierte Dienstkonto; normales Admin- und Mitarbeiter-Login bleiben getrennt', async () => {
+    const serviceEmail='mcp-test@example.invalid';
+    await dbMock.pool.query('INSERT INTO users (email,password_hash,role) VALUES ($1,$2,$3)',[serviceEmail,await hashPassword('service-test-password'),'admin']);
+    vi.stubEnv('MCP_SERVICE_EMAIL',serviceEmail);vi.stubEnv('MCP_DELEGATED_OWNER_EMAIL',USERS[0].email);
+    try {
+      expect((await request(app).post('/api/auth/mcp-owner-session')).status).toBe(401);
+      for(const role of ['admin','teigmacher'])expect((await request(app).post('/api/auth/mcp-owner-session').set('Authorization','Bearer '+tokens[role])).status).toBe(403);
+      const serviceLogin=await request(app).post('/api/auth/login').send({email:serviceEmail,password:'service-test-password'});
+      const delegated=await request(app).post('/api/auth/mcp-owner-session').set('Authorization','Bearer '+serviceLogin.body.token).send({email:'attacker@example.invalid'});
+      expect(delegated.status).toBe(200);expect(delegated.body.user.email).toBe(USERS[0].email);
+      const claims=JSON.parse(Buffer.from(delegated.body.token.split('.')[1],'base64url'));
+      expect(claims.exp-claims.iat).toBe(3600);expect(claims.delegatedBy).toBeTruthy();
+      const me=await request(app).get('/api/auth/me').set('Authorization','Bearer '+delegated.body.token);
+      expect(me.body).toEqual({email:USERS[0].email,role:'admin'});
+      await dbMock.pool.query('UPDATE users SET role=$1 WHERE email=$2',['teigmacher',serviceEmail]);
+      expect((await request(app).post('/api/auth/mcp-owner-session').set('Authorization','Bearer '+serviceLogin.body.token)).status).toBe(403);
+    } finally {vi.unstubAllEnvs();await dbMock.pool.query('DELETE FROM users WHERE email=$1',[serviceEmail]);}
+  });
+  it('liest alle Historieneinträge ohne Lücken, auch wenn neue Einträge hinzukommen', async () => {
+    for(let i=0;i<5;i++)await dbMock.pool.query("INSERT INTO change_log(user_email,action,recipe_name) VALUES($1,'edit',$2)",[USERS[0].email,'Prüfrezept '+i]);
+    const getPage=beforeId=>request(app).get('/api/changelog').query({limit:2,...(beforeId?{beforeId}:{})}).set('Authorization','Bearer '+tokens.admin);
+    const first=await getPage();expect(first.status).toBe(200);
+    await dbMock.pool.query("INSERT INTO change_log(user_email,action) VALUES($1,'new')",[USERS[0].email]);
+    const second=await getPage(first.body.nextBeforeId),third=await getPage(second.body.nextBeforeId);
+    const ids=[...first.body.entries,...second.body.entries,...third.body.entries].map(row=>row.id);
+    expect(ids).toHaveLength(5);expect(new Set(ids).size).toBe(5);expect(third.body.nextBeforeId).toBeNull();
+    expect((await getPage('invalid')).status).toBe(400);
+  });
+});
+
 describe('Auth', () => {
   it('Login liefert Token und Rolle', async () => {
     const res = await request(app)

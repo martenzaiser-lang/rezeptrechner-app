@@ -35,7 +35,7 @@ app.use(express.json({ limit: '5mb' }));
 // Login-Bruteforce bremsen; normale API-Calls grosszuegig.
 // In Tests deaktiviert (parallele Requests wuerden das Limit reissen).
 if (config.NODE_ENV !== 'test') {
-  app.use('/api/auth/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 30 }));
+  app.use(['/api/auth/login','/api/auth/mcp-owner-session'], rateLimit({ windowMs: 15 * 60 * 1000, max: 30 }));
   app.use('/api/', rateLimit({ windowMs: 60 * 1000, max: 300 }));
 }
 
