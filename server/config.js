@@ -16,6 +16,8 @@ const schema = z.object({
   // Bedienungs-Schmerzpunkt laut Marten).
   JWT_EXPIRES_IN: z.string().default('30d'),
   CORS_ORIGIN: z.string().default('http://localhost:5174'),
+  // Nur der gemeinsame Mittwald-Frontend-Start verwendet diesen Testhinweis.
+  MIGRATION_TEST_MODE: z.enum(['true', 'false']).default('true').transform(value => value === 'true'),
 });
 
 const parsed = schema.safeParse(process.env);
