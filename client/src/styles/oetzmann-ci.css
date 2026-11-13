@@ -1,0 +1,147 @@
+/* Gemeinsame App-CI. Referenz: landbaeckerei-oetzmann.de, refinement.css.
+   Nur Bildschirmdarstellung; Fachfarben und Drucklayouts bleiben eigenständig. */
+@media screen {
+  :root {
+    --oe-brand: #51090c;
+    --oe-brand-hover: #701419;
+    --oe-paper: #faf5ec;
+    --oe-surface: #fffdf8;
+    --oe-ink: #382b23;
+    --oe-muted: #655243;
+    --oe-line: #dfcfba;
+    --oe-gold: #d7a94b;
+    --oe-on-brand: #fff9ed;
+    --oe-brand-soft: #f4e9e2;
+    --oe-glass: rgba(250, 245, 236, .96);
+    --oe-focus: #51090c;
+    --bg: var(--oe-paper);
+    --bg-subtle: #f1e8da;
+    --bg-elevated: var(--oe-surface);
+    --card: var(--oe-surface);
+    --text: var(--oe-ink);
+    --text-secondary: var(--oe-muted);
+    --muted: var(--oe-muted);
+    --accent: var(--oe-brand);
+    --accent-hover: var(--oe-brand-hover);
+    --accent-light: rgba(81, 9, 12, .08);
+    --accent-soft: var(--oe-brand-soft);
+    --secondary: #9d6b2b;
+    --secondary-light: rgba(157, 107, 43, .08);
+    --border: var(--oe-line);
+    --border-strong: #b9a58b;
+    --d1: var(--oe-brand);
+    --d2: var(--oe-brand-hover);
+    --d3: #9d6b2b;
+    --d4: var(--oe-gold);
+    --primary-shadow: rgba(81, 9, 12, .12);
+    --primary-shadow-soft: rgba(81, 9, 12, .05);
+    --glass-bg-header: var(--oe-glass);
+    --glass-bg-nav: var(--oe-glass);
+    --color-cream: var(--oe-paper);
+    --color-cream-light: var(--oe-surface);
+    --color-cream-dark: var(--bg-subtle);
+    --color-brown-900: var(--oe-ink);
+    --color-brown-700: var(--oe-brand);
+    --color-brown-500: var(--oe-muted);
+    --color-brown-300: #978574;
+    --color-brown-100: var(--oe-line);
+    --color-gold: var(--oe-gold);
+    --color-gold-light: #e7c788;
+    --color-gold-dark: #946126;
+    --glass-bg: var(--oe-glass);
+    --glass-border: var(--oe-line);
+    --backdrop-blur: blur(16px);
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-lg: 20px;
+  }
+  :root[data-theme="dark"] {
+    --oe-brand: #e9c180;
+    --oe-brand-hover: #f2d4a3;
+    --oe-paper: #211a17;
+    --oe-surface: #2d2520;
+    --oe-ink: #faf1e3;
+    --oe-muted: #d0beaa;
+    --oe-line: #554438;
+    --oe-on-brand: #2b1e11;
+    --oe-brand-soft: #3b2e24;
+    --oe-glass: rgba(33, 26, 23, .96);
+    --oe-focus: #e9c180;
+    --bg-subtle: #372c25;
+    --border-strong: #8a7460;
+    --accent-light: rgba(233, 193, 128, .12);
+    --color-brown-300: #aa927c;
+    --color-gold-dark: #e9c180;
+  }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-optical-sizing: auto;
+    line-height: 1.5;
+    background: var(--oe-paper);
+    color: var(--oe-ink);
+  }
+  body::before { display: none; }
+  button, input, select, textarea { font-family: inherit; }
+  :where(h1,h2,h3) { letter-spacing: -.025em; line-height: 1.2; text-wrap: balance; }
+  :is(.workspace-heading h1,.brand,.login-header .brand,.oe-login h1) { color: var(--oe-brand); }
+  :where(input,td,time,.teig-val,.zt-zutat-menge) { font-variant-numeric: tabular-nums; }
+  :where(button,a,input,select,textarea,summary):focus-visible {
+    outline: 3px solid var(--oe-focus);
+    outline-offset: 3px;
+  }
+  :where(button,a,input,select,textarea) { touch-action: manipulation; }
+  :where(button,.btn) { -webkit-tap-highlight-color: transparent; }
+  .btn { border-radius: 12px; min-height: 40px; line-height: 1.35; }
+  .btn-primary, .btn-primary:hover, .btn-primary:active,
+  .btn-primary:not(:disabled):hover,
+  .tab.active, .seg.active {
+    background: var(--oe-brand);
+    color: var(--oe-on-brand);
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .btn-primary:disabled { background: var(--oe-brand); color: var(--oe-on-brand); }
+  .btn:not(:disabled):hover { transform: none; }
+  .btn:not(:disabled):active { transform: scale(.98); transition-duration: 80ms; }
+  .card, .modal { background: var(--oe-surface); border-color: var(--oe-line); }
+  .card { box-shadow: 0 2px 8px rgba(56, 43, 35, .035); }
+  .card:hover { transform: none; background: var(--oe-surface); }
+  .card::before { display: none; }
+  .app-header, .bottom-nav {
+    background: var(--oe-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-color: var(--oe-line);
+  }
+  .login-page { min-height: 100dvh; background: var(--oe-paper); }
+  .login-card { border-radius: 20px; box-shadow: 0 10px 40px rgba(56,43,35,.065); }
+  .login-card input { min-height: 48px; }
+  .login-card .btn-primary { min-height: 48px; }
+  .login-logo { max-width: 170px; }
+  :root:not([data-theme="dark"]) :is(.brand-logo,.login-logo) { mix-blend-mode: multiply; }
+  .app-main, .app-main > *, .app-main .card { animation: none; }
+  input::placeholder, textarea::placeholder { color: var(--oe-muted); opacity: .9; }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:not(:disabled):hover { background: var(--oe-brand-hover); }
+  }
+  @media (pointer: coarse) {
+    .btn, .tab, .seg { min-height: 44px; }
+  }
+  @media (max-width: 600px) {
+    input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px; }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    :root { --oe-glass: var(--oe-paper); --backdrop-blur: none; }
+    .app-header, .bottom-nav, .modal { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  }
+  @media (prefers-contrast: more) {
+    :root { --oe-line: #7b6652; --oe-muted: #382b23; --oe-glass: var(--oe-paper); }
+    :root[data-theme="dark"] { --oe-line: #c7b299; --oe-muted: #faf1e3; }
+    .card, .modal { border: 1px solid var(--oe-line); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    .btn:not(:disabled):active, .btn:not(:disabled):hover { transform: none; }
+  }
+}

@@ -1,5 +1,15 @@
 # CLAUDE.md — Rezeptrechner-Neuaufbau
 
+## Produktivbetrieb seit 13.11.2026
+
+Frontend und API laufen gemeinsam auf Mittwald, PostgreSQL 18.6 im privaten Mittwald-Netz. Für Produktionsbuilds `VITE_API_URL=''` setzen: alle API-Aufrufe verwenden dieselbe Domain. Git-Push allein veröffentlicht keine Mittwald-Version. Erst prüfen, dann das gebaute Frontend einschließlich alter Hash-Assets ausrollen und den verwalteten Node-Prozess einmal neu starten. Die bisherigen Render-Dienste sind nur Übergangsweiterleitungen, Auto-Deploy ist aus. Die alten Neon-Datenbanken sind schreibgeschützt. Sie nicht für Entwicklung oder Produktion reaktivieren.
+
+Die gemeinsame Bildschirmgestaltung liegt in `src/styles/oetzmann-ci.css` des Clients. Maßgeblich ist landbaeckerei-oetzmann.de: Burgunder #51090c, Papier #faf5ec, Text #382b23; klare Systemschrift, sichtbarer Fokus, reduzierte Bewegung. Fachliche Statusfarben und Drucklayouts bleiben erhalten.
+
+Adresse: https://teigmaster.gasthaus-zur-eiche.net
+
+Die folgenden ursprünglichen Hosting-Angaben sind historisch; für Deployments gilt der Absatz oben.
+
 Rezeptrechner der Landbäckerei Oetzmann: React-Client (Netlify),
 Express-API (Render Free-Tier — schläft nach 15 min!), PostgreSQL bei
 Neon (eigene DB `rezeptrechner` im bestehenden Neon-Projekt).

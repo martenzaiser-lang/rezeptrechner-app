@@ -8,6 +8,7 @@ import './styles/theme.css';
 import './styles/refresh-v3.css';
 // Eigene Politur (rundere Formen, Mikro-Animationen) — NACH refresh-v3.
 import './styles/polish.css';
+import './styles/oetzmann-ci.css';
 
 // Theme aus localStorage anwenden BEVOR React rendert — verhindert Flackern.
 try {
